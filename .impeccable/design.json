@@ -1,0 +1,314 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-11T17:42:20.704Z",
+  "title": "Design System: Queens 皇后解謎",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "紙 Paper",
+        "canonical": "#f6f3ee",
+        "tonalRamp": [
+          "#2b2925",
+          "#45423c",
+          "#625e56",
+          "#827d73",
+          "#a39d92",
+          "#c4bfb5",
+          "#e2ddd4",
+          "#f6f3ee"
+        ]
+      },
+      "card-white": {
+        "role": "neutral",
+        "displayName": "卡片白 Card White",
+        "canonical": "#ffffff"
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "墨 Ink",
+        "canonical": "#22201c"
+      },
+      "pencil-gray": {
+        "role": "neutral",
+        "displayName": "鉛筆灰 Pencil Gray",
+        "canonical": "#6b665d"
+      },
+      "ink-line": {
+        "role": "neutral",
+        "displayName": "墨線 Ink Line",
+        "canonical": "#2a2723"
+      },
+      "ink-blue": {
+        "role": "primary",
+        "displayName": "墨藍 Ink Blue",
+        "canonical": "#3d5a80",
+        "tonalRamp": [
+          "#141e2b",
+          "#223246",
+          "#304763",
+          "#3d5a80",
+          "#5a77a0",
+          "#8fb0d9",
+          "#bfd2ea",
+          "#e6eef8"
+        ]
+      },
+      "error-red": {
+        "role": "error",
+        "displayName": "錯誤紅 Error Red",
+        "canonical": "#c62828"
+      },
+      "region-rose": {
+        "role": "region",
+        "displayName": "玫瑰"
+      },
+      "region-sky": {
+        "role": "region",
+        "displayName": "天空"
+      },
+      "region-sprout": {
+        "role": "region",
+        "displayName": "新芽"
+      },
+      "region-butter": {
+        "role": "region",
+        "displayName": "奶油"
+      },
+      "region-lilac": {
+        "role": "region",
+        "displayName": "丁香"
+      },
+      "region-apricot": {
+        "role": "region",
+        "displayName": "杏"
+      },
+      "region-mint": {
+        "role": "region",
+        "displayName": "薄荷"
+      },
+      "region-blush": {
+        "role": "region",
+        "displayName": "腮紅"
+      },
+      "region-stone": {
+        "role": "region",
+        "displayName": "石"
+      },
+      "accent-deep": {
+        "role": "primary",
+        "displayName": "深墨藍 Accent Deep",
+        "canonical": "#2c4260"
+      },
+      "seal-cinnabar": {
+        "role": "tertiary",
+        "displayName": "印泥朱 Seal Cinnabar",
+        "canonical": "#a9443b"
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "關卡列表頁標題"
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "遊戲頁「第 N 關」"
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "按鈕與一般文字"
+      },
+      "rules": {
+        "displayName": "Rules",
+        "purpose": "直書規則旁註"
+      },
+      "pack-heading": {
+        "displayName": "Pack Heading",
+        "purpose": "關卡列表的尺寸組標題，如「6×6」"
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "尺寸組標題右側的進度「已完成 n / 10」"
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "所有狀態轉換的預設 easing"
+      },
+      {
+        "name": "press",
+        "value": "90ms, translateY(2px)",
+        "purpose": "紙卡按下"
+      },
+      {
+        "name": "ink",
+        "value": "180ms, scale 1.35 → 1",
+        "purpose": "皇后落章"
+      },
+      {
+        "name": "queen-stamp",
+        "value": "300ms, 間隔 90ms",
+        "purpose": "過關時皇后依序蓋印"
+      },
+      {
+        "name": "seal",
+        "value": "420ms, scale 1.8 → 1, rotate -14deg",
+        "purpose": "過關印章"
+      },
+      {
+        "name": "rise",
+        "value": "360ms, translateY 6px → 0",
+        "purpose": "過關面板出現"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "desktop",
+        "value": "760px"
+      }
+    ],
+    "darkMode": {
+      "paper": "#171614",
+      "card-white": "#24221f",
+      "ink": "#ece8e1",
+      "pencil-gray": "#a39d92",
+      "ink-line": "#0b0a09",
+      "ink-blue": "#8fb0d9",
+      "ink-blue-text": "#10151c",
+      "error-red": "#ff6b6b",
+      "queen-ink": "#141311",
+      "regions": [
+        "#b45f66",
+        "#6f93b7",
+        "#84a46a",
+        "#bba15a",
+        "#9481b2",
+        "#c7823f",
+        "#5f9f93",
+        "#ab7598",
+        "#96958a"
+      ],
+      "seal-cinnabar": "#c46a5c"
+    }
+  },
+  "components": [
+    {
+      "name": "Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "預設按鈕：上一步、重來、回關卡列表。",
+      "html": "<button class=\"ds-btn\">上一步</button>",
+      "css": ".ds-btn { font: inherit; font-size: 1rem; min-height: 44px; min-width: 108px; padding: 0 18px; border: 1.5px solid rgba(42,39,35,0.18); border-bottom-width: 3.5px; transition: transform 90ms cubic-bezier(0.16,1,0.3,1); border-radius: 10px; background: #fff; color: #22201c; cursor: pointer; } .ds-btn:hover { border-color: #6b665d; } .ds-btn:focus-visible { outline: 3px solid #3d5a80; outline-offset: 2px; } .ds-btn:active { border-bottom-width: 1.5px; transform: translateY(2px); border-color: #6b665d; }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "唯一的主要動作：過關後的「下一關」。",
+      "html": "<button class=\"ds-btn-primary\">下一關</button>",
+      "css": ".ds-btn-primary { font: inherit; font-size: 1rem; min-height: 44px; padding: 0 18px; border: 1.5px solid #3d5a80; border-radius: 10px; background: #3d5a80; color: #fff; cursor: pointer; } .ds-btn-primary:focus-visible { outline: 3px solid #3d5a80; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "nav",
+      "refersTo": "button-ghost",
+      "description": "標題列的返回鍵。",
+      "html": "<button class=\"ds-btn-ghost\">‹ 關卡</button>",
+      "css": ".ds-btn-ghost { font: inherit; font-size: 1rem; min-height: 44px; width: 72px; padding: 0 8px; text-align: left; border: 1.5px solid transparent; border-radius: 10px; background: transparent; color: #22201c; cursor: pointer; } .ds-btn-ghost:focus-visible { outline: 3px solid #3d5a80; outline-offset: 2px; }"
+    },
+    {
+      "name": "Level Tile",
+      "kind": "card",
+      "refersTo": "level-tile",
+      "description": "關卡列表的正方形關卡格，只顯示編號；已完成時墨藍邊框加 ✓。",
+      "html": "<button class=\"ds-level ds-solved\"><span class=\"ds-num\">3</span></button>",
+      "css": ".ds-level { position: relative; width: 64px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font: inherit; border: 1.5px solid rgba(42,39,35,0.18); border-radius: 12px; background: #fff; color: #22201c; cursor: pointer; } .ds-level:hover { border-color: #6b665d; } .ds-level:focus-visible { outline: 3px solid #3d5a80; outline-offset: 2px; } .ds-num { font-size: 1.5rem; font-weight: 700; line-height: 1.1; } .ds-solved { border-color: #3d5a80; } .ds-solved::after { content: \"✓\"; position: absolute; top: 4px; right: 8px; color: #3d5a80; font-weight: 700; }"
+    },
+    {
+      "name": "Level Pack",
+      "kind": "custom",
+      "description": "一個尺寸一組：標題列左邊是尺寸、右邊是進度，下面接 5 欄關卡格。",
+      "html": "<section class=\"ds-pack\"><h2>6×6 <span class=\"ds-progress\">已完成 3 / 10</span></h2><div class=\"ds-pack-grid\"><i class=\"ds-solved\">1</i><i class=\"ds-solved\">2</i><i class=\"ds-solved\">3</i><i>4</i><i class=\"ds-locked\">5</i></div></section>",
+      "css": ".ds-pack { width: 340px; color: #22201c; } .ds-pack h2 { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 10px; font-size: 1.15rem; } .ds-progress { font-size: 0.85rem; font-weight: 400; color: #6b665d; } .ds-pack-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; } .ds-pack-grid i { font-style: normal; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; border: 1.5px solid rgba(42,39,35,0.18); border-radius: 12px; background: #fff; } .ds-pack-grid .ds-solved { border-color: #3d5a80; } .ds-pack-grid .ds-locked { opacity: 0.35; }"
+    },
+    {
+      "name": "Rules Marginalia",
+      "kind": "custom",
+      "refersTo": "rules-card",
+      "description": "直書規則旁註，系統的招牌元件。",
+      "html": "<section class=\"ds-rules\"><p>每一列、每一行、每個色塊<strong>恰好一個</strong>皇后。</p><p>任兩個皇后<strong>不可相鄰</strong>，斜角也不行。</p><p class=\"ds-hint\">點一下標 ✕，再點一下放皇后。</p></section>",
+      "css": ".ds-rules { writing-mode: vertical-rl; height: 10.5em; padding: 14px 12px; background: #fff; color: #22201c; border-radius: 12px; line-height: 1.8; letter-spacing: 0.05em; } .ds-rules p { margin: 0 0 0 0.6em; } .ds-hint { color: #6b665d; font-size: 0.9rem; }"
+    },
+    {
+      "name": "Board",
+      "kind": "custom",
+      "description": "印在紙上的謎題頁：粉彩色塊、墨線邊界。",
+      "html": "<div class=\"ds-board\"><i style=\"background:#ec9496\"></i><i style=\"background:#ec9496\"></i><i style=\"background:#b5d4f0\"></i><i style=\"background:#c6e3ac\"></i><i style=\"background:#f5da94\"></i><i style=\"background:#b5d4f0\"></i><i style=\"background:#c6e3ac\"></i><i style=\"background:#f5da94\"></i><i style=\"background:#f5da94\"></i></div>",
+      "css": ".ds-board { display: grid; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px); border: 2px solid #2a2723; border-radius: 6px; overflow: hidden; width: max-content; } .ds-board i { box-shadow: inset 0 0 0 0.5px rgba(42,39,35,0.18); }"
+    },
+    {
+      "name": "Win Stamp",
+      "kind": "custom",
+      "description": "過關時蓋在棋盤右下角的印泥朱印章。",
+      "html": "<div class=\"ds-seal\"><span>過關</span></div>",
+      "css": ".ds-seal { position: relative; display: grid; place-items: center; width: 92px; aspect-ratio: 1; border: 3px solid #a9443b; border-radius: 50%; color: #a9443b; font-size: 1.35rem; font-weight: 800; letter-spacing: 0.12em; text-indent: 0.12em; transform: rotate(-14deg); opacity: 0.9; } .ds-seal::before { content: ''; position: absolute; inset: 4px; border: 1px solid currentColor; border-radius: 50%; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "紙上謎題本",
+    "overview": "這套系統的意象是一本放在手邊的謎題小冊。米白紙底、墨色粗線、粉彩色塊，棋盤就是印在紙上的那一頁。所有介面都是這本冊子的延伸：按鈕和關卡格是夾在書頁間的小卡片，規則用直書排在頁邊，像書頁上的旁註。畫面密度低，一次只做一件事，棋盤佔據視覺重心。元件要有實體觸感，像桌遊配件；目前實作仍是平面的，是設計目標和現況之間的落差。",
+    "keyCharacteristics": [
+      "米白紙底配墨色線條，深色模式是「夜間閱讀的紙」，不是螢光螢幕。",
+      "九色粉彩色塊是唯一大面積的色彩來源。",
+      "墨藍是唯一的強調色，只用在主要動作、焦點環和已完成標記。",
+      "直書規則旁註是這套系統的招牌。",
+      "系統字體堆疊，沒有自訂字體，維持零建置。"
+    ],
+    "rules": [
+      {
+        "name": "The One Ink Rule",
+        "body": "墨藍是唯一的介面強調色，只能用在主要動作、焦點和完成狀態。唯一的例外是過關印章的印泥朱，它只出現在蓋章那一刻。",
+        "section": "colors"
+      },
+      {
+        "name": "The Regions Own Color Rule",
+        "body": "大面積的色彩只屬於棋盤色塊。介面元件一律用紙、白、墨，不能跟色塊搶顏色。",
+        "section": "colors"
+      },
+      {
+        "name": "The Night Paper Rule",
+        "body": "深色模式是調暗的紙，不是霓虹螢幕。不能加發光、光暈或高飽和的色彩。",
+        "section": "colors"
+      },
+      {
+        "name": "The Marginalia Rule",
+        "body": "規則一律直書、由右往左換行，像書頁旁註。手機版收成棋盤下方一張可翻開的「規則」頁邊籤，還沒破過任何一關時預設展開；桌面版一律展開，放在棋盤右側，頂端和棋盤上緣對齊。",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Page Rule",
+        "body": "書頁上的東西都是平的，不用投影。實體觸感一律用底緣邊框厚度、按壓位移和邊框加深來表現。",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do 把顏色留給棋盤色塊，介面元件只用紙、白、墨，強調色只用墨藍。",
+      "Do 規則維持直書旁註，桌面版頂端要和棋盤上緣對齊。",
+      "Do 所有可點擊元素最矮 44px，焦點用 3px 墨藍外框。",
+      "Do 狀態不只靠顏色，例如衝突要加斜紋。",
+      "Do 實體觸感用底緣邊框厚度、按壓位移、邊框變化這類「紙卡被按下」的回饋。",
+      "Do 重要時刻用「蓋章」語言收尾，讓盤面留在畫面上，不要用遮罩蓋住。",
+      "Do 深色模式和淺色模式同步調整，每個色票都要有對應的深色值。"
+    ],
+    "donts": [
+      "Don't 加入手遊風的花俏特效，例如金幣、爆炸、閃光、彩帶。",
+      "Don't 做成科技風的深色霓虹，例如發光、光暈、高飽和螢光色。",
+      "Don't 加投影或用全螢幕遮罩對話框蓋住盤面。",
+      "Don't 引入需要建置的自訂字體或 CSS 框架。"
+    ]
+  }
+}
