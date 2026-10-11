@@ -1,0 +1,9 @@
+{
+  "name": "queens-game",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "verify": "node scripts/verify-puzzles.js"
+  }
+}
