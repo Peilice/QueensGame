@@ -1,0 +1,251 @@
+:root {
+  --bg: #f6f3ee;
+  --surface: #ffffff;
+  --text: #22201c;
+  --muted: #6b665d;
+  --line: #2a2723;
+  --grid: rgba(42, 39, 35, 0.18);
+  --accent: #3d5a80;
+  --accent-text: #ffffff;
+  --danger: #c62828;
+  --queen: #1f1d1a;
+
+  /* 色塊配色：柔和、彼此區分度高 */
+  --r0: #f2b5ad;
+  --r1: #b5d4f0;
+  --r2: #c6e3ac;
+  --r3: #f5da94;
+  --r4: #d2bfea;
+  --r5: #f4bf94;
+  --r6: #a6ddd2;
+  --r7: #e8b5d4;
+  --r8: #d4d3c4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171614;
+    --surface: #24221f;
+    --text: #ece8e1;
+    --muted: #a39d92;
+    --line: #0b0a09;
+    --grid: rgba(0, 0, 0, 0.28);
+    --accent: #8fb0d9;
+    --accent-text: #10151c;
+    --danger: #ff6b6b;
+    --queen: #141311;
+
+    --r0: #b9746c;
+    --r1: #6f93b7;
+    --r2: #84a46a;
+    --r3: #bba15a;
+    --r4: #9481b2;
+    --r5: #bb8559;
+    --r6: #5f9f93;
+    --r7: #ab7598;
+    --r8: #96958a;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  line-height: 1.5;
+}
+
+main {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 16px 16px calc(24px + env(safe-area-inset-bottom));
+}
+
+[hidden] { display: none !important; }
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  margin-bottom: 12px;
+}
+
+.top h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+}
+
+#game-view .top h1 { flex: 1; text-align: center; font-size: 1.25rem; }
+.top .spacer { width: 72px; }
+
+/* ---------- 按鈕 ---------- */
+
+.btn {
+  font: inherit;
+  font-size: 1rem;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1.5px solid var(--grid);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.btn.ghost { border-color: transparent; background: transparent; padding: 0 8px; width: 72px; text-align: left; }
+
+/* ---------- 規則說明 ---------- */
+
+.rules {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+.rules p { margin: 0.25em 0; }
+.rules ul { margin: 0.25em 0 0.5em; padding-left: 1.25em; }
+.rules .hint { color: var(--muted); font-size: 0.9rem; }
+
+/* ---------- 關卡列表 ---------- */
+
+.level-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 10px;
+}
+
+.level {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  border: 1.5px solid var(--grid);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.level .num { font-size: 1.5rem; font-weight: 700; line-height: 1.1; }
+.level .size { font-size: 0.8rem; color: var(--muted); }
+.level:hover:not(:disabled) { border-color: var(--muted); }
+.level:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.level:disabled { opacity: 0.35; cursor: default; }
+.level.solved { border-color: var(--accent); }
+.level.solved::after {
+  content: "✓";
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ---------- 棋盤 ---------- */
+
+.board {
+  --n: 6;
+  display: grid;
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--n), minmax(0, 1fr));
+  width: min(100%, 520px);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.cell {
+  --b: 1.5px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--region);
+  box-shadow: inset 0 0 0 0.5px var(--grid);
+  cursor: pointer;
+}
+
+/* 色塊邊界：疊在格子上的粗線，不影響格子尺寸；相鄰兩格各畫一半 */
+.cell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.cell.bt::after { border-top: var(--b) solid var(--line); }
+.cell.bb::after { border-bottom: var(--b) solid var(--line); }
+.cell.bl::after { border-left: var(--b) solid var(--line); }
+.cell.br::after { border-right: var(--b) solid var(--line); }
+
+.cell svg { width: 58%; height: 58%; pointer-events: none; }
+.cell.mark svg { width: 34%; height: 34%; fill: none; stroke: var(--queen); stroke-width: 2.5; stroke-linecap: round; opacity: 0.6; }
+.cell.queen svg { fill: var(--queen); }
+
+.cell.conflict {
+  background-image: repeating-linear-gradient(45deg, transparent 0 5px, rgba(198, 40, 40, 0.28) 5px 10px);
+}
+.cell.conflict svg { fill: var(--danger); }
+
+.board.locked .cell { cursor: default; }
+
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+.controls .btn { min-width: 108px; }
+
+/* ---------- 過關畫面 ---------- */
+
+.win {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.35);
+  animation: fade 0.2s ease-out;
+}
+
+.win-card {
+  width: min(100%, 320px);
+  padding: 28px 24px 24px;
+  border-radius: 16px;
+  background: var(--surface);
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  animation: pop 0.25s ease-out;
+}
+.win-card h2 { margin: 0 0 20px; font-size: 1.75rem; }
+.win-actions { display: flex; flex-direction: column; gap: 10px; }
+
+@keyframes fade { from { opacity: 0; } }
+@keyframes pop { from { transform: scale(0.92); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .win, .win-card { animation: none; }
+}

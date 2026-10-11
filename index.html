@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>Queens 皇后解謎</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="src/main.js"></script>
+</head>
+<body>
+  <main id="levels-view" hidden>
+    <header class="top">
+      <h1>Queens</h1>
+    </header>
+    <section class="rules">
+      <p>在棋盤上放置皇后：</p>
+      <ul>
+        <li>每一列、每一行、每個色塊<strong>恰好一個</strong>皇后</li>
+        <li>任兩個皇后<strong>不可相鄰</strong>，斜角也不行</li>
+      </ul>
+      <p class="hint">點一下標 ✕，再點一下放皇后，再點一下清空。按住拖曳可連續標 ✕。</p>
+    </section>
+    <ol id="level-list" class="level-list"></ol>
+  </main>
+
+  <main id="game-view" hidden>
+    <header class="top">
+      <button type="button" id="back" class="btn ghost" aria-label="回關卡列表">‹ 關卡</button>
+      <h1 id="level-title"></h1>
+      <span class="spacer"></span>
+    </header>
+    <div id="board" class="board"></div>
+    <div class="controls">
+      <button type="button" id="undo" class="btn">復原</button>
+      <button type="button" id="reset" class="btn">重來</button>
+    </div>
+  </main>
+
+  <div id="win" class="win" hidden>
+    <div class="win-card" role="dialog" aria-modal="true" aria-labelledby="win-title">
+      <h2 id="win-title">過關！</h2>
+      <div class="win-actions">
+        <button type="button" id="win-next" class="btn primary">下一關</button>
+        <button type="button" id="win-list" class="btn">回關卡列表</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
