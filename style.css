@@ -142,6 +142,7 @@ main {
     order: 0;
     height: 520px;
     align-self: flex-start;
+    margin-top: 56px; /* 與棋盤頂端對齊：按鈕高 44px + 間距 12px */
     font-size: 1.05rem;
   }
 }
@@ -244,7 +245,7 @@ main {
   display: flex;
   justify-content: center;
   gap: 12px;
-  margin-top: 20px;
+  margin-bottom: 12px;
 }
 .controls .btn { min-width: 108px; }
 
