@@ -7,6 +7,11 @@ const $ = (id) => document.getElementById(id);
 
 const QUEEN_SVG =
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l4.5 4L12 4l4.5 8L21 8l-2 11H5z"/><rect x="5" y="20" width="14" height="2" rx="1"/></svg>';
+// 關卡格右上角的狀態小圖示：同一套線條粗細
+const CHECK_SVG =
+  '<svg class="badge" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
+const LOCK_SVG =
+  '<svg class="badge" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
 const MARK_SVG =
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>';
 
@@ -51,6 +56,9 @@ function showLevels() {
   $('levels-view').hidden = false;
 
   const all = storage.getSolved();
+  const boards = storage.getBoards();
+  const started = (id) => boards[id]?.some((v) => v !== 0) ?? false;
+
   $('level-packs').replaceChildren(
     ...Object.keys(PUZZLES).map((key) => {
       const size = Number(key);
@@ -71,12 +79,17 @@ function showLevels() {
           btn.type = 'button';
           btn.className = 'level';
           const unlocked = isUnlocked(i, solved);
+          const done = solved.has(i);
+          const inProgress = !done && started(levelId(size, i));
           btn.disabled = !unlocked;
-          if (solved.has(i)) btn.classList.add('solved');
-          btn.innerHTML = `<span class="num">${i + 1}</span>`;
+          btn.classList.toggle('solved', done);
+          btn.classList.toggle('started', inProgress);
+          // 每組最前面那一關還沒破的，就是這一組的「下一關」
+          btn.classList.toggle('next', unlocked && !done && (i === 0 || solved.has(i - 1)));
+          btn.innerHTML = `<span class="num">${i + 1}</span>${done ? CHECK_SVG : unlocked ? '' : LOCK_SVG}`;
           btn.setAttribute(
             'aria-label',
-            `${label} 第 ${i + 1} 關${solved.has(i) ? '，已完成' : unlocked ? '' : '，未解鎖'}`,
+            `${label} 第 ${i + 1} 關${done ? '，已完成' : inProgress ? '，玩到一半' : unlocked ? '' : '，未解鎖'}`,
           );
           btn.addEventListener('click', () => go({ size, index: i }));
           li.append(btn);

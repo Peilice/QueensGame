@@ -42,3 +42,9 @@ export function clearBoard(level) {
   delete data.boards[level];
   save(data);
 }
+
+/** 所有未完成盤面，以關卡 id 為 key */
+export function getBoards() {
+  return load().boards;
+}
+
