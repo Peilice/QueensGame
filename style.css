@@ -107,16 +107,19 @@ main {
 /* ---------- 遊戲版面：手機規則在棋盤上方，桌面在棋盤右方 ---------- */
 
 .play {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "rules" "controls" "board";
+  justify-items: center;
+  gap: 12px;
 }
-.board-area { width: 100%; }
+.play .controls { grid-area: controls; }
+.play .board { grid-area: board; }
 
 /* 規則：直書，由右往左換行 */
 .rules {
-  order: -1;
+  grid-area: rules;
+  margin-bottom: 4px;
   writing-mode: vertical-rl;
   height: 10.5em;
   max-width: 100%;
@@ -132,17 +135,17 @@ main {
 
 @media (min-width: 760px) {
   #game-view { max-width: 760px; }
+  /* 規則與棋盤同一列，頂端自然對齊 */
   .play {
-    flex-direction: row;
-    align-items: stretch;
+    grid-template-columns: 520px auto;
+    grid-template-areas: "controls ." "board rules";
     justify-content: center;
+    column-gap: 16px;
   }
-  .board-area { width: min(100%, 520px); flex: none; }
   .rules {
-    order: 0;
     height: 520px;
-    align-self: flex-start;
-    margin-top: 56px; /* 與棋盤頂端對齊：按鈕高 44px + 間距 12px */
+    margin: 0;
+    align-self: start;
     font-size: 1.05rem;
   }
 }
@@ -245,7 +248,6 @@ main {
   display: flex;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 12px;
 }
 .controls .btn { min-width: 108px; }
 
