@@ -13,7 +13,7 @@ LinkedIn Queens 風格的邏輯解謎遊戲，純 HTML／CSS／JavaScript，不�
 - 按住拖曳可連續標 ✕（只會標在空格上）
 - 「上一步」可撤銷上一個操作（一次拖曳、一次重來都算一步）
 
-關卡依序解鎖，進度與未完成的盤面存在瀏覽器的 `localStorage`。
+關卡依棋盤尺寸分成 6×6、7×7、8×8、9×9 四組，每組 10 關，由易到難排列。各組獨立解鎖，可直接從任一尺寸的第 1 關開始；組內須破前一關才能玩下一關。進度與未完成的盤面存在瀏覽器的 `localStorage`。
 
 ## 本機執行
 
@@ -42,14 +42,14 @@ style.css              樣式（含深色模式）
 src/rules.js           規則判定：衝突偵測、過關判定
 src/solver.js          回溯解題器
 src/game.js            盤面狀態、Undo、解鎖規則
-src/puzzles.js         題庫（每題 N 個字串，字元代表色塊）
+src/puzzles.js         題庫（依尺寸分組，每題 N 個字串，字元代表色塊）
 src/storage.js         localStorage 進度存取
 src/main.js            畫面與操作
 scripts/verify-puzzles.js  題庫驗證
 test/                  node --test 單元測試
 ```
 
-新增題目時，加到 `src/puzzles.js` 後執行 `npm run verify` 確認為唯一解。
+新增題目時，加到 `src/puzzles.js` 對應尺寸的陣列後執行 `npm run verify` 確認為唯一解。
 
 ## 部署到 GitHub Pages
 

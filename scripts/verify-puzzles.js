@@ -28,23 +28,30 @@ export function isContiguous(puzzle) {
 }
 
 export function verifyAll() {
-  return PUZZLES.map((rows, level) => {
-    try {
-      const puzzle = parsePuzzle(rows);
-      if (!isContiguous(puzzle)) return { level, error: '色塊不連通' };
-      const n = countSolutions(puzzle, 2);
-      if (n !== 1) return { level, error: n === 0 ? '無解' : '多於一個解' };
-      return { level, error: null };
-    } catch (e) {
-      return { level, error: e.message };
-    }
-  });
+  const seen = new Set();
+  return Object.entries(PUZZLES).flatMap(([size, list]) =>
+    list.map((rows, i) => {
+      const level = `${size}×${size} 第 ${i + 1} 關`;
+      try {
+        if (rows.length !== Number(size)) return { level, error: `尺寸不是 ${size}×${size}` };
+        if (seen.has(rows.join())) return { level, error: '與其他關卡重複' };
+        seen.add(rows.join());
+        const puzzle = parsePuzzle(rows);
+        if (!isContiguous(puzzle)) return { level, error: '色塊不連通' };
+        const n = countSolutions(puzzle, 2);
+        if (n !== 1) return { level, error: n === 0 ? '無解' : '多於一個解' };
+        return { level, error: null };
+      } catch (e) {
+        return { level, error: e.message };
+      }
+    }),
+  );
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const results = verifyAll();
   for (const { level, error } of results) {
-    console.log(`第 ${level + 1} 關：${error ?? 'OK'}`);
+    console.log(`${level}：${error ?? 'OK'}`);
   }
   process.exit(results.some((r) => r.error) ? 1 : 0);
 }

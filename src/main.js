@@ -10,69 +10,99 @@ const QUEEN_SVG =
 const MARK_SVG =
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>';
 
-let level = null;
+let level = null; // { size, index }
 let game = null;
 let cells = [];
+let winTimers = [];
 
-// ---------- 路由：#3 代表第 3 關，空白代表關卡列表 ----------
+const desktop = matchMedia('(min-width: 760px)');
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+const levelId = (size, index) => `${size}-${index + 1}`;
+
+/** 某尺寸已破關的索引集合 */
+function solvedIn(size, solved = storage.getSolved()) {
+  return new Set(PUZZLES[size].flatMap((_, i) => (solved.has(levelId(size, i)) ? [i] : [])));
+}
+
+// ---------- 路由：#6-3 代表 6×6 第 3 關，空白代表關卡列表 ----------
 
 function route() {
-  const n = Number(location.hash.slice(1));
+  const [, size, n] = location.hash.match(/^#(\d+)-(\d+)$/) ?? [];
   const index = n - 1;
-  if (Number.isInteger(n) && index >= 0 && index < PUZZLES.length && isUnlocked(index, storage.getSolved())) {
-    openLevel(index);
+  if (PUZZLES[size] && index >= 0 && index < PUZZLES[size].length && isUnlocked(index, solvedIn(size))) {
+    openLevel(Number(size), index);
   } else {
     if (location.hash) history.replaceState(null, '', location.pathname);
     showLevels();
   }
 }
 
-function go(index) {
-  location.hash = index === null ? '' : String(index + 1);
+function go(target) {
+  location.hash = target === null ? '' : levelId(target.size, target.index);
 }
 
 // ---------- 關卡列表 ----------
 
 function showLevels() {
   level = game = null;
-  $('win').hidden = true;
+  clearWin();
   $('game-view').hidden = true;
   $('levels-view').hidden = false;
 
-  const solved = storage.getSolved();
-  const list = $('level-list');
-  list.replaceChildren(
-    ...PUZZLES.map((rows, i) => {
-      const li = document.createElement('li');
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'level';
-      const unlocked = isUnlocked(i, solved);
-      btn.disabled = !unlocked;
-      if (solved.has(i)) btn.classList.add('solved');
-      btn.innerHTML = `<span class="num">${i + 1}</span><span class="size">${rows.length}×${rows.length}</span>`;
-      btn.setAttribute(
-        'aria-label',
-        `第 ${i + 1} 關，${rows.length}×${rows.length}${solved.has(i) ? '，已完成' : unlocked ? '' : '，未解鎖'}`,
+  const all = storage.getSolved();
+  $('level-packs').replaceChildren(
+    ...Object.keys(PUZZLES).map((key) => {
+      const size = Number(key);
+      const solved = solvedIn(size, all);
+      const section = document.createElement('section');
+      section.className = 'pack';
+      const label = `${size}×${size}`;
+      const h2 = document.createElement('h2');
+      // 中間的空白讓樣式未套用或螢幕報讀時不會黏成「6×60 / 10」
+      h2.innerHTML = `${label} <span class="progress">已完成 ${solved.size} / ${PUZZLES[size].length}</span>`;
+      const list = document.createElement('ol');
+      list.className = 'level-list';
+      list.setAttribute('aria-label', label);
+      list.append(
+        ...PUZZLES[size].map((_, i) => {
+          const li = document.createElement('li');
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'level';
+          const unlocked = isUnlocked(i, solved);
+          btn.disabled = !unlocked;
+          if (solved.has(i)) btn.classList.add('solved');
+          btn.innerHTML = `<span class="num">${i + 1}</span>`;
+          btn.setAttribute(
+            'aria-label',
+            `${label} 第 ${i + 1} 關${solved.has(i) ? '，已完成' : unlocked ? '' : '，未解鎖'}`,
+          );
+          btn.addEventListener('click', () => go({ size, index: i }));
+          li.append(btn);
+          return li;
+        }),
       );
-      btn.addEventListener('click', () => go(i));
-      li.append(btn);
-      return li;
+      section.append(h2, list);
+      return section;
     }),
   );
 }
 
 // ---------- 遊戲畫面 ----------
 
-function openLevel(index) {
-  level = index;
-  const puzzle = parsePuzzle(PUZZLES[index]);
-  game = new Game(puzzle, storage.getBoard(index));
+function openLevel(size, index) {
+  level = { size, index };
+  const id = levelId(size, index);
+  const puzzle = parsePuzzle(PUZZLES[size][index]);
+  game = new Game(puzzle, storage.getBoard(id));
 
   $('levels-view').hidden = true;
   $('game-view').hidden = false;
-  $('win').hidden = true;
-  $('level-title').textContent = `第 ${index + 1} 關`;
+  clearWin();
+  // 桌面規則一律展開；手機只在還沒破過任何一關時預設展開，之後收成頁邊籤
+  $('rules').open = desktop.matches || storage.getSolved().size === 0;
+  $('level-title').textContent = `${size}×${size} 第 ${index + 1} 關`;
 
   buildBoard(puzzle);
   render();
@@ -81,7 +111,7 @@ function openLevel(index) {
 function buildBoard({ size, regions }) {
   const board = $('board');
   board.style.setProperty('--n', size);
-  board.classList.remove('locked');
+  board.classList.remove('locked', 'solved');
   cells = regions.map((region, i) => {
     const r = Math.floor(i / size), c = i % size;
     const cell = document.createElement('div');
@@ -104,6 +134,8 @@ function render(preview = new Set()) {
     const cell = cells[i];
     const shown = state === 0 && preview.has(i) ? MARK : state;
     cell.innerHTML = shown === QUEEN ? QUEEN_SVG : shown === MARK ? MARK_SVG : '';
+    // 只有這一次才變成皇后的格子播放落章動畫
+    cell.classList.toggle('fresh', shown === QUEEN && !cell.classList.contains('queen'));
     cell.classList.toggle('queen', shown === QUEEN);
     cell.classList.toggle('mark', shown === MARK);
     cell.classList.toggle('conflict', conflicts.has(i));
@@ -114,22 +146,53 @@ function render(preview = new Set()) {
 
 function afterChange() {
   if (game.solved) {
-    storage.markSolved(level);
+    storage.markSolved(levelId(level.size, level.index));
     render();
     showWin();
   } else {
-    storage.saveBoard(level, game.board);
+    storage.saveBoard(levelId(level.size, level.index), game.board);
     render();
   }
 }
 
+// 過關的節奏：皇后由上而下依序蓋印 → 角落蓋上「過關」章 → 操作列換成過關面板。
+// 盤面一直留在畫面上，玩家可以看著自己解開的那一頁。
 function showWin() {
-  $('board').classList.add('locked');
-  const last = level === PUZZLES.length - 1;
-  $('win-title').textContent = last ? '全部完成！' : '過關！';
-  $('win-next').hidden = last;
-  $('win').hidden = false;
-  (last ? $('win-list') : $('win-next')).focus();
+  const board = $('board');
+  board.classList.add('locked', 'solved');
+  const queens = cells.filter((cell) => cell.classList.contains('queen'));
+  queens.forEach((cell, order) => {
+    cell.classList.remove('fresh');
+    cell.style.setProperty('--order', order);
+  });
+
+  const { size, index } = level;
+  const last = index === PUZZLES[size].length - 1;
+  const nextSize = last ? Object.keys(PUZZLES).map(Number).find((s) => s > size) : null;
+  $('win-title').textContent = last ? `${size}×${size} 全部完成！` : '過關！';
+  const next = $('win-next');
+  next.hidden = last && !nextSize;
+  next.textContent = last ? `挑戰 ${nextSize}×${nextSize}` : '下一關';
+  next.dataset.target = last ? `${nextSize}-0` : `${size}-${index + 1}`;
+
+  const stampAt = reducedMotion.matches ? 0 : queens.length * 90 + 180;
+  const panelAt = reducedMotion.matches ? 0 : stampAt + 380;
+  winTimers.push(
+    setTimeout(() => ($('seal').hidden = false), stampAt),
+    setTimeout(() => {
+      $('controls').hidden = true;
+      $('win').hidden = false;
+      (next.hidden ? $('win-list') : next).focus({ preventScroll: true });
+    }, panelAt),
+  );
+}
+
+function clearWin() {
+  winTimers.forEach(clearTimeout);
+  winTimers = [];
+  $('seal').hidden = true;
+  $('win').hidden = true;
+  $('controls').hidden = false;
 }
 
 // ---------- 指標操作：點擊循環、拖曳標 ✕（滑鼠與觸控共用） ----------
@@ -147,6 +210,7 @@ $('board').addEventListener('pointerdown', (e) => {
   if (start === null) return;
   e.preventDefault();
   $('board').setPointerCapture(e.pointerId);
+  cells[start].classList.add('pressed');
   drag = { start, cells: new Set([start]), moved: false };
 });
 
@@ -163,11 +227,13 @@ $('board').addEventListener('pointerup', () => {
   if (!drag) return;
   const { start, cells: touched, moved } = drag;
   drag = null;
+  cells[start].classList.remove('pressed');
   if (moved ? game.mark(touched) : game.cycle(start)) afterChange();
   else render();
 });
 
 $('board').addEventListener('pointercancel', () => {
+  if (drag) cells[drag.start].classList.remove('pressed');
   drag = null;
   render();
 });
@@ -184,7 +250,15 @@ $('reset').addEventListener('click', () => {
 
 $('back').addEventListener('click', () => go(null));
 $('win-list').addEventListener('click', () => go(null));
-$('win-next').addEventListener('click', () => go(level + 1));
+$('win-next').addEventListener('click', (e) => {
+  const [size, index] = e.currentTarget.dataset.target.split('-').map(Number);
+  go({ size, index });
+});
+
+// 視窗跨過桌面寬度時，規則跟著展開（桌面沒有收合開關）
+desktop.addEventListener('change', () => {
+  if (desktop.matches) $('rules').open = true;
+});
 
 // 已破關卡重玩：存檔盤面已在破關時清除，因此會從空盤面開始。
 window.addEventListener('hashchange', route);

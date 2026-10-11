@@ -1,5 +1,6 @@
 // localStorage 存取；在無痕模式等情況下可能失敗，一律容錯。
-const KEY = 'queens-game-v1';
+// 關卡以 "尺寸-第幾關"（如 "6-3"）識別。
+const KEY = 'queens-game-v2';
 
 function load() {
   try {

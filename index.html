@@ -13,7 +13,7 @@
     <header class="top">
       <h1>Queens</h1>
     </header>
-    <ol id="level-list" class="level-list"></ol>
+    <div id="level-packs"></div>
   </main>
 
   <main id="game-view" hidden>
@@ -23,27 +23,33 @@
       <span class="spacer"></span>
     </header>
     <div class="play">
-      <div class="controls">
+      <div class="sheet">
+        <div id="board" class="board"></div>
+        <div id="seal" class="seal" hidden aria-hidden="true"><span>過關</span></div>
+      </div>
+      <div id="controls" class="controls">
         <button type="button" id="undo" class="btn">上一步</button>
         <button type="button" id="reset" class="btn">重來</button>
       </div>
-      <div id="board" class="board"></div>
-      <section class="rules" aria-label="規則">
-        <p>每一列、每一行、每個色塊<strong>恰好一個</strong>皇后。</p>
-        <p>任兩個皇后<strong>不可相鄰</strong>，斜角也不行。</p>
-        <p class="hint">點一下標 ✕，再點一下放皇后，再點一下清空。按住拖曳可連續標 ✕。</p>
+      <section id="win" class="win" hidden aria-labelledby="win-title">
+        <h2 id="win-title">過關！</h2>
+        <div class="win-actions">
+          <button type="button" id="win-next" class="btn primary">下一關</button>
+          <button type="button" id="win-list" class="btn">回關卡列表</button>
+        </div>
       </section>
+      <details id="rules" class="rules">
+        <summary>
+          規則
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </summary>
+        <div class="rules-body">
+          <p>每一列、每一行、每個色塊<strong>恰好一個</strong>皇后。</p>
+          <p>任兩個皇后<strong>不可相鄰</strong>，斜角也不行。</p>
+          <p class="hint">點一下標 ✕，再點一下放皇后，再點一下清空。按住拖曳可連續標 ✕。</p>
+        </div>
+      </details>
     </div>
   </main>
-
-  <div id="win" class="win" hidden>
-    <div class="win-card" role="dialog" aria-modal="true" aria-labelledby="win-title">
-      <h2 id="win-title">過關！</h2>
-      <div class="win-actions">
-        <button type="button" id="win-next" class="btn primary">下一關</button>
-        <button type="button" id="win-list" class="btn">回關卡列表</button>
-      </div>
-    </div>
-  </div>
 </body>
 </html>

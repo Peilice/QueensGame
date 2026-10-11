@@ -23,13 +23,10 @@ test('無解的題目', () => {
   assert.equal(solve(p), null);
 });
 
-test('題庫共 12 題，尺寸 6 到 9 遞增，每題唯一解且色塊連通', () => {
-  assert.equal(PUZZLES.length, 12);
-  const sizes = PUZZLES.map((rows) => rows.length);
-  assert.deepEqual(sizes, [...sizes].sort((a, b) => a - b));
-  assert.equal(sizes[0], 6);
-  assert.equal(sizes.at(-1), 9);
+test('題庫分 6 到 9 四種尺寸，各 10 題，每題唯一解、色塊連通且不重複', () => {
+  assert.deepEqual(Object.keys(PUZZLES), ['6', '7', '8', '9']);
+  for (const list of Object.values(PUZZLES)) assert.equal(list.length, 10);
   for (const { level, error } of verifyAll()) {
-    assert.equal(error, null, `第 ${level + 1} 關：${error}`);
+    assert.equal(error, null, `${level}：${error}`);
   }
 });
