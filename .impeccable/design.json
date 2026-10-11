@@ -255,7 +255,7 @@
       "kind": "custom",
       "description": "過關時蓋在棋盤右下角的印泥朱印章。",
       "html": "<div class=\"ds-seal\"><span>過關</span></div>",
-      "css": ".ds-seal { position: relative; display: grid; place-items: center; width: 92px; aspect-ratio: 1; border: 3px solid #a9443b; border-radius: 50%; color: #a9443b; font-size: 1.35rem; font-weight: 800; letter-spacing: 0.12em; text-indent: 0.12em; transform: rotate(-14deg); opacity: 0.9; } .ds-seal::before { content: ''; position: absolute; inset: 4px; border: 1px solid currentColor; border-radius: 50%; }"
+      "css": ".ds-seal { position: relative; display: grid; place-items: center; width: 84px; aspect-ratio: 1; border: 3px solid #a9443b; border-radius: 50%; color: #a9443b; font-size: 1.25rem; font-weight: 800; letter-spacing: 0.12em; text-indent: 0.12em; transform: rotate(-14deg); opacity: 0.9; } .ds-seal::before { content: ''; position: absolute; inset: 4px; border: 1px solid currentColor; border-radius: 50%; }"
     }
   ],
   "narrative": {

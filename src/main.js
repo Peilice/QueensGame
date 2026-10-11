@@ -168,7 +168,7 @@ function afterChange() {
   }
 }
 
-// 過關的節奏：皇后由上而下依序蓋印 → 角落蓋上「過關」章 → 操作列換成過關面板。
+// 過關的節奏：皇后由上而下依序蓋印 → 操作列換成過關面板 → 頁邊蓋上「過關」章。
 // 盤面一直留在畫面上，玩家可以看著自己解開的那一頁。
 function showWin() {
   const board = $('board');
@@ -188,15 +188,15 @@ function showWin() {
   next.textContent = last ? `挑戰 ${nextSize}×${nextSize}` : '下一關';
   next.dataset.target = last ? `${nextSize}-0` : `${size}-${index + 1}`;
 
-  const stampAt = reducedMotion.matches ? 0 : queens.length * 90 + 180;
-  const panelAt = reducedMotion.matches ? 0 : stampAt + 380;
+  const panelAt = reducedMotion.matches ? 0 : queens.length * 90 + 180;
+  const stampAt = reducedMotion.matches ? 0 : panelAt + 240;
   winTimers.push(
-    setTimeout(() => ($('seal').hidden = false), stampAt),
     setTimeout(() => {
       $('controls').hidden = true;
       $('win').hidden = false;
       (next.hidden ? $('win-list') : next).focus({ preventScroll: true });
     }, panelAt),
+    setTimeout(() => ($('seal').hidden = false), stampAt),
   );
 }
 

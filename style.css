@@ -347,7 +347,7 @@ main {
 .cell.fresh svg { animation: ink 180ms var(--ease-out); }
 @keyframes ink { from { transform: scale(1.35); opacity: 0.4; } }
 
-/* ---------- 過關：皇后依序蓋印、外框墨線加粗、角落蓋上「過關」章 ---------- */
+/* ---------- 過關：皇后依序蓋印、外框墨線加粗、頁邊蓋上「過關」章 ---------- */
 
 .board.solved {
   box-shadow: 0 0 0 2px var(--line);
@@ -363,17 +363,16 @@ main {
 }
 
 .seal {
-  position: absolute;
-  right: -10px;
-  bottom: -14px;
+  grid-area: seal;
+  position: relative;
   display: grid;
   place-items: center;
-  width: 92px;
+  width: 84px;
   aspect-ratio: 1;
   border: 3px solid var(--seal);
   border-radius: 50%;
   color: var(--seal);
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-indent: 0.12em;
@@ -405,17 +404,21 @@ main {
 }
 .controls .btn { min-width: 108px; }
 
-/* 過關面板：取代操作列的位置，盤面留在原地供欣賞 */
-.win {
-  display: flex;
-  flex-direction: column;
+/* 過關面板：取代操作列的位置，盤面留在原地供欣賞。
+   印章蓋在右側頁邊自己的欄位裡，不會壓到棋盤上的解，也不會壓到按鈕 */
+.play .win {
+  width: min(100%, 520px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "title seal" "actions seal";
   align-items: center;
-  gap: 10px;
+  column-gap: 12px;
+  row-gap: 10px;
   margin-top: 6px;
   animation: rise 360ms var(--ease-out);
 }
-.win h2 { margin: 0; font-size: 1.15rem; letter-spacing: 0.04em; }
-.win-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.win h2 { grid-area: title; margin: 0; font-size: 1.15rem; letter-spacing: 0.04em; }
+.win-actions { grid-area: actions; display: flex; flex-wrap: wrap; gap: 12px; }
 .win-actions .btn { min-width: 108px; }
 
 @keyframes rise { from { transform: translateY(6px); opacity: 0; } }
