@@ -13,14 +13,6 @@
     <header class="top">
       <h1>Queens</h1>
     </header>
-    <section class="rules">
-      <p>在棋盤上放置皇后：</p>
-      <ul>
-        <li>每一列、每一行、每個色塊<strong>恰好一個</strong>皇后</li>
-        <li>任兩個皇后<strong>不可相鄰</strong>，斜角也不行</li>
-      </ul>
-      <p class="hint">點一下標 ✕，再點一下放皇后，再點一下清空。按住拖曳可連續標 ✕。</p>
-    </section>
     <ol id="level-list" class="level-list"></ol>
   </main>
 
@@ -30,10 +22,19 @@
       <h1 id="level-title"></h1>
       <span class="spacer"></span>
     </header>
-    <div id="board" class="board"></div>
-    <div class="controls">
-      <button type="button" id="undo" class="btn">復原</button>
-      <button type="button" id="reset" class="btn">重來</button>
+    <div class="play">
+      <div class="board-area">
+        <div id="board" class="board"></div>
+        <div class="controls">
+          <button type="button" id="undo" class="btn">復原</button>
+          <button type="button" id="reset" class="btn">重來</button>
+        </div>
+      </div>
+      <section class="rules" aria-label="規則">
+        <p>每一列、每一行、每個色塊<strong>恰好一個</strong>皇后。</p>
+        <p>任兩個皇后<strong>不可相鄰</strong>，斜角也不行。</p>
+        <p class="hint">點一下標 ✕，再點一下放皇后，再點一下清空。按住拖曳可連續標 ✕。</p>
+      </section>
     </div>
   </main>
 

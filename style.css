@@ -104,17 +104,47 @@ main {
 .btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 .btn.ghost { border-color: transparent; background: transparent; padding: 0 8px; width: 72px; text-align: left; }
 
-/* ---------- 規則說明 ---------- */
+/* ---------- 遊戲版面：手機規則在棋盤上方，桌面在棋盤右方 ---------- */
 
+.play {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.board-area { width: 100%; }
+
+/* 規則：直書，由右往左換行 */
 .rules {
+  order: -1;
+  writing-mode: vertical-rl;
+  height: 10.5em;
+  max-width: 100%;
+  padding: 14px 12px;
   background: var(--surface);
   border-radius: 12px;
-  padding: 12px 16px;
-  margin-bottom: 20px;
+  line-height: 1.8;
+  letter-spacing: 0.05em;
 }
-.rules p { margin: 0.25em 0; }
-.rules ul { margin: 0.25em 0 0.5em; padding-left: 1.25em; }
+.rules p { margin: 0 0 0 0.6em; }
+.rules p:last-child { margin: 0; }
 .rules .hint { color: var(--muted); font-size: 0.9rem; }
+
+@media (min-width: 760px) {
+  #game-view { max-width: 760px; }
+  .play {
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+  }
+  .board-area { width: min(100%, 520px); flex: none; }
+  .rules {
+    order: 0;
+    height: 520px;
+    align-self: flex-start;
+    font-size: 1.05rem;
+  }
+}
 
 /* ---------- 關卡列表 ---------- */
 
