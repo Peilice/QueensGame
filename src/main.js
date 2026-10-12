@@ -217,8 +217,16 @@ function cellAt(x, y) {
   return el && el.parentElement === $('board') ? Number(el.dataset.index) : null;
 }
 
+function cancelDrag() {
+  if (drag) cells[drag.start].classList.remove('pressed');
+  drag = null;
+  render();
+}
+
 $('board').addEventListener('pointerdown', (e) => {
-  if (!game || game.solved || !e.isPrimary || e.button !== 0) return;
+  // 第二根手指落下代表要縮放，放棄這次點擊／拖曳，不留任何標記
+  if (!e.isPrimary) { if (drag) cancelDrag(); return; }
+  if (!game || game.solved || e.button !== 0) return;
   const start = cellAt(e.clientX, e.clientY);
   if (start === null) return;
   e.preventDefault();
@@ -245,11 +253,13 @@ $('board').addEventListener('pointerup', () => {
   else render();
 });
 
-$('board').addEventListener('pointercancel', () => {
-  if (drag) cells[drag.start].classList.remove('pressed');
-  drag = null;
-  render();
-});
+$('board').addEventListener('pointercancel', cancelDrag);
+
+// iOS Safari 不一定尊重 touch-action 的雙擊放大限制；單指放開時擋掉預設行為。
+// 盤面只用 pointer 事件，擋 touchend 不影響點擊判定。
+$('board').addEventListener('touchend', (e) => {
+  if (e.touches.length === 0 && e.changedTouches.length === 1) e.preventDefault();
+}, { passive: false });
 
 // ---------- 按鈕 ----------
 
