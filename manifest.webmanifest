@@ -1,0 +1,16 @@
+{
+  "name": "刺蝟排排站",
+  "short_name": "刺蝟排排站",
+  "description": "排好位置，別互相傷害！無廣告、免登入的邏輯解謎。",
+  "lang": "zh-Hant-TW",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f0e5",
+  "theme_color": "#f6f0e5",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
