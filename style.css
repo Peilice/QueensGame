@@ -154,7 +154,7 @@ main {
 .play .controls,
 .play .win { grid-area: controls; }
 
-/* 規則：手機收成一張可翻開的頁邊籤，內容直書、由右往左換行 */
+/* 規則：手機收成一張可翻開的頁邊籤 */
 .rules {
   grid-area: rules;
   max-width: 100%;
@@ -190,20 +190,16 @@ main {
 }
 .rules[open] > summary svg { transform: rotate(90deg); }
 
-/* 直書放在每一段上，外層維持橫書、由右往左排段落。
-   整塊直書時 Safari 會忽略固定高度來算寬度，白底只有一欄寬、文字溢出到左邊 */
+/* 手機放在棋盤下方，橫書；桌面側欄才改直書 */
 .rules-body {
-  display: flex;
-  flex-direction: row-reverse;
-  height: 10.5em;
   max-width: 100%;
-  padding: 14px 12px;
+  padding: 14px 16px;
   background: var(--surface);
   border-radius: 12px;
   line-height: 1.8;
   letter-spacing: 0.05em;
 }
-.rules-body p { writing-mode: vertical-rl; height: 100%; margin: 0 0 0 0.6em; }
+.rules-body p { margin: 0 0 0.4em; }
 .rules-body p:last-child { margin: 0; }
 .rules-body .hint { color: var(--muted); font-size: 0.9rem; }
 
@@ -218,10 +214,17 @@ main {
   }
   .rules { align-self: start; }
   .rules > summary { display: none; }
+  /* 直書放在每一段上，外層維持橫書、由右往左排段落。
+     整塊直書時 Safari 會忽略固定高度來算寬度，白底只有一欄寬、文字溢出到左邊 */
   .rules-body {
+    display: flex;
+    flex-direction: row-reverse;
     height: 520px;
+    padding: 14px 12px;
     font-size: 1.05rem;
   }
+  .rules-body p { writing-mode: vertical-rl; height: 100%; margin: 0 0 0 0.6em; }
+  .rules-body p:last-child { margin: 0; }
 }
 
 /* ---------- 關卡列表：依棋盤尺寸分組 ---------- */
