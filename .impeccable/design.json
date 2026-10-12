@@ -177,6 +177,8 @@
       "ink": "#ece8e1",
       "pencil-gray": "#a39d92",
       "ink-line": "#0b0a09",
+      "board-frame": "#77716a",
+      "card-edge": "#45413c",
       "ink-blue": "#8fb0d9",
       "ink-blue-text": "#10151c",
       "error-red": "#ff6b6b",

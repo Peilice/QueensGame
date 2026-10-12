@@ -5,6 +5,9 @@
   --muted: #6b665d;
   --line: #2a2723;
   --grid: rgba(42, 39, 35, 0.18);
+  --frame: #2a2723; /* 棋盤外框：疊在紙上，不是疊在色塊上 */
+  --edge: rgba(42, 39, 35, 0.18); /* 按鈕與關卡格的紙卡邊緣 */
+  --mark-alpha: 0.6;
   --accent: #3d5a80;
   --accent-text: #ffffff;
   --danger: #c62828;
@@ -33,6 +36,10 @@
     --muted: #a39d92;
     --line: #0b0a09;
     --grid: rgba(0, 0, 0, 0.28);
+    /* 夜裡的紙：外框和卡緣改用暖灰，不跟著紙一起變暗而消失 */
+    --frame: #77716a;
+    --edge: #45413c;
+    --mark-alpha: 0.75;
     --accent: #8fb0d9;
     --accent-text: #10151c;
     --danger: #ff6b6b;
@@ -95,7 +102,7 @@ main {
 /* 紙卡觸感：底緣較厚的邊框就是卡片厚度，按下時厚度壓扁、整張往下沉 */
 .btn,
 .level {
-  border: 1.5px solid var(--grid);
+  border: 1.5px solid var(--edge);
   border-bottom-width: 3.5px;
   transition: transform 90ms var(--ease-out), border-color 120ms var(--ease-out);
   -webkit-tap-highlight-color: transparent;
@@ -297,7 +304,7 @@ main {
   width: 100%;
   aspect-ratio: 1;
   margin: 0 auto;
-  border: 2px solid var(--line);
+  border: 2px solid var(--frame);
   border-radius: 6px;
   overflow: hidden;
   touch-action: none;
@@ -330,13 +337,20 @@ main {
 .cell.br::after { border-right: var(--b) solid var(--line); }
 
 .cell svg { width: 58%; height: 58%; pointer-events: none; }
-.cell.mark svg { width: 34%; height: 34%; fill: none; stroke: var(--queen); stroke-width: 2.5; stroke-linecap: round; opacity: 0.6; }
+.cell.mark svg { width: 34%; height: 34%; fill: none; stroke: var(--queen); stroke-width: 2.5; stroke-linecap: round; opacity: var(--mark-alpha); }
 .cell.queen svg { fill: var(--queen); }
 
 .cell.conflict {
-  background-image: repeating-linear-gradient(45deg, transparent 0 5px, rgba(198, 40, 40, 0.28) 5px 10px);
+  background-image: repeating-linear-gradient(45deg, transparent 0 5px, color-mix(in srgb, var(--danger) 30%, transparent) 5px 10px);
 }
-.cell.conflict svg { fill: var(--danger); }
+/* 衝突的皇后：紅色填色表示衝突，墨色描邊讓皇冠在任何色塊上都看得清楚 */
+.cell.conflict svg {
+  fill: var(--danger);
+  stroke: var(--queen);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
 
 .board.locked .cell { cursor: default; }
 
@@ -350,7 +364,7 @@ main {
 /* ---------- 過關：皇后依序蓋印、外框墨線加粗、頁邊蓋上「過關」章 ---------- */
 
 .board.solved {
-  box-shadow: 0 0 0 2px var(--line);
+  box-shadow: 0 0 0 2px var(--frame);
   transition: box-shadow 320ms var(--ease-out);
 }
 .board.solved .cell.queen svg {
