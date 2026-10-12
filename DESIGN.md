@@ -19,16 +19,16 @@ colors:
   terracotta-soft: "#eda898"
   disabled-bg: "#e5e0d7"
   piece: "#55483c"
-  region-forest: "#dce5d4"
-  region-oat: "#e9dec9"
-  region-mist: "#d7e5e8"
-  region-apricot: "#f0d9c9"
-  region-lavender: "#e3ddee"
-  region-moss: "#e3e2d5"
-  region-cream: "#f2e7b9"
-  region-periwinkle: "#d8d9e8"
-  region-rose: "#ebcfd0"
-  region-mint: "#d3e7dd"
+  region-forest: "#acd4ac"
+  region-oat: "#d3b591"
+  region-mist: "#aad1e5"
+  region-apricot: "#fecfbb"
+  region-lavender: "#dccdef"
+  region-moss: "#a8ac80"
+  region-cream: "#f3e5a8"
+  region-periwinkle: "#9daacb"
+  region-rose: "#cca4b3"
+  region-mint: "#b8e6dc"
 typography:
   headline:
     fontFamily: "system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
@@ -132,7 +132,7 @@ components:
 整體是低彩度的森林繪本基調，色值依《配色設計.md》v1.1，色彩集中在棋盤色塊上。只有淺色，沒有深色模式（`color-scheme: light`）。
 
 ### Primary
-- **深森林綠 Forest** `#657A58`：唯一的強調色。用在主要按鈕（「下一關」）、鍵盤焦點環、按下格子時的內框、關卡列表上的「下一關」紙卡、已完成關卡的勾，以及過關印章。按下時的深底緣是 `#4F6145`。
+- **深森林綠 Forest** `#657A58`：唯一的強調色。用在主要按鈕（「下一關」）、鍵盤焦點環、按下格子時的內框、關卡列表上的「下一關」紙卡、已完成關卡的勾。按下時的深底緣是 `#4F6145`。
 - **森林深綠 Forest Title** `#6F795F`：刊頭書名、尺寸組標題、關卡標題和「過關！」。
 
 ### Neutral
@@ -145,9 +145,10 @@ components:
 - **按鈕外框 Button Edge** `#A9B69B`：按鈕和關卡格的邊框（含加厚的底緣）。
 - **停用 Disabled** `#E5E0D7`：停用按鈕的底色。
 - **磚紅 Terracotta** `#B8432E`：衝突格的外框。**磚粉** `#EDA898`：衝突格的 45° 斜紋。
+- **朱紅印泥 Vermilion Seal** `#C0392B`：只用在過關印章（token `--seal`），比衝突的磚紅更亮、更偏朱色，像真的印泥。
 
 ### Region Palette
-十個色塊色依序是森林淺綠、燕麥米、霧感藍、杏桃粉、薰衣草灰、苔蘚灰綠、淡奶油黃、灰藍紫、淡玫瑰粉、淺薄荷綠（`--r0`～`--r9`）。題目最多用到九色。這組色明度都很接近，主要靠色相和 2.5px 暖灰米邊界分辨；燕麥米、苔蘚灰綠、森林淺綠彼此較近，新增題目時要在手機上實測。
+十個色塊色依序是森林淺綠、麥稈棕、霧感藍、杏桃粉、薰衣草灰、苔蘚橄欖、淡奶油黃、石板藍、乾燥玫瑰、淺薄荷綠（`--r0`～`--r9`）。題目最多用到九色。彩度維持低（OKLCH C 0.05–0.08），但明度刻意分成深淺兩組（L 0.73–0.92）：麥稈棕、苔蘚橄欖、石板藍、乾燥玫瑰較深，奶油黃、杏桃、薄荷、薰衣草較淺，任兩色的 OKLab 色差至少 0.066，刺蝟在每一色上的對比至少 3.7:1。調色時要保住這兩個下限；最近的一組是霧感藍和淺薄荷綠，新增題目時盡量別讓它們相鄰。
 
 ### Named Rules
 **The One Green Rule.** 深森林綠是唯一的介面強調色，只能用在主要動作、焦點、選取和完成狀態。
@@ -234,7 +235,7 @@ components:
 ### Win Stamp（過關）
 - 不用對話框，盤面留在原地。刺蝟由上而下依序「蓋印」（壓到 0.72 倍再回彈，每顆間隔 90ms），棋盤外框加粗一圈暖灰米線。
 - 接著操作列換成過關面板：左邊是標題「過關！」（1.15rem）加「下一關／回關卡列表」，靠左對齊。一組的最後一關完成時，標題改成「N×N 全部完成！」，主要按鈕變成「挑戰 7×7」，最後一組則只留「回關卡列表」。
-- 最後在面板右側的頁邊蓋上一枚深森林綠的圓形印章「過關」：直徑 84px、3px 外圈加 1px 內圈、旋轉 -14°、1.25rem 粗體，從 1.8 倍壓下。印章有自己的 grid 欄位，右緣和棋盤右緣對齊，永遠不壓到棋盤上的解或按鈕，像老師把章蓋在考卷的頁邊。印章不用 multiply 混色，綠色在暖紙上才不會發灰。印章套 `#ink-seal` 濾鏡：邊緣毛、印泥有沒沾到的空隙。
+- 最後在面板右側的頁邊蓋上一枚朱紅的圓形印章「過關」：直徑 84px、3px 外圈加 1px 內圈、旋轉 -14°、1.25rem 粗體，從 1.8 倍壓下。印章有自己的 grid 欄位，右緣和棋盤右緣對齊，永遠不壓到棋盤上的解或按鈕，像老師把章蓋在考卷的頁邊。印章不用 multiply 混色，朱紅在暖紙上才不會發灰。印章套 `#ink-seal` 濾鏡：邊緣毛、印泥有沒沾到的空隙。
 - reduced-motion 時沒有動畫，印章和面板立即出現。
 
 ## Do's and Don'ts

@@ -25,20 +25,20 @@
   --danger-soft: #eda898; /* 磚粉：衝突斜紋 */
   --disabled-bg: #e5e0d7;
   --queen: #55483c; /* 刺蝟與 ✕：暖灰棕，不用純黑 */
-  --seal: #657a58;
+  --seal: #c0392b; /* 朱紅印泥：過關印章 */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* 棋盤區域色盤，依文件 01–10 的順序 */
-  --r0: #dce5d4;
-  --r1: #e9dec9;
-  --r2: #d7e5e8;
-  --r3: #f0d9c9;
-  --r4: #e3ddee;
-  --r5: #e3e2d5;
-  --r6: #f2e7b9;
-  --r7: #d8d9e8;
-  --r8: #ebcfd0;
-  --r9: #d3e7dd;
+  --r0: #acd4ac;
+  --r1: #d3b591;
+  --r2: #aad1e5;
+  --r3: #fecfbb;
+  --r4: #dccdef;
+  --r5: #a8ac80;
+  --r6: #f3e5a8;
+  --r7: #9daacb;
+  --r8: #cca4b3;
+  --r9: #b8e6dc;
 }
 
 * { box-sizing: border-box; }
