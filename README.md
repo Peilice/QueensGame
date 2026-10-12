@@ -1,4 +1,6 @@
-# 刺蝟不靠近
+# 刺蝟排排站
+
+排好位置，別互相傷害！
 
 LinkedIn Queens 風格的邏輯解謎遊戲（棋子換成刺蝟），純 HTML／CSS／JavaScript，不需建置工具。
 
@@ -38,7 +40,7 @@ npm run verify    # 驗證題庫每題皆為唯一解且色塊連通
 
 ```
 index.html             頁面骨架
-style.css              樣式（含深色模式）
+style.css              樣式（只有淺色）
 src/rules.js           規則判定：衝突偵測、過關判定
 src/solver.js          回溯解題器
 src/game.js            盤面狀態、Undo、解鎖規則

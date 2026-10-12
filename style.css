@@ -1,64 +1,44 @@
+/* 配色依《配色設計.md》v1.1：日系手繪森林繪本。只有淺色，沒有深色模式 */
 :root {
-  --bg: #f6f3ee;
-  --surface: #ffffff;
-  --text: #22201c;
-  --muted: #6b665d;
-  --line: #2a2723;
-  --grid: rgba(42, 39, 35, 0.18);
-  --frame: #2a2723; /* 棋盤外框：疊在紙上，不是疊在色塊上 */
-  --edge: rgba(42, 39, 35, 0.18); /* 按鈕與關卡格的紙卡邊緣 */
+  color-scheme: light;
+
+  --bg: #f6f0e5; /* 奶油紙白 */
+  --surface: #e2e8da; /* 次要按鈕與關卡格 */
+  --panel: #d9c8ab; /* 燕麥米：面板、分隔線 */
+  --text: #55483c; /* 暖灰棕 */
+  --title: #6f795f; /* 森林深綠 */
+  --muted: #8b7d6b; /* 柔和棕灰 */
+  --hint: #5e5144; /* 燕麥米面板上的次要文字：#8B7D6B 在那裡太淡 */
+  --btn-text: #46573d;
+  --line: #b8b09f; /* 暖灰米：格線與色塊邊界，不用黑線 */
+  --grid: #b8b09f;
+  --frame: #b8b09f;
+  --edge: #a9b69b; /* 按鈕與關卡格的外框 */
+  --select: #657a58; /* 按下的格子 */
+  --shadow: 0 2px 6px rgba(85, 72, 60, 0.12); /* 低透明度暖灰棕 */
   --mark-alpha: 0.6;
   --print-alpha: 0.6; /* 目錄上已破關卡的色塊淡印 */
-  --accent: #3d5a80;
+  --accent: #657a58; /* 深森林綠：主要按鈕、焦點、完成 */
   --accent-text: #ffffff;
-  --danger: #c62828;
-  --queen: #1f1d1a;
-  --accent-deep: #2c4260;
-  --seal: #a9443b; /* 印泥朱：沉穩、不刺眼，和衝突用的鮮紅區隔 */
+  --accent-deep: #4f6145;
+  --danger: #c77c68; /* 陶土紅：衝突外框 */
+  --danger-soft: #f1d8d0; /* 柔和陶土粉：衝突斜紋 */
+  --disabled-bg: #e5e0d7;
+  --queen: #55483c; /* 刺蝟與 ✕：暖灰棕，不用純黑 */
+  --seal: #657a58;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* 色塊配色：柔和、彼此區分度高 */
-  --r0: #ec9496;
-  --r1: #b5d4f0;
-  --r2: #c6e3ac;
-  --r3: #f5da94;
-  --r4: #d2bfea;
-  --r5: #f7ac6a;
-  --r6: #a6ddd2;
-  --r7: #e8b5d4;
-  --r8: #d4d3c4;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #171614;
-    --surface: #24221f;
-    --text: #ece8e1;
-    --muted: #a39d92;
-    --line: #0b0a09;
-    --grid: rgba(0, 0, 0, 0.28);
-    /* 夜裡的紙：外框和卡緣改用暖灰，不跟著紙一起變暗而消失 */
-    --frame: #77716a;
-    --edge: #45413c;
-    --mark-alpha: 0.75;
-    --print-alpha: 0.5;
-    --accent: #8fb0d9;
-    --accent-text: #10151c;
-    --danger: #ff6b6b;
-    --queen: #141311;
-    --accent-deep: #5f7fa8;
-    --seal: #c46a5c;
-
-    --r0: #b45f66;
-    --r1: #6f93b7;
-    --r2: #84a46a;
-    --r3: #bba15a;
-    --r4: #9481b2;
-    --r5: #c7823f;
-    --r6: #5f9f93;
-    --r7: #ab7598;
-    --r8: #96958a;
-  }
+  /* 棋盤區域色盤，依文件 01–10 的順序 */
+  --r0: #dce5d4;
+  --r1: #e9dec9;
+  --r2: #d7e5e8;
+  --r3: #f0d9c9;
+  --r4: #e3ddee;
+  --r5: #e3e2d5;
+  --r6: #f2e7b9;
+  --r7: #d8d9e8;
+  --r8: #ebcfd0;
+  --r9: #d3e7dd;
 }
 
 * { box-sizing: border-box; }
@@ -103,7 +83,7 @@ main {
   letter-spacing: 0.02em;
 }
 
-#game-view .top h1 { flex: 1; text-align: center; font-size: 1.25rem; }
+#game-view .top h1 { flex: 1; text-align: center; font-size: 1.25rem; color: var(--title); }
 .top .spacer { width: 72px; }
 
 /* ---------- 按鈕 ---------- */
@@ -113,6 +93,7 @@ main {
 .level {
   border: 1.5px solid var(--edge);
   border-bottom-width: 3.5px;
+  box-shadow: var(--shadow);
   transition: transform 90ms var(--ease-out), border-color 120ms var(--ease-out);
   -webkit-tap-highlight-color: transparent;
 }
@@ -128,17 +109,17 @@ main {
   font-size: 1rem;
   min-height: 44px;
   padding: 0 18px;
-  border-radius: 10px;
+  border-radius: 16px;
   background: var(--surface);
-  color: var(--text);
+  color: var(--btn-text);
   cursor: pointer;
 }
 .btn:hover:not(:disabled) { border-color: var(--muted); }
-.btn:disabled { opacity: 0.4; cursor: default; }
+.btn:disabled { background: var(--disabled-bg); border-color: var(--disabled-bg); color: var(--muted); cursor: default; }
 .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); border-bottom-color: var(--accent-deep); }
 .btn.primary:active:not(:disabled) { border-color: var(--accent-deep); }
-.btn.ghost { border-color: transparent; border-bottom-width: 1.5px; background: transparent; padding: 0 8px; width: 72px; text-align: left; }
+.btn.ghost { border-color: transparent; border-bottom-width: 1.5px; background: transparent; box-shadow: none; color: var(--text); padding: 0 8px; width: 72px; text-align: left; }
 .btn.ghost:active { transform: none; border-color: transparent; }
 
 /* ---------- 遊戲版面：手機由上而下是棋盤、操作、規則（拇指順手）；桌面規則在棋盤右方 ---------- */
@@ -194,14 +175,14 @@ main {
 .rules-body {
   max-width: 100%;
   padding: 14px 16px;
-  background: var(--surface);
-  border-radius: 12px;
+  background: var(--panel);
+  border-radius: 16px;
   line-height: 1.8;
   letter-spacing: 0.05em;
 }
 .rules-body p { margin: 0 0 0.4em; }
 .rules-body p:last-child { margin: 0; }
-.rules-body .hint { color: var(--muted); font-size: 0.9rem; }
+.rules-body .hint { color: var(--hint); font-size: 0.9rem; }
 
 @media (min-width: 760px) {
   #game-view { max-width: 760px; }
@@ -229,31 +210,26 @@ main {
 
 /* ---------- 關卡列表：依棋盤尺寸分組 ---------- */
 
-/* 刊頭：謎題本的封面。大字書名，旁邊直書副題，底下一道和棋盤外框同粗的墨線 */
+/* 刊頭：謎題本的封面。大字書名，下面一行副題，底下一道和棋盤外框同粗的墨線 */
 .masthead {
   margin: 8px 0 28px;
   padding-bottom: 12px;
-  border-bottom: 2px solid var(--frame);
+  border-bottom: 2px solid var(--panel);
 }
+/* 五個字要在 360px 寬的手機上排成一行 */
 .masthead h1 {
-  display: flex;
-  align-items: flex-end;
-  gap: 14px;
   margin: 0;
-}
-.title-main {
-  font-size: clamp(3.25rem, 17vw, 4.75rem);
+  font-size: clamp(3rem, 16vw, 4.75rem);
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.02em;
+  color: var(--title);
 }
-.title-sub {
-  writing-mode: vertical-rl;
-  font-size: clamp(0.9rem, 4.2vw, 1.15rem);
+.tagline {
+  margin: 10px 0 0;
+  font-size: clamp(1rem, 4.4vw, 1.15rem);
   font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.08em;
-  margin-bottom: -0.08em; /* 吃掉最後一字的字距，讓字尾和書名字底對齊 */
+  letter-spacing: 0.04em;
 }
 
 .pack + .pack { margin-top: 36px; }
@@ -269,6 +245,7 @@ main {
   line-height: 1.1;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
+  color: var(--title);
 }
 .pack h2 .progress { font-size: 0.85rem; font-weight: 400; letter-spacing: normal; color: var(--muted); }
 
@@ -290,9 +267,9 @@ main {
   align-items: center;
   justify-content: center;
   font: inherit;
-  border-radius: 12px;
+  border-radius: 16px;
   background: var(--surface);
-  color: var(--text);
+  color: var(--btn-text);
   cursor: pointer;
 }
 .level .num { font-size: 1.5rem; font-weight: 700; line-height: 1.1; }
@@ -302,6 +279,7 @@ main {
 .level:disabled {
   background: transparent;
   border-width: 1px;
+  box-shadow: none;
   color: var(--muted);
   opacity: 0.6;
   cursor: default;
@@ -312,7 +290,7 @@ main {
 .level .print {
   position: absolute;
   inset: 5px;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
   opacity: var(--print-alpha);
   pointer-events: none;
@@ -342,7 +320,7 @@ main {
   position: absolute;
   inset: 5px;
   border: 2px dashed color-mix(in srgb, var(--accent-text) 65%, transparent);
-  border-radius: 8px;
+  border-radius: 12px;
   pointer-events: none;
 }
 /* 玩到一半：底部一個鉛筆點 */
@@ -389,7 +367,7 @@ main {
   width: 100%;
   aspect-ratio: 1;
   margin: 0 auto;
-  border: 2px solid var(--frame);
+  border: 2.5px solid var(--frame);
   border-radius: 6px;
   overflow: hidden;
   /* 單指留給拖曳標 ✕，雙指交給瀏覽器縮放；不支援 pinch-zoom 的瀏覽器退回 none */
@@ -401,7 +379,7 @@ main {
 }
 
 .cell {
-  --b: 1.5px;
+  --b: 2.5px;
   position: relative;
   display: flex;
   align-items: center;
@@ -411,7 +389,7 @@ main {
   cursor: pointer;
 }
 
-/* 色塊邊界：疊在格子上的粗線，不影響格子尺寸；相鄰兩格各畫一半 */
+/* 色塊邊界：疊在格子上、比格線略粗的暖灰米線，不影響格子尺寸；相鄰兩格各畫一半 */
 .cell::after {
   content: "";
   position: absolute;
@@ -437,22 +415,16 @@ main {
 /* 刺蝟身形扁長，比格子的 58% 再放大一點才撐得起來 */
 .cell svg.q { width: 64%; height: 64%; fill: var(--queen); }
 
+/* 衝突：陶土紅外框加陶土粉斜紋，不只靠顏色；刺蝟本身維持原色 */
 .cell.conflict {
-  background-image: repeating-linear-gradient(45deg, transparent 0 5px, color-mix(in srgb, var(--danger) 30%, transparent) 5px 10px);
-}
-/* 衝突的刺蝟：紅色填色表示衝突，墨色描邊讓刺蝟在任何色塊上都看得清楚 */
-.cell.conflict svg.q {
-  fill: var(--danger);
-  stroke: var(--queen);
-  stroke-width: 2.5;
-  stroke-linejoin: round;
-  paint-order: stroke;
+  background-image: repeating-linear-gradient(45deg, transparent 0 5px, var(--danger-soft) 5px 10px);
+  box-shadow: inset 0 0 0 0.5px var(--grid), inset 0 0 0 3px var(--danger);
 }
 
 .board.locked .cell { cursor: default; }
 
-/* 按下的格子：墨色內框閃一下 */
-.cell.pressed { box-shadow: inset 0 0 0 0.5px var(--grid), inset 0 0 0 2.5px var(--line); }
+/* 按下的格子：深森林綠內框閃一下 */
+.cell.pressed { box-shadow: inset 0 0 0 0.5px var(--grid), inset 0 0 0 3px var(--select); }
 
 /* ---------- 墨跡 ----------
    ✕ 是兩筆鋼筆線：先描左上到右下，第二筆在第一筆快收尾時接上；擦掉時倒著收回去。
@@ -526,9 +498,6 @@ main {
   border: 1px solid currentColor;
   border-radius: 50%;
 }
-@media (prefers-color-scheme: light) {
-  .seal { mix-blend-mode: multiply; }
-}
 @keyframes stamp {
   from { transform: rotate(-14deg) scale(1.8); opacity: 0; }
   60% { transform: rotate(-14deg) scale(0.94); opacity: 0.95; }
@@ -554,7 +523,7 @@ main {
   margin-top: 6px;
   animation: rise 360ms var(--ease-out);
 }
-.win h2 { grid-area: title; margin: 0; font-size: 1.15rem; letter-spacing: 0.04em; }
+.win h2 { grid-area: title; margin: 0; font-size: 1.15rem; letter-spacing: 0.04em; color: var(--title); }
 .win-actions { grid-area: actions; display: flex; flex-wrap: wrap; gap: 12px; }
 .win-actions .btn { min-width: 108px; }
 

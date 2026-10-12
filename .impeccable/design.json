@@ -1,119 +1,168 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-11T17:42:20.704Z",
-  "title": "Design System: 刺蝟不靠近",
+  "generatedAt": "2026-10-12T06:29:23.000Z",
+  "title": "Design System: 刺蝟排排站",
   "extensions": {
     "colorMeta": {
-      "paper": {
+      "cream-paper": {
         "role": "neutral",
-        "displayName": "紙 Paper",
-        "canonical": "#f6f3ee",
+        "displayName": "奶油紙白 Cream Paper",
+        "canonical": "#f6f0e5",
         "tonalRamp": [
-          "#2b2925",
-          "#45423c",
-          "#625e56",
-          "#827d73",
-          "#a39d92",
-          "#c4bfb5",
-          "#e2ddd4",
-          "#f6f3ee"
+          "#2c2b29",
+          "#474642",
+          "#62605c",
+          "#827f79",
+          "#a29e97",
+          "#c2beb5",
+          "#e0dad0",
+          "#f6f0e5"
         ]
       },
-      "card-white": {
+      "sage-surface": {
         "role": "neutral",
-        "displayName": "卡片白 Card White",
-        "canonical": "#ffffff"
+        "displayName": "淡鼠尾草 Sage Surface",
+        "canonical": "#e2e8da"
       },
-      "ink": {
+      "oat-panel": {
         "role": "neutral",
-        "displayName": "墨 Ink",
-        "canonical": "#22201c"
+        "displayName": "燕麥米 Oat Panel",
+        "canonical": "#d9c8ab"
       },
-      "pencil-gray": {
+      "warm-brown": {
         "role": "neutral",
-        "displayName": "鉛筆灰 Pencil Gray",
-        "canonical": "#6b665d"
+        "displayName": "暖灰棕 Warm Brown",
+        "canonical": "#55483c"
       },
-      "ink-line": {
+      "soft-taupe": {
         "role": "neutral",
-        "displayName": "墨線 Ink Line",
-        "canonical": "#2a2723"
+        "displayName": "柔和棕灰 Soft Taupe",
+        "canonical": "#8b7d6b"
       },
-      "ink-blue": {
+      "panel-hint": {
+        "role": "neutral",
+        "displayName": "面板提示字 Panel Hint",
+        "canonical": "#5e5144"
+      },
+      "button-text": {
+        "role": "neutral",
+        "displayName": "按鈕深綠字 Button Text",
+        "canonical": "#46573d"
+      },
+      "warm-line": {
+        "role": "neutral",
+        "displayName": "暖灰米 Warm Line",
+        "canonical": "#b8b09f"
+      },
+      "button-edge": {
+        "role": "neutral",
+        "displayName": "按鈕外框 Button Edge",
+        "canonical": "#a9b69b"
+      },
+      "disabled-bg": {
+        "role": "neutral",
+        "displayName": "停用 Disabled",
+        "canonical": "#e5e0d7"
+      },
+      "forest": {
         "role": "primary",
-        "displayName": "墨藍 Ink Blue",
-        "canonical": "#3d5a80",
+        "displayName": "深森林綠 Forest",
+        "canonical": "#657a58",
         "tonalRamp": [
-          "#141e2b",
-          "#223246",
-          "#304763",
-          "#3d5a80",
-          "#5a77a0",
-          "#8fb0d9",
-          "#bfd2ea",
-          "#e6eef8"
+          "#22291e",
+          "#394431",
+          "#4f5f45",
+          "#657a58",
+          "#93a28a",
+          "#bac3b4",
+          "#dde2da",
+          "#f3f4f2"
         ]
       },
-      "error-red": {
+      "forest-deep": {
+        "role": "primary",
+        "displayName": "深底緣 Forest Deep",
+        "canonical": "#4f6145"
+      },
+      "forest-title": {
+        "role": "secondary",
+        "displayName": "森林深綠 Forest Title",
+        "canonical": "#6f795f"
+      },
+      "terracotta": {
         "role": "error",
-        "displayName": "錯誤紅 Error Red",
-        "canonical": "#c62828"
+        "displayName": "陶土紅 Terracotta",
+        "canonical": "#c77c68"
       },
-      "region-rose": {
-        "role": "region",
-        "displayName": "玫瑰"
+      "terracotta-soft": {
+        "role": "error",
+        "displayName": "柔和陶土粉 Terracotta Soft",
+        "canonical": "#f1d8d0"
       },
-      "region-sky": {
-        "role": "region",
-        "displayName": "天空"
+      "piece": {
+        "role": "neutral",
+        "displayName": "刺蝟 Piece",
+        "canonical": "#55483c"
       },
-      "region-sprout": {
+      "region-forest": {
         "role": "region",
-        "displayName": "新芽"
+        "displayName": "森林淺綠",
+        "canonical": "#dce5d4"
       },
-      "region-butter": {
+      "region-oat": {
         "role": "region",
-        "displayName": "奶油"
+        "displayName": "燕麥米",
+        "canonical": "#e9dec9"
       },
-      "region-lilac": {
+      "region-mist": {
         "role": "region",
-        "displayName": "丁香"
+        "displayName": "霧感藍",
+        "canonical": "#d7e5e8"
       },
       "region-apricot": {
         "role": "region",
-        "displayName": "杏"
+        "displayName": "杏桃粉",
+        "canonical": "#f0d9c9"
+      },
+      "region-lavender": {
+        "role": "region",
+        "displayName": "薰衣草灰",
+        "canonical": "#e3ddee"
+      },
+      "region-moss": {
+        "role": "region",
+        "displayName": "苔蘚灰綠",
+        "canonical": "#e3e2d5"
+      },
+      "region-cream": {
+        "role": "region",
+        "displayName": "淡奶油黃",
+        "canonical": "#f2e7b9"
+      },
+      "region-periwinkle": {
+        "role": "region",
+        "displayName": "灰藍紫",
+        "canonical": "#d8d9e8"
+      },
+      "region-rose": {
+        "role": "region",
+        "displayName": "淡玫瑰粉",
+        "canonical": "#ebcfd0"
       },
       "region-mint": {
         "role": "region",
-        "displayName": "薄荷"
-      },
-      "region-blush": {
-        "role": "region",
-        "displayName": "腮紅"
-      },
-      "region-stone": {
-        "role": "region",
-        "displayName": "石"
-      },
-      "accent-deep": {
-        "role": "primary",
-        "displayName": "深墨藍 Accent Deep",
-        "canonical": "#2c4260"
-      },
-      "seal-cinnabar": {
-        "role": "tertiary",
-        "displayName": "印泥朱 Seal Cinnabar",
-        "canonical": "#a9443b"
+        "displayName": "淺薄荷綠",
+        "canonical": "#d3e7dd"
       }
     },
     "typographyMeta": {
       "headline": {
         "displayName": "Headline",
-        "purpose": "關卡列表頁標題"
+        "purpose": "關卡列表的刊頭書名，森林深綠"
       },
       "title": {
         "displayName": "Title",
-        "purpose": "遊戲頁「第 N 關」"
+        "purpose": "遊戲頁「6×6 第 N 關」，森林深綠"
       },
       "body": {
         "displayName": "Body",
@@ -121,18 +170,24 @@
       },
       "rules": {
         "displayName": "Rules",
-        "purpose": "直書規則旁註"
+        "purpose": "規則旁註：手機橫書、桌面直書"
       },
       "pack-heading": {
         "displayName": "Pack Heading",
-        "purpose": "關卡列表的尺寸組標題，如「6×6」"
+        "purpose": "關卡列表的尺寸組標題，如「6×6」，森林深綠"
       },
       "label": {
         "displayName": "Label",
         "purpose": "尺寸組標題右側的進度「已完成 n / 10」"
       }
     },
-    "shadows": [],
+    "shadows": [
+      {
+        "name": "soft",
+        "value": "0 2px 6px rgba(85, 72, 60, 0.12)",
+        "purpose": "按鈕與可點的關卡格；低透明度暖灰棕，不用黑色陰影"
+      }
+    ],
     "motion": [
       {
         "name": "ease-out",
@@ -145,9 +200,19 @@
         "purpose": "紙卡按下"
       },
       {
+        "name": "pen",
+        "value": "140ms × 2 筆, 第二筆延遲 100ms",
+        "purpose": "✕ 兩筆描出"
+      },
+      {
         "name": "ink",
-        "value": "180ms, scale 1.35 → 1",
+        "value": "200ms, scale 1.35 → 1",
         "purpose": "刺蝟落章"
+      },
+      {
+        "name": "lift",
+        "value": "160ms, translateY -6% scale 1.12, 淡出",
+        "purpose": "刺蝟被提起"
       },
       {
         "name": "queen-stamp",
@@ -171,145 +236,124 @@
         "value": "760px"
       }
     ],
-    "darkMode": {
-      "paper": "#171614",
-      "card-white": "#24221f",
-      "ink": "#ece8e1",
-      "pencil-gray": "#a39d92",
-      "ink-line": "#0b0a09",
-      "board-frame": "#77716a",
-      "card-edge": "#45413c",
-      "ink-blue": "#8fb0d9",
-      "ink-blue-text": "#10151c",
-      "error-red": "#ff6b6b",
-      "queen-ink": "#141311",
-      "regions": [
-        "#b45f66",
-        "#6f93b7",
-        "#84a46a",
-        "#bba15a",
-        "#9481b2",
-        "#c7823f",
-        "#5f9f93",
-        "#ab7598",
-        "#96958a"
-      ],
-      "seal-cinnabar": "#c46a5c"
-    }
+    "colorScheme": "light-only",
+    "source": "《配色設計.md》v1.1（刺蝟維持單色剪影）"
   },
   "components": [
     {
       "name": "Button",
       "kind": "button",
       "refersTo": "button",
-      "description": "預設按鈕：上一步、重來、回關卡列表。",
+      "description": "預設按鈕：上一步、重來、回關卡列表。淡鼠尾草底、深綠字、加厚底緣與淡暖棕陰影。",
       "html": "<button class=\"ds-btn\">上一步</button>",
-      "css": ".ds-btn { font: inherit; font-size: 1rem; min-height: 44px; min-width: 108px; padding: 0 18px; border: 1.5px solid rgba(42,39,35,0.18); border-bottom-width: 3.5px; transition: transform 90ms cubic-bezier(0.16,1,0.3,1); border-radius: 10px; background: #fff; color: #22201c; cursor: pointer; } .ds-btn:hover { border-color: #6b665d; } .ds-btn:focus-visible { outline: 3px solid #3d5a80; outline-offset: 2px; } .ds-btn:active { border-bottom-width: 1.5px; transform: translateY(2px); border-color: #6b665d; }"
+      "css": ".ds-btn { font: inherit; font-size: 1rem; min-height: 44px; min-width: 108px; padding: 0 18px; border: 1.5px solid #a9b69b; border-bottom-width: 3.5px; box-shadow: 0 2px 6px rgba(85,72,60,0.12); transition: transform 90ms cubic-bezier(0.16,1,0.3,1); border-radius: 16px; background: #e2e8da; color: #46573d; cursor: pointer; } .ds-btn:hover { border-color: #8b7d6b; } .ds-btn:focus-visible { outline: 3px solid #657a58; outline-offset: 2px; } .ds-btn:active { border-bottom-width: 1.5px; transform: translateY(2px); border-color: #8b7d6b; } .ds-btn:disabled { background: #e5e0d7; border-color: #e5e0d7; color: #8b7d6b; cursor: default; }"
     },
     {
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "唯一的主要動作：過關後的「下一關」。",
+      "description": "唯一的主要動作：過關後的「下一關」。深森林綠底、白字。",
       "html": "<button class=\"ds-btn-primary\">下一關</button>",
-      "css": ".ds-btn-primary { font: inherit; font-size: 1rem; min-height: 44px; padding: 0 18px; border: 1.5px solid #3d5a80; border-radius: 10px; background: #3d5a80; color: #fff; cursor: pointer; } .ds-btn-primary:focus-visible { outline: 3px solid #3d5a80; outline-offset: 2px; }"
+      "css": ".ds-btn-primary { font: inherit; font-size: 1rem; min-height: 44px; padding: 0 18px; border: 1.5px solid #657a58; border-bottom: 3.5px solid #4f6145; box-shadow: 0 2px 6px rgba(85,72,60,0.12); border-radius: 16px; background: #657a58; color: #fff; cursor: pointer; } .ds-btn-primary:focus-visible { outline: 3px solid #657a58; outline-offset: 2px; } .ds-btn-primary:active { border-bottom-width: 1.5px; transform: translateY(2px); border-color: #4f6145; }"
     },
     {
       "name": "Ghost Button",
       "kind": "nav",
       "refersTo": "button-ghost",
-      "description": "標題列的返回鍵。",
+      "description": "標題列的返回鍵，無邊框、無陰影。",
       "html": "<button class=\"ds-btn-ghost\">‹ 關卡</button>",
-      "css": ".ds-btn-ghost { font: inherit; font-size: 1rem; min-height: 44px; width: 72px; padding: 0 8px; text-align: left; border: 1.5px solid transparent; border-radius: 10px; background: transparent; color: #22201c; cursor: pointer; } .ds-btn-ghost:focus-visible { outline: 3px solid #3d5a80; outline-offset: 2px; }"
+      "css": ".ds-btn-ghost { font: inherit; font-size: 1rem; min-height: 44px; width: 72px; padding: 0 8px; text-align: left; border: 1.5px solid transparent; border-radius: 16px; background: transparent; color: #55483c; cursor: pointer; } .ds-btn-ghost:focus-visible { outline: 3px solid #657a58; outline-offset: 2px; }"
     },
     {
       "name": "Level Tile",
       "kind": "card",
       "refersTo": "level-tile",
-      "description": "關卡列表的正方形關卡格，只顯示編號；已完成時墨藍邊框加 ✓。",
-      "html": "<button class=\"ds-level ds-solved\"><span class=\"ds-num\">3</span></button>",
-      "css": ".ds-level { position: relative; width: 64px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font: inherit; border: 1.5px solid rgba(42,39,35,0.18); border-radius: 12px; background: #fff; color: #22201c; cursor: pointer; } .ds-level:hover { border-color: #6b665d; } .ds-level:focus-visible { outline: 3px solid #3d5a80; outline-offset: 2px; } .ds-num { font-size: 1.5rem; font-weight: 700; line-height: 1.1; } .ds-solved { border-color: #3d5a80; } .ds-solved::after { content: \"✓\"; position: absolute; top: 4px; right: 8px; color: #3d5a80; font-weight: 700; }"
+      "description": "關卡列表的正方形關卡格，只顯示編號。下一關是深森林綠紙卡加白色虛線圈；已完成印上色塊縮圖與綠勾；未解鎖是無底色的空框。",
+      "html": "<div class=\"ds-tiles\"><button class=\"ds-level\"><span class=\"ds-num\">3</span></button><button class=\"ds-level ds-next\"><span class=\"ds-num\">4</span></button><button class=\"ds-level ds-locked\" disabled><span class=\"ds-num\">5</span></button></div>",
+      "css": ".ds-tiles { display: flex; gap: 10px; } .ds-level { position: relative; width: 64px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font: inherit; border: 1.5px solid #a9b69b; border-bottom-width: 3.5px; box-shadow: 0 2px 6px rgba(85,72,60,0.12); border-radius: 16px; background: #e2e8da; color: #46573d; cursor: pointer; } .ds-level:hover { border-color: #8b7d6b; } .ds-level:focus-visible { outline: 3px solid #657a58; outline-offset: 2px; } .ds-num { font-size: 1.5rem; font-weight: 700; line-height: 1.1; } .ds-next { background: #657a58; color: #fff; border-color: #657a58; border-bottom-color: #4f6145; } .ds-next::before { content: ''; position: absolute; inset: 5px; border: 2px dashed rgba(255,255,255,0.65); border-radius: 12px; } .ds-locked { background: transparent; border-width: 1px; box-shadow: none; color: #8b7d6b; opacity: 0.6; cursor: default; } .ds-locked .ds-num { font-size: 1.15rem; font-weight: 400; }"
     },
     {
       "name": "Level Pack",
       "kind": "custom",
-      "description": "一個尺寸一組：標題列左邊是尺寸、右邊是進度，下面接 5 欄關卡格。",
-      "html": "<section class=\"ds-pack\"><h2>6×6 <span class=\"ds-progress\">已完成 3 / 10</span></h2><div class=\"ds-pack-grid\"><i class=\"ds-solved\">1</i><i class=\"ds-solved\">2</i><i class=\"ds-solved\">3</i><i>4</i><i class=\"ds-locked\">5</i></div></section>",
-      "css": ".ds-pack { width: 340px; color: #22201c; } .ds-pack h2 { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 10px; font-size: 1.15rem; } .ds-progress { font-size: 0.85rem; font-weight: 400; color: #6b665d; } .ds-pack-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; } .ds-pack-grid i { font-style: normal; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; border: 1.5px solid rgba(42,39,35,0.18); border-radius: 12px; background: #fff; } .ds-pack-grid .ds-solved { border-color: #3d5a80; } .ds-pack-grid .ds-locked { opacity: 0.35; }"
+      "description": "一個尺寸一組：森林深綠的尺寸標題、右邊是柔和棕灰進度，下面接 5 欄關卡格。",
+      "html": "<section class=\"ds-pack\"><h2>6×6 <span class=\"ds-progress\">已完成 3 / 10</span></h2><div class=\"ds-pack-grid\"><i>1</i><i>2</i><i>3</i><i class=\"ds-next\">4</i><i class=\"ds-locked\">5</i></div></section>",
+      "css": ".ds-pack { width: 340px; color: #55483c; } .ds-pack h2 { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 12px; font-size: 1.75rem; line-height: 1.1; color: #6f795f; } .ds-progress { font-size: 0.85rem; font-weight: 400; color: #8b7d6b; } .ds-pack-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; } .ds-pack-grid i { font-style: normal; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; border: 1.5px solid #a9b69b; border-bottom-width: 3.5px; border-radius: 16px; background: #e2e8da; color: #46573d; } .ds-pack-grid .ds-next { background: #657a58; color: #fff; border-color: #657a58; border-bottom-color: #4f6145; } .ds-pack-grid .ds-locked { background: transparent; border-width: 1px; color: #8b7d6b; font-size: 1.15rem; font-weight: 400; opacity: 0.6; }"
     },
     {
       "name": "Rules Marginalia",
       "kind": "custom",
       "refersTo": "rules-card",
-      "description": "直書規則旁註，系統的招牌元件。",
+      "description": "規則旁註：燕麥米面板，桌面直書、手機橫書。",
       "html": "<section class=\"ds-rules\"><p>每一列、每一行、每個色塊<strong>恰好一隻</strong>刺蝟。</p><p>刺蝟靠太近會被刺到，任兩隻<strong>不可相鄰</strong>，斜角也不行。</p><p class=\"ds-hint\">點一下標 ✕，再點一下放刺蝟。</p></section>",
-      "css": ".ds-rules { writing-mode: vertical-rl; height: 10.5em; padding: 14px 12px; background: #fff; color: #22201c; border-radius: 12px; line-height: 1.8; letter-spacing: 0.05em; } .ds-rules p { margin: 0 0 0 0.6em; } .ds-hint { color: #6b665d; font-size: 0.9rem; }"
+      "css": ".ds-rules { writing-mode: vertical-rl; height: 10.5em; padding: 14px 12px; background: #d9c8ab; color: #55483c; border-radius: 16px; line-height: 1.8; letter-spacing: 0.05em; } .ds-rules p { margin: 0 0 0 0.6em; } .ds-hint { color: #5e5144; font-size: 0.9rem; }"
     },
     {
       "name": "Board",
       "kind": "custom",
-      "description": "印在紙上的謎題頁：粉彩色塊、墨線邊界。",
-      "html": "<div class=\"ds-board\"><i style=\"background:#ec9496\"></i><i style=\"background:#ec9496\"></i><i style=\"background:#b5d4f0\"></i><i style=\"background:#c6e3ac\"></i><i style=\"background:#f5da94\"></i><i style=\"background:#b5d4f0\"></i><i style=\"background:#c6e3ac\"></i><i style=\"background:#f5da94\"></i><i style=\"background:#f5da94\"></i></div>",
-      "css": ".ds-board { display: grid; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px); border: 2px solid #2a2723; border-radius: 6px; overflow: hidden; width: max-content; } .ds-board i { box-shadow: inset 0 0 0 0.5px rgba(42,39,35,0.18); }"
+      "description": "印在紙上的謎題頁：低彩度色塊、暖灰米格線與 2.5px 色塊邊界；衝突格是陶土紅內框加陶土粉斜紋。",
+      "html": "<div class=\"ds-board\"><i style=\"background:#dce5d4\"></i><i style=\"background:#dce5d4\"></i><i style=\"background:#d7e5e8\"></i><i style=\"background:#f0d9c9\"></i><i class=\"ds-conflict\" style=\"background:#f2e7b9\"></i><i style=\"background:#d7e5e8\"></i><i style=\"background:#f0d9c9\"></i><i style=\"background:#f2e7b9\"></i><i style=\"background:#f2e7b9\"></i></div>",
+      "css": ".ds-board { display: grid; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px); border: 2.5px solid #b8b09f; border-radius: 6px; overflow: hidden; width: max-content; } .ds-board i { box-shadow: inset 0 0 0 0.5px #b8b09f; } .ds-board .ds-conflict { background-image: repeating-linear-gradient(45deg, transparent 0 5px, #f1d8d0 5px 10px); box-shadow: inset 0 0 0 0.5px #b8b09f, inset 0 0 0 3px #c77c68; }"
     },
     {
       "name": "Win Stamp",
       "kind": "custom",
-      "description": "過關時蓋在棋盤右下角的印泥朱印章。",
+      "description": "過關時蓋在過關面板右側頁邊的深森林綠印章。",
       "html": "<div class=\"ds-seal\"><span>過關</span></div>",
-      "css": ".ds-seal { position: relative; display: grid; place-items: center; width: 84px; aspect-ratio: 1; border: 3px solid #a9443b; border-radius: 50%; color: #a9443b; font-size: 1.25rem; font-weight: 800; letter-spacing: 0.12em; text-indent: 0.12em; transform: rotate(-14deg); opacity: 0.9; } .ds-seal::before { content: ''; position: absolute; inset: 4px; border: 1px solid currentColor; border-radius: 50%; }"
+      "css": ".ds-seal { position: relative; display: grid; place-items: center; width: 84px; aspect-ratio: 1; border: 3px solid #657a58; border-radius: 50%; color: #657a58; font-size: 1.25rem; font-weight: 800; letter-spacing: 0.12em; text-indent: 0.12em; transform: rotate(-14deg); opacity: 0.9; } .ds-seal::before { content: ''; position: absolute; inset: 4px; border: 1px solid currentColor; border-radius: 50%; }"
     }
   ],
   "narrative": {
     "northStar": "紙上謎題本",
-    "overview": "這套系統的意象是一本放在手邊的謎題小冊。米白紙底、墨色粗線、粉彩色塊，棋盤就是印在紙上的那一頁。所有介面都是這本冊子的延伸：按鈕和關卡格是夾在書頁間的小卡片，規則用直書排在頁邊，像書頁上的旁註。畫面密度低，一次只做一件事，棋盤佔據視覺重心。元件要有實體觸感，像桌遊配件；目前實作仍是平面的，是設計目標和現況之間的落差。",
+    "overview": "這套系統的意象是一本放在手邊的謎題小冊，配色走日系手繪的森林繪本（依《配色設計.md》v1.1）。奶油紙底、暖灰米線條、低彩度色塊，棋盤就是印在紙上的那一頁。所有介面都是這本冊子的延伸：按鈕和關卡格是夾在書頁間的小卡片，規則在桌面版用直書排在頁邊，像書頁上的旁註。畫面密度低，一次只做一件事，棋盤佔據視覺重心。元件要有實體觸感，像桌遊配件，按下去要有回饋、有重量。",
     "keyCharacteristics": [
-      "米白紙底配墨色線條，深色模式是「夜間閱讀的紙」，不是螢光螢幕。",
-      "九色粉彩色塊是唯一大面積的色彩來源。",
-      "墨藍是唯一的強調色，只用在主要動作、焦點環和已完成標記。",
-      "直書規則旁註是這套系統的招牌。",
+      "奶油紙底配暖灰棕文字和暖灰米線條，整體低彩度、不用純黑。只有淺色，沒有深色模式。",
+      "十色低彩度色塊是唯一大面積的色彩來源。",
+      "深森林綠是唯一的強調色，只用在主要動作、焦點環、選取格和完成標記。",
+      "刺蝟維持單色剪影（暖灰棕），不做彩色角色。",
+      "桌面版的直書規則旁註是這套系統的招牌；手機版改橫書，方便快速掃讀。",
       "系統字體堆疊，沒有自訂字體，維持零建置。"
     ],
     "rules": [
       {
-        "name": "The One Ink Rule",
-        "body": "墨藍是唯一的介面強調色，只能用在主要動作、焦點和完成狀態。唯一的例外是過關印章的印泥朱，它只出現在蓋章那一刻。",
+        "name": "The One Green Rule",
+        "body": "深森林綠是唯一的介面強調色，只能用在主要動作、焦點、選取和完成狀態。",
         "section": "colors"
       },
       {
         "name": "The Regions Own Color Rule",
-        "body": "大面積的色彩只屬於棋盤色塊。介面元件一律用紙、白、墨，不能跟色塊搶顏色。",
+        "body": "大面積的色彩只屬於棋盤色塊。介面元件一律用紙、淡鼠尾草、燕麥米和暖灰棕，不能跟色塊搶顏色。色塊色可以出現在棋盤以外，但只能是某一題真正的色塊，不能拿來當裝飾或狀態色。",
         "section": "colors"
       },
       {
-        "name": "The Night Paper Rule",
-        "body": "深色模式是調暗的紙，不是霓虹螢幕。不能加發光、光暈或高飽和的色彩。",
+        "name": "The Fixed Hedgehog Rule",
+        "body": "刺蝟永遠是同一個暖灰棕單色剪影，不隨色塊或狀態換色，以免玩家以為刺蝟顏色也代表規則。衝突由格子外框和斜紋表示。",
         "section": "colors"
       },
       {
         "name": "The Marginalia Rule",
-        "body": "規則一律直書、由右往左換行，像書頁旁註。手機版收成棋盤下方一張可翻開的「規則」頁邊籤，還沒破過任何一關時預設展開；桌面版一律展開，放在棋盤右側，頂端和棋盤上緣對齊。",
+        "body": "桌面版規則直書、由右往左換行，像書頁旁註。手機版改為橫書，收成棋盤下方一張可翻開的「規則」頁邊籤，還沒破過任何一關時預設展開；桌面版一律展開，放在棋盤右側，頂端和棋盤上緣對齊。",
         "section": "typography"
       },
       {
-        "name": "The Flat Page Rule",
-        "body": "書頁上的東西都是平的，不用投影。實體觸感一律用底緣邊框厚度、按壓位移和邊框加深來表現。",
+        "name": "The Soft Shadow Rule",
+        "body": "只用低透明度的暖灰棕陰影，不用厚重的黑色陰影；棋盤、規則面板等書頁本身不加陰影。實體觸感仍以底緣邊框厚度、按壓位移和邊框加深為主。",
         "section": "elevation"
       }
     ],
     "dos": [
-      "Do 把顏色留給棋盤色塊，介面元件只用紙、白、墨，強調色只用墨藍。",
-      "Do 規則維持直書旁註，桌面版頂端要和棋盤上緣對齊。",
-      "Do 所有可點擊元素最矮 44px，焦點用 3px 墨藍外框。",
-      "Do 狀態不只靠顏色，例如衝突要加斜紋。",
+      "Do 把顏色留給棋盤色塊，介面元件只用紙、淡鼠尾草、燕麥米和暖灰棕，強調色只用深森林綠。",
+      "Do 桌面版規則維持直書旁註，頂端要和棋盤上緣對齊。",
+      "Do 所有可點擊元素最矮 44px，焦點用 3px 深森林綠外框。",
+      "Do 狀態不只靠顏色，例如衝突要同時有外框和斜紋。",
       "Do 實體觸感用底緣邊框厚度、按壓位移、邊框變化這類「紙卡被按下」的回饋。",
       "Do 重要時刻用「蓋章」語言收尾，讓盤面留在畫面上，不要用遮罩蓋住。",
-      "Do 深色模式和淺色模式同步調整，每個色票都要有對應的深色值。"
+      "Do 新增題目時在手機上確認相鄰色塊分得出來，必要時調整色塊順序。"
     ],
     "donts": [
       "Don't 加入手遊風的花俏特效，例如金幣、爆炸、閃光、彩帶。",
       "Don't 做成科技風的深色霓虹，例如發光、光暈、高飽和螢光色。",
-      "Don't 加投影或用全螢幕遮罩對話框蓋住盤面。",
+      "Don't 用純黑線條、厚重黑色陰影，或用全螢幕遮罩對話框蓋住盤面。",
+      "Don't 讓刺蝟隨色塊或狀態換色，也不要在棋盤格內放紋理或插畫。",
       "Don't 引入需要建置的自訂字體或 CSS 框架。"
     ]
   }
