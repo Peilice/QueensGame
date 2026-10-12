@@ -157,6 +157,7 @@ main {
 .rules > summary {
   display: inline-flex;
   align-items: center;
+  justify-content: center; /* WebKit 的 details 不把 flex 對齊套到 summary，它會撐滿整寬 */
   gap: 4px;
   min-height: 44px;
   padding: 0 10px 0 14px;
@@ -181,8 +182,11 @@ main {
 }
 .rules[open] > summary svg { transform: rotate(90deg); }
 
+/* 直書放在每一段上，外層維持橫書、由右往左排段落。
+   整塊直書時 Safari 會忽略固定高度來算寬度，白底只有一欄寬、文字溢出到左邊 */
 .rules-body {
-  writing-mode: vertical-rl;
+  display: flex;
+  flex-direction: row-reverse;
   height: 10.5em;
   max-width: 100%;
   padding: 14px 12px;
@@ -191,7 +195,7 @@ main {
   line-height: 1.8;
   letter-spacing: 0.05em;
 }
-.rules-body p { margin: 0 0 0 0.6em; }
+.rules-body p { writing-mode: vertical-rl; height: 100%; margin: 0 0 0 0.6em; }
 .rules-body p:last-child { margin: 0; }
 .rules-body .hint { color: var(--muted); font-size: 0.9rem; }
 
