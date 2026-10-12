@@ -63,7 +63,7 @@
 
 * { box-sizing: border-box; }
 
-/* manipulation：關掉雙擊放大（連點兩下是放皇后），保留雙指縮放 */
+/* manipulation：關掉雙擊放大（連點兩下是放刺蝟），保留雙指縮放 */
 html { -webkit-text-size-adjust: 100%; touch-action: manipulation; }
 
 body {
@@ -229,7 +229,7 @@ main {
 
 /* ---------- 關卡列表：依棋盤尺寸分組 ---------- */
 
-/* 刊頭：謎題本的封面。大字書名，旁邊直書中文名，底下一道和棋盤外框同粗的墨線 */
+/* 刊頭：謎題本的封面。大字書名，旁邊直書副題，底下一道和棋盤外框同粗的墨線 */
 .masthead {
   margin: 8px 0 28px;
   padding-bottom: 12px;
@@ -241,19 +241,19 @@ main {
   gap: 14px;
   margin: 0;
 }
-.title-en {
+.title-main {
   font-size: clamp(3.25rem, 17vw, 4.75rem);
   font-weight: 700;
-  line-height: 0.82;
-  letter-spacing: -0.035em;
+  line-height: 1;
+  letter-spacing: 0.02em;
 }
-.title-zh {
+.title-sub {
   writing-mode: vertical-rl;
   font-size: clamp(0.9rem, 4.2vw, 1.15rem);
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.08em;
-  margin-bottom: -0.08em; /* 吃掉最後一字的字距，讓字尾和英文字底對齊 */
+  margin-bottom: -0.08em; /* 吃掉最後一字的字距，讓字尾和書名字底對齊 */
 }
 
 .pack + .pack { margin-top: 36px; }
@@ -434,12 +434,13 @@ main {
 }
 .cell svg.x { width: 34%; height: 34%; fill: none; stroke: var(--queen); stroke-width: 2.5; stroke-linecap: round; opacity: var(--mark-alpha); }
 .cell svg.x path { stroke-dasharray: 1 2; }
-.cell svg.q { fill: var(--queen); }
+/* 刺蝟身形扁長，比格子的 58% 再放大一點才撐得起來 */
+.cell svg.q { width: 64%; height: 64%; fill: var(--queen); }
 
 .cell.conflict {
   background-image: repeating-linear-gradient(45deg, transparent 0 5px, color-mix(in srgb, var(--danger) 30%, transparent) 5px 10px);
 }
-/* 衝突的皇后：紅色填色表示衝突，墨色描邊讓皇冠在任何色塊上都看得清楚 */
+/* 衝突的刺蝟：紅色填色表示衝突，墨色描邊讓刺蝟在任何色塊上都看得清楚 */
 .cell.conflict svg.q {
   fill: var(--danger);
   stroke: var(--queen);
@@ -455,7 +456,7 @@ main {
 
 /* ---------- 墨跡 ----------
    ✕ 是兩筆鋼筆線：先描左上到右下，第二筆在第一筆快收尾時接上；擦掉時倒著收回去。
-   皇后像蓋章：從稍高處壓下、墨色由淡轉實；拿掉時章被提起、墨跡淡去。
+   刺蝟像蓋章：從稍高處壓下、墨色由淡轉實；拿掉時章被提起、墨跡淡去。
    --d 是整批變動（重來、上一步）時沿對角線的延遲。 */
 .cell svg.x.in path { animation: pen-in 140ms cubic-bezier(0.45, 0, 0.2, 1) both; animation-delay: var(--d, 0ms); }
 .cell svg.x.in path + path { animation-delay: calc(var(--d, 0ms) + 100ms); }
@@ -481,7 +482,7 @@ main {
   to { transform: translateY(-6%) scale(1.12); opacity: 0; }
 }
 
-/* ---------- 過關：皇后依序蓋印、外框墨線加粗、頁邊蓋上「過關」章 ---------- */
+/* ---------- 過關：刺蝟依序蓋印、外框墨線加粗、頁邊蓋上「過關」章 ---------- */
 
 .board.solved {
   box-shadow: 0 0 0 2px var(--frame);

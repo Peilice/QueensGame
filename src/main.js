@@ -49,9 +49,16 @@ function penStroke(x1, y1, x2, y2) {
 const markSvg = () =>
   `<svg class="x" viewBox="0 0 24 24" aria-hidden="true">${penStroke(7, 7, 17, 17)}${penStroke(17, 7, 7, 17)}</svg>`;
 
-/** 皇后：像手蓋的章，角度微歪，墨色紋理三選一 */
+/** 刺蝟（側面、頭朝右）：背上一排刺、挖空的眼睛、圓鼻頭、兩隻小腳 */
+const HEDGEHOG =
+  '<g transform="translate(1.3 0.7) scale(0.94)">' +
+  '<path fill-rule="evenodd" d="M2.18 16.9L-1.18 14.51L2.44 12.54L0.79 8.77L4.91 8.94L5.43 4.85L8.88 7.11L11.43 3.87L13.22 7.58L17.08 6.11L16.71 10.21L20.77 10.93Q20 11.6 22.4 15.4Q23 16.6 21.7 17.3Q19.6 18.6 17.2 18.8L4.6 18.8Q1.6 18.6 1.8 16.4zM16.05 13.9a1.45 1.45 0 1 0 2.9 0a1.45 1.45 0 1 0 -2.9 0z"/>' +
+  '<rect x="5.4" y="18" width="3" height="3.6" rx="1.5"/><rect x="13.2" y="18" width="3" height="3.6" rx="1.5"/>' +
+  '<circle cx="22.2" cy="15.9" r="1.3"/></g>';
+
+/** 刺蝟像手蓋的章，角度微歪，墨色紋理三選一 */
 const queenSvg = () =>
-  `<svg class="q" viewBox="0 0 24 24" aria-hidden="true"><g filter="url(#ink-${Math.floor(Math.random() * 3)})" transform="rotate(${fmt(wobble(3.5))} 12 13)"><path d="M3 8l4.5 4L12 4l4.5 8L21 8l-2 11H5z"/><rect x="5" y="20" width="14" height="2" rx="1"/></g></svg>`;
+  `<svg class="q" viewBox="0 0 24 24" aria-hidden="true"><g filter="url(#ink-${Math.floor(Math.random() * 3)})" transform="rotate(${fmt(wobble(3.5))} 12 13)">${HEDGEHOG}</g></svg>`;
 
 // 墨跡離場的時間（和 style.css 的 pen-out／lift 對齊），之後才從 DOM 移除
 const LEAVE_MS = { [MARK]: 200, [QUEEN]: 160 };
@@ -212,13 +219,13 @@ function render(preview = new Set(), { instant = false } = {}) {
   $('reset').disabled = game.solved;
 }
 
-/** 把一格從 from 改畫成 to：✕ 一筆一筆描出、反向收回；皇后蓋下、提起 */
+/** 把一格從 from 改畫成 to：✕ 一筆一筆描出、反向收回；刺蝟蓋下、提起 */
 function ink(cell, from, to, animate, delay) {
   // 上一次還沒收完的墨跡直接拿掉，避免同一格疊兩層
   cell.querySelectorAll('svg.out').forEach((el) => el.remove());
   const old = cell.querySelector('svg');
   if (old) {
-    // ✕ 直接換成皇后時不收筆，讓章蓋在上面
+    // ✕ 直接換成刺蝟時不收筆，讓章蓋在上面
     if (animate && to === EMPTY) {
       old.classList.remove('in');
       old.classList.add('out');
@@ -248,7 +255,7 @@ function afterChange() {
   }
 }
 
-// 過關的節奏：皇后由上而下依序蓋印 → 操作列換成過關面板 → 頁邊蓋上「過關」章。
+// 過關的節奏：刺蝟由上而下依序蓋印 → 操作列換成過關面板 → 頁邊蓋上「過關」章。
 // 盤面一直留在畫面上，玩家可以看著自己解開的那一頁。
 function showWin() {
   const board = $('board');

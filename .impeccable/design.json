@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "generatedAt": "2026-10-11T17:42:20.704Z",
-  "title": "Design System: Queens 皇后解謎",
+  "title": "Design System: 刺蝟不靠近",
   "extensions": {
     "colorMeta": {
       "paper": {
@@ -147,12 +147,12 @@
       {
         "name": "ink",
         "value": "180ms, scale 1.35 → 1",
-        "purpose": "皇后落章"
+        "purpose": "刺蝟落章"
       },
       {
         "name": "queen-stamp",
         "value": "300ms, 間隔 90ms",
-        "purpose": "過關時皇后依序蓋印"
+        "purpose": "過關時刺蝟依序蓋印"
       },
       {
         "name": "seal",
@@ -242,7 +242,7 @@
       "kind": "custom",
       "refersTo": "rules-card",
       "description": "直書規則旁註，系統的招牌元件。",
-      "html": "<section class=\"ds-rules\"><p>每一列、每一行、每個色塊<strong>恰好一個</strong>皇后。</p><p>任兩個皇后<strong>不可相鄰</strong>，斜角也不行。</p><p class=\"ds-hint\">點一下標 ✕，再點一下放皇后。</p></section>",
+      "html": "<section class=\"ds-rules\"><p>每一列、每一行、每個色塊<strong>恰好一隻</strong>刺蝟。</p><p>刺蝟靠太近會被刺到，任兩隻<strong>不可相鄰</strong>，斜角也不行。</p><p class=\"ds-hint\">點一下標 ✕，再點一下放刺蝟。</p></section>",
       "css": ".ds-rules { writing-mode: vertical-rl; height: 10.5em; padding: 14px 12px; background: #fff; color: #22201c; border-radius: 12px; line-height: 1.8; letter-spacing: 0.05em; } .ds-rules p { margin: 0 0 0 0.6em; } .ds-hint { color: #6b665d; font-size: 0.9rem; }"
     },
     {
