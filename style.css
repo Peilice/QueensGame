@@ -8,6 +8,7 @@
   --frame: #2a2723; /* 棋盤外框：疊在紙上，不是疊在色塊上 */
   --edge: rgba(42, 39, 35, 0.18); /* 按鈕與關卡格的紙卡邊緣 */
   --mark-alpha: 0.6;
+  --print-alpha: 0.6; /* 目錄上已破關卡的色塊淡印 */
   --accent: #3d5a80;
   --accent-text: #ffffff;
   --danger: #c62828;
@@ -40,6 +41,7 @@
     --frame: #77716a;
     --edge: #45413c;
     --mark-alpha: 0.75;
+    --print-alpha: 0.5;
     --accent: #8fb0d9;
     --accent-text: #10151c;
     --danger: #ff6b6b;
@@ -80,6 +82,9 @@ main {
 }
 
 [hidden] { display: none !important; }
+
+/* 反白像用墨藍螢光筆劃過，不用瀏覽器預設的亮藍 */
+::selection { background: color-mix(in srgb, var(--accent) 28%, transparent); color: inherit; }
 
 /* 只放濾鏡定義，不佔版面；不能用 display:none，否則濾鏡會失效 */
 .defs { position: absolute; width: 0; height: 0; overflow: hidden; }
@@ -259,8 +264,26 @@ main {
 .level:hover:not(:disabled) { border-color: var(--muted); }
 .level:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .level:disabled { opacity: 0.35; cursor: default; }
-/* 已完成：退到背景，只留墨藍勾，編號改鉛筆灰 */
-.level.solved .num { color: var(--muted); }
+/* 已完成：目錄上印出這一題的色塊，淡淡的一張小圖；破得越多，目錄越滿越彩。
+   色彩仍然只屬於色塊，介面本身沒有多一種顏色。編號墨色，壓在小圖上仍清楚 */
+.level .print {
+  position: absolute;
+  inset: 5px;
+  border-radius: 8px;
+  overflow: hidden;
+  opacity: var(--print-alpha);
+  pointer-events: none;
+}
+.level .print svg { display: block; width: 100%; height: 100%; }
+.level .print path { fill: none; stroke: var(--line); stroke-width: 1px; vector-effect: non-scaling-stroke; opacity: 0.35; }
+.level.solved .num {
+  position: relative;
+  /* 編號像寫在小圖上的墨字：一圈紙色描邊，色塊再雜也讀得出來 */
+  -webkit-text-stroke: 4px var(--surface);
+  paint-order: stroke fill;
+}
+/* 勾壓在小圖上：一圈紙色襯底，任何色塊上都看得清楚 */
+.level.solved .badge { z-index: 1; filter: drop-shadow(0 0 1px var(--surface)) drop-shadow(0 0 1px var(--surface)); }
 /* 這一組的下一關：卡片內側一圈墨藍虛線，像用筆在目錄上圈起來；這是列表上唯一該按的那一格 */
 .level.next::before {
   content: "";

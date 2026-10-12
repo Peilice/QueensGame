@@ -11,6 +11,29 @@ const CHECK_SVG =
 const LOCK_SVG =
   '<svg class="badge" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
 
+/** 已破關卡在目錄上的淡印：那一題的色塊縮圖加上色塊邊界，像印在目錄頁上的小圖 */
+function printSvg({ size, regions }) {
+  const at = (r, c) => regions[r * size + c];
+  let fills = '';
+  // 同一列連續同色的格子合成一塊，相鄰兩塊略為重疊，避免縮放後露出接縫
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; ) {
+      let end = c;
+      while (end + 1 < size && at(r, end + 1) === at(r, c)) end++;
+      fills += `<rect x="${c}" y="${r}" width="${end - c + 1.04}" height="1.04" style="fill:var(--r${at(r, c)})"/>`;
+      c = end + 1;
+    }
+  }
+  let edges = '';
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (c + 1 < size && at(r, c) !== at(r, c + 1)) edges += `M${c + 1} ${r}v1`;
+      if (r + 1 < size && at(r, c) !== at(r + 1, c)) edges += `M${c} ${r + 1}h1`;
+    }
+  }
+  return `<span class="print" aria-hidden="true"><svg viewBox="0 0 ${size} ${size}" preserveAspectRatio="none">${fills}<path d="${edges}"/></svg></span>`;
+}
+
 // ---------- 墨跡：每一筆都是手畫的，所以每一次都不完全一樣 ----------
 
 const wobble = (amount) => (Math.random() * 2 - 1) * amount;
@@ -105,7 +128,9 @@ function showLevels() {
           btn.classList.toggle('started', inProgress);
           // 每組最前面那一關還沒破的，就是這一組的「下一關」
           btn.classList.toggle('next', unlocked && !done && (i === 0 || solved.has(i - 1)));
-          btn.innerHTML = `<span class="num">${i + 1}</span>${done ? CHECK_SVG : unlocked ? '' : LOCK_SVG}`;
+          btn.innerHTML =
+            (done ? printSvg(parsePuzzle(PUZZLES[size][i])) : '') +
+            `<span class="num">${i + 1}</span>${done ? CHECK_SVG : unlocked ? '' : LOCK_SVG}`;
           btn.setAttribute(
             'aria-label',
             `${label} 第 ${i + 1} 關${done ? '，已完成' : inProgress ? '，玩到一半' : unlocked ? '' : '，未解鎖'}`,
