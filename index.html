@@ -9,6 +9,41 @@
   <script type="module" src="src/main.js"></script>
 </head>
 <body>
+  <!-- 墨跡濾鏡：皇后的印痕（邊緣微糙、墨色深淺不均，三種紋理輪流用）與過關印章的印泥 -->
+  <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="ink-0" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="2" result="edge"/>
+        <feDisplacementMap in="SourceGraphic" in2="edge" scale="0.7" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+        <feTurbulence type="fractalNoise" baseFrequency="0.42" numOctaves="2" seed="5" result="grain"/>
+        <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.55 0 0 0 1.27" result="density"/>
+        <feComposite in="rough" in2="density" operator="in"/>
+      </filter>
+      <filter id="ink-1" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="11" result="edge"/>
+        <feDisplacementMap in="SourceGraphic" in2="edge" scale="0.7" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+        <feTurbulence type="fractalNoise" baseFrequency="0.42" numOctaves="2" seed="17" result="grain"/>
+        <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.55 0 0 0 1.27" result="density"/>
+        <feComposite in="rough" in2="density" operator="in"/>
+      </filter>
+      <filter id="ink-2" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="23" result="edge"/>
+        <feDisplacementMap in="SourceGraphic" in2="edge" scale="0.7" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+        <feTurbulence type="fractalNoise" baseFrequency="0.42" numOctaves="2" seed="31" result="grain"/>
+        <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.55 0 0 0 1.27" result="density"/>
+        <feComposite in="rough" in2="density" operator="in"/>
+      </filter>
+      <!-- 印章：單位是 CSS px，邊緣更毛、印泥有沒沾到的空隙 -->
+      <filter id="ink-seal" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="3" seed="7" result="edge"/>
+        <feDisplacementMap in="SourceGraphic" in2="edge" scale="2.2" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+        <feTurbulence type="fractalNoise" baseFrequency="0.16" numOctaves="2" seed="13" result="grain"/>
+        <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -2 0 0 0 1.95" result="density"/>
+        <feComposite in="rough" in2="density" operator="in"/>
+      </filter>
+    </defs>
+  </svg>
+
   <main id="levels-view" hidden>
     <header class="top">
       <h1>Queens</h1>

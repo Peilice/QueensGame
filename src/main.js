@@ -1,23 +1,42 @@
-import { parsePuzzle, findConflicts, MARK, QUEEN } from './rules.js';
+import { parsePuzzle, findConflicts, EMPTY, MARK, QUEEN } from './rules.js';
 import { Game, isUnlocked } from './game.js';
 import { PUZZLES } from './puzzles.js';
 import * as storage from './storage.js';
 
 const $ = (id) => document.getElementById(id);
 
-const QUEEN_SVG =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l4.5 4L12 4l4.5 8L21 8l-2 11H5z"/><rect x="5" y="20" width="14" height="2" rx="1"/></svg>';
 // 關卡格右上角的狀態小圖示：同一套線條粗細
 const CHECK_SVG =
   '<svg class="badge" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
 const LOCK_SVG =
   '<svg class="badge" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
-const MARK_SVG =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>';
+
+// ---------- 墨跡：每一筆都是手畫的，所以每一次都不完全一樣 ----------
+
+const wobble = (amount) => (Math.random() * 2 - 1) * amount;
+const fmt = (v) => v.toFixed(2);
+
+/** 一筆略帶弧度、端點不完全對齊的筆畫；pathLength=1 讓描線動畫不必量長度 */
+function penStroke(x1, y1, x2, y2) {
+  const mx = (x1 + x2) / 2 + wobble(1.6), my = (y1 + y2) / 2 + wobble(1.6);
+  return `<path pathLength="1" d="M${fmt(x1 + wobble(0.9))} ${fmt(y1 + wobble(0.9))}Q${fmt(mx)} ${fmt(my)} ${fmt(x2 + wobble(0.9))} ${fmt(y2 + wobble(0.9))}"/>`;
+}
+
+/** ✕：先左上往右下，再右上往左下，跟手寫的筆順一樣 */
+const markSvg = () =>
+  `<svg class="x" viewBox="0 0 24 24" aria-hidden="true">${penStroke(7, 7, 17, 17)}${penStroke(17, 7, 7, 17)}</svg>`;
+
+/** 皇后：像手蓋的章，角度微歪，墨色紋理三選一 */
+const queenSvg = () =>
+  `<svg class="q" viewBox="0 0 24 24" aria-hidden="true"><g filter="url(#ink-${Math.floor(Math.random() * 3)})" transform="rotate(${fmt(wobble(3.5))} 12 13)"><path d="M3 8l4.5 4L12 4l4.5 8L21 8l-2 11H5z"/><rect x="5" y="20" width="14" height="2" rx="1"/></g></svg>`;
+
+// 墨跡離場的時間（和 style.css 的 pen-out／lift 對齊），之後才從 DOM 移除
+const LEAVE_MS = { [MARK]: 200, [QUEEN]: 160 };
 
 let level = null; // { size, index }
 let game = null;
 let cells = [];
+let shown = []; // 每格目前畫在紙上的狀態，只有變了才重畫
 let winTimers = [];
 
 const desktop = matchMedia('(min-width: 760px)');
@@ -118,7 +137,8 @@ function openLevel(size, index) {
   $('level-title').textContent = `${size}×${size} 第 ${index + 1} 關`;
 
   buildBoard(puzzle);
-  render();
+  // 回到存檔的盤面：墨跡本來就在紙上，不重寫一次
+  render(new Set(), { instant: true });
 }
 
 function buildBoard({ size, regions }) {
@@ -139,22 +159,57 @@ function buildBoard({ size, regions }) {
     return cell;
   });
   board.replaceChildren(...cells);
+  shown = new Array(cells.length).fill(EMPTY);
 }
 
-function render(preview = new Set()) {
+function render(preview = new Set(), { instant = false } = {}) {
   const conflicts = findConflicts(game.puzzle, game.board);
+  const changed = [];
   game.board.forEach((state, i) => {
-    const cell = cells[i];
-    const shown = state === 0 && preview.has(i) ? MARK : state;
-    cell.innerHTML = shown === QUEEN ? QUEEN_SVG : shown === MARK ? MARK_SVG : '';
-    // 只有這一次才變成皇后的格子播放落章動畫
-    cell.classList.toggle('fresh', shown === QUEEN && !cell.classList.contains('queen'));
-    cell.classList.toggle('queen', shown === QUEEN);
-    cell.classList.toggle('mark', shown === MARK);
-    cell.classList.toggle('conflict', conflicts.has(i));
+    const next = state === EMPTY && preview.has(i) ? MARK : state;
+    cells[i].classList.toggle('queen', next === QUEEN);
+    cells[i].classList.toggle('mark', next === MARK);
+    cells[i].classList.toggle('conflict', conflicts.has(i));
+    if (next !== shown[i]) changed.push([i, next]);
   });
+
+  const animate = !instant && !reducedMotion.matches;
+  // 一次改很多格（重來、撤銷一整次拖曳或重來）時，墨跡沿對角線由左上一路掃過去
+  const n = game.puzzle.size;
+  const step = changed.length > 1 ? Math.min(24, 380 / (2 * n - 2)) : 0;
+  for (const [i, next] of changed) {
+    const delay = step * (Math.floor(i / n) + (i % n));
+    ink(cells[i], shown[i], next, animate, delay);
+    shown[i] = next;
+  }
+
   $('undo').disabled = game.solved || !game.canUndo;
   $('reset').disabled = game.solved;
+}
+
+/** 把一格從 from 改畫成 to：✕ 一筆一筆描出、反向收回；皇后蓋下、提起 */
+function ink(cell, from, to, animate, delay) {
+  // 上一次還沒收完的墨跡直接拿掉，避免同一格疊兩層
+  cell.querySelectorAll('svg.out').forEach((el) => el.remove());
+  const old = cell.querySelector('svg');
+  if (old) {
+    // ✕ 直接換成皇后時不收筆，讓章蓋在上面
+    if (animate && to === EMPTY) {
+      old.classList.remove('in');
+      old.classList.add('out');
+      old.style.setProperty('--d', `${delay}ms`);
+      setTimeout(() => old.remove(), delay + LEAVE_MS[from]);
+    } else {
+      old.remove();
+    }
+  }
+  if (to === EMPTY) return;
+  cell.insertAdjacentHTML('beforeend', to === QUEEN ? queenSvg() : markSvg());
+  if (animate) {
+    const el = cell.lastElementChild;
+    el.classList.add('in');
+    el.style.setProperty('--d', `${delay}ms`);
+  }
 }
 
 function afterChange() {
@@ -174,10 +229,7 @@ function showWin() {
   const board = $('board');
   board.classList.add('locked', 'solved');
   const queens = cells.filter((cell) => cell.classList.contains('queen'));
-  queens.forEach((cell, order) => {
-    cell.classList.remove('fresh');
-    cell.style.setProperty('--order', order);
-  });
+  queens.forEach((cell, order) => cell.style.setProperty('--order', order));
 
   const { size, index } = level;
   const last = index === PUZZLES[size].length - 1;
