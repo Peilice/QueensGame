@@ -229,16 +229,48 @@ main {
 
 /* ---------- 關卡列表：依棋盤尺寸分組 ---------- */
 
-.pack + .pack { margin-top: 28px; }
+/* 刊頭：謎題本的封面。大字書名，旁邊直書中文名，底下一道和棋盤外框同粗的墨線 */
+.masthead {
+  margin: 8px 0 28px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--frame);
+}
+.masthead h1 {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  margin: 0;
+}
+.title-en {
+  font-size: clamp(3.25rem, 17vw, 4.75rem);
+  font-weight: 700;
+  line-height: 0.82;
+  letter-spacing: -0.035em;
+}
+.title-zh {
+  writing-mode: vertical-rl;
+  font-size: clamp(0.9rem, 4.2vw, 1.15rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  margin-bottom: -0.08em; /* 吃掉最後一字的字距，讓字尾和英文字底對齊 */
+}
 
+.pack + .pack { margin-top: 36px; }
+
+/* 每組是一章：尺寸用章名的份量寫出來 */
 .pack h2 {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin: 0 0 10px;
-  font-size: 1.15rem;
+  margin: 0 0 12px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
 }
-.pack h2 .progress { font-size: 0.85rem; font-weight: 400; color: var(--muted); }
+.pack h2 .progress { font-size: 0.85rem; font-weight: 400; letter-spacing: normal; color: var(--muted); }
 
 .level-list {
   list-style: none;
@@ -266,7 +298,15 @@ main {
 .level .num { font-size: 1.5rem; font-weight: 700; line-height: 1.1; }
 .level:hover:not(:disabled) { border-color: var(--muted); }
 .level:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.level:disabled { opacity: 0.35; cursor: default; }
+/* 未解鎖：還不是一張能拿起來的卡，只是印在頁面上的空框——沒有底色、沒有厚度 */
+.level:disabled {
+  background: transparent;
+  border-width: 1px;
+  color: var(--muted);
+  opacity: 0.6;
+  cursor: default;
+}
+.level:disabled .num { font-size: 1.15rem; font-weight: 400; }
 /* 已完成：目錄上印出這一題的色塊，淡淡的一張小圖；破得越多，目錄越滿越彩。
    色彩仍然只屬於色塊，介面本身沒有多一種顏色。編號墨色，壓在小圖上仍清楚 */
 .level .print {
@@ -287,12 +327,21 @@ main {
 }
 /* 勾壓在小圖上：一圈紙色襯底，任何色塊上都看得清楚 */
 .level.solved .badge { z-index: 1; filter: drop-shadow(0 0 1px var(--surface)) drop-shadow(0 0 1px var(--surface)); }
-/* 這一組的下一關：卡片內側一圈墨藍虛線，像用筆在目錄上圈起來；這是列表上唯一該按的那一格 */
+/* 這一組的下一關：整張換成墨藍紙卡（和「下一關」按鈕同一種卡），內側再用筆圈一圈；
+   這是每一章唯一該按的那一格，所以是整頁最重的一格 */
+.level.next {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+  border-bottom-color: var(--accent-deep);
+}
+.level.next:hover:not(:disabled),
+.level.next:active:not(:disabled) { border-color: var(--accent-deep); }
 .level.next::before {
   content: "";
   position: absolute;
   inset: 5px;
-  border: 2px dashed var(--accent);
+  border: 2px dashed color-mix(in srgb, var(--accent-text) 65%, transparent);
   border-radius: 8px;
   pointer-events: none;
 }
@@ -300,7 +349,7 @@ main {
 .level.started::after {
   content: "";
   position: absolute;
-  bottom: 9px;
+  bottom: 6px;
   left: 50%;
   width: 6px;
   height: 6px;
@@ -308,6 +357,7 @@ main {
   border-radius: 50%;
   background: var(--muted);
 }
+.level.next.started::after { background: var(--accent-text); }
 /* 右上角狀態圖示：已完成是墨藍勾，未解鎖是鎖頭 */
 .level .badge {
   position: absolute;

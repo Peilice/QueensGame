@@ -28,9 +28,10 @@ colors:
 typography:
   headline:
     fontFamily: "system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
-    fontSize: "1.5rem"
+    fontSize: "clamp(3.25rem, 17vw, 4.75rem)"
     fontWeight: 700
-    letterSpacing: "0.02em"
+    lineHeight: 0.82
+    letterSpacing: "-0.035em"
   title:
     fontFamily: "system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
     fontSize: "1.25rem"
@@ -48,8 +49,10 @@ typography:
     letterSpacing: "0.05em"
   pack-heading:
     fontFamily: "system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
-    fontSize: "1.15rem"
+    fontSize: "1.75rem"
     fontWeight: 700
+    lineHeight: 1.1
+    letterSpacing: "-0.01em"
   label:
     fontFamily: "system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
     fontSize: "0.85rem"
@@ -156,12 +159,12 @@ components:
 **Character:** 字體交給系統，讓中文在各平台都用最順眼的原生黑體。個性由排版方式表現，例如直書和字距，而不是靠自訂字體。
 
 ### Hierarchy
-- **Headline**（700, 1.5rem, 字距 0.02em）：關卡列表頁的「Queens」標題。
+- **Headline**（700, clamp(3.25rem, 17vw, 4.75rem), 行高 0.82, 字距 -0.035em）：關卡列表的刊頭「Queens」，像謎題本的封面書名。右側緊貼直書的「皇后解謎」（700, clamp(0.9rem, 4.2vw, 1.15rem), 字距 0.08em），字尾和英文字底對齊；刊頭下方一道 2px 棋盤外框墨線。
 - **Title**（700, 1.25rem）：遊戲頁置中的關卡標題，格式是「6×6 第 N 關」。過關卡的「過關！」是 1.75rem。
-- **Pack Heading**（700, 1.15rem）：關卡列表裡各尺寸組的標題，例如「6×6」。
+- **Pack Heading**（700, 1.75rem, 字距 -0.01em, 等寬數字）：關卡列表裡各尺寸組的標題，例如「6×6」，用章名的份量寫。
 - **Body**（400, 1rem, 行高 1.5）：按鈕和一般文字。
 - **Rules**（400, 1rem, 行高 1.8, 字距 0.05em, 手機橫書、桌面直書 vertical-rl）：規則旁註。桌面放大到 1.05rem，操作提示縮成 0.9rem 鉛筆灰。
-- **Label**（400, 0.85rem, 鉛筆灰）：尺寸組標題右側的進度，例如「已完成 3 / 10」。關卡格裡只有編號，700、1.5rem。
+- **Label**（400, 0.85rem, 鉛筆灰）：尺寸組標題右側的進度，例如「已完成 3 / 10」。關卡格裡只有編號，700、1.5rem；未解鎖格縮成 400、1.15rem。
 
 ### Named Rules
 **The Marginalia Rule.** 桌面版規則直書、由右往左換行，像書頁旁註。手機版改為橫書，收成棋盤下方一張可翻開的「規則」頁邊籤，還沒破過任何一關時預設展開；桌面版一律展開，放在棋盤右側，頂端和棋盤上緣對齊。
@@ -172,7 +175,7 @@ components:
 
 - **遊戲頁（手機）**：由上到下依序是棋盤、操作按鈕、規則頁邊籤，最常按的「上一步」落在拇指好按的位置。棋盤寬度是 `min(100%, 520px)`，維持正方形。
 - **遊戲頁（≥760px）**：內容最寬 760px，改成兩欄 grid（520px 棋盤 + 自動寬度規則），欄距 16px。操作按鈕在棋盤下方，規則高 520px，和棋盤同列、頂端對齊。
-- **關卡列表**：關卡依棋盤尺寸分成 6×6、7×7、8×8、9×9 四組，每組 10 關。每組的標題列左邊是尺寸、右邊是進度，下方間距 10px。關卡格是固定 5 欄的 grid（每組剛好兩列），間距 10px，每格是正方形。組與組之間相隔 28px。
+- **關卡列表**：關卡依棋盤尺寸分成 6×6、7×7、8×8、9×9 四組，每組 10 關。每組的標題列左邊是尺寸、右邊是進度，下方間距 12px。關卡格是固定 5 欄的 grid（每組剛好兩列），間距 10px，每格是正方形。組與組之間相隔 36px。刊頭上方 8px、下方 28px，墨線和書名相隔 12px。
 - **間距節奏**：8 / 12 / 16 / 24px。頂部標題列最矮 48px，下方間距 12px。
 
 ## Elevation & Depth
@@ -201,9 +204,9 @@ components:
 ### Level Tile
 - 正方形白卡、12px 圓角，中間只有大號粗體編號。尺寸由所屬的組表示，不寫在格子裡。
 - 已完成：卡片內側 5px 處印上這一題的色塊縮圖（8px 圓角，和下一關的虛線圈同一位置），加上 35% 墨線的色塊邊界，整張淡印（不透明度淺色 60%、深色 50%）。破得越多，目錄就越滿越彩，像把做完的題目印回目錄頁。編號維持墨色，加一圈 4px 紙色描邊；右上角 14px 墨藍線條勾也有紙色襯底，在任何色塊上都看得清楚。
-- 下一關：每組最前面還沒破的那一關，卡片內側 5px 處多一圈 2px 墨藍虛線，像用筆在目錄上圈起來；卡片本身的邊框和厚度不變。這是列表上唯一該按的那一格，所以視覺權重最高。
-- 玩到一半：有存檔盤面的關卡，底部中央一個 6px 鉛筆點。
-- 未解鎖：透明度 0.35，右上角一個 14px 線條鎖頭，不能點。
+- 下一關：每組最前面還沒破的那一關，整張換成墨藍紙卡（和主要按鈕同一種：墨藍底、底緣深墨藍厚邊、編號用強調色上的文字色），卡片內側 5px 處再一圈 2px 虛線（強調色上的文字色 65%），像用筆在目錄上圈起來。這是每一章唯一該按的那一格，所以是整頁最重的一格。
+- 玩到一半：有存檔盤面的關卡，底部中央（距底 6px）一個 6px 鉛筆點；在墨藍的下一關上改用強調色上的文字色。
+- 未解鎖：還不是一張卡，只是印在頁面上的空框：沒有底色、1px 卡緣、沒有底緣厚度，鉛筆灰編號，整格透明度 0.6，右上角一個 14px 線條鎖頭，不能點。能拿起來的卡才有厚度，所以一眼分得出哪些格子能按。
 - 右上角的勾和鎖頭是同一套線條圖示（stroke 2.5、圓角端點），位置相同。
 
 ### Board（招牌元件）
