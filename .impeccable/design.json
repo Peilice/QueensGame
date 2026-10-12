@@ -91,13 +91,13 @@
       },
       "terracotta": {
         "role": "error",
-        "displayName": "陶土紅 Terracotta",
-        "canonical": "#c77c68"
+        "displayName": "磚紅 Terracotta",
+        "canonical": "#b8432e"
       },
       "terracotta-soft": {
         "role": "error",
-        "displayName": "柔和陶土粉 Terracotta Soft",
-        "canonical": "#f1d8d0"
+        "displayName": "磚粉 Terracotta Soft",
+        "canonical": "#eda898"
       },
       "piece": {
         "role": "neutral",
@@ -290,9 +290,9 @@
     {
       "name": "Board",
       "kind": "custom",
-      "description": "印在紙上的謎題頁：低彩度色塊、暖灰米格線與 2.5px 色塊邊界；衝突格是陶土紅內框加陶土粉斜紋。",
+      "description": "印在紙上的謎題頁：低彩度色塊、暖灰米格線與 2.5px 色塊邊界；衝突格是磚紅內框加磚粉斜紋。",
       "html": "<div class=\"ds-board\"><i style=\"background:#dce5d4\"></i><i style=\"background:#dce5d4\"></i><i style=\"background:#d7e5e8\"></i><i style=\"background:#f0d9c9\"></i><i class=\"ds-conflict\" style=\"background:#f2e7b9\"></i><i style=\"background:#d7e5e8\"></i><i style=\"background:#f0d9c9\"></i><i style=\"background:#f2e7b9\"></i><i style=\"background:#f2e7b9\"></i></div>",
-      "css": ".ds-board { display: grid; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px); border: 2.5px solid #b8b09f; border-radius: 6px; overflow: hidden; width: max-content; } .ds-board i { box-shadow: inset 0 0 0 0.5px #b8b09f; } .ds-board .ds-conflict { background-image: repeating-linear-gradient(45deg, transparent 0 5px, #f1d8d0 5px 10px); box-shadow: inset 0 0 0 0.5px #b8b09f, inset 0 0 0 3px #c77c68; }"
+      "css": ".ds-board { display: grid; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px); border: 2.5px solid #b8b09f; border-radius: 6px; overflow: hidden; width: max-content; } .ds-board i { box-shadow: inset 0 0 0 0.5px #b8b09f; } .ds-board .ds-conflict { background-image: repeating-linear-gradient(45deg, transparent 0 5px, #eda898 5px 10px); box-shadow: inset 0 0 0 0.5px #b8b09f, inset 0 0 0 4px #b8432e; }"
     },
     {
       "name": "Win Stamp",

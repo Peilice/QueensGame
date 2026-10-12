@@ -216,7 +216,8 @@ function render(preview = new Set(), { instant = false } = {}) {
   }
 
   $('undo').disabled = game.solved || !game.canUndo;
-  $('reset').disabled = game.solved;
+  // 盤面已經是空的，「重來」沒有東西可清
+  $('reset').disabled = game.solved || game.board.every((v) => v === EMPTY);
 }
 
 /** 把一格從 from 改畫成 to：✕ 一筆一筆描出、反向收回；刺蝟蓋下、提起 */
@@ -276,9 +277,11 @@ function showWin() {
   const stampAt = reducedMotion.matches ? 0 : panelAt + 240;
   winTimers.push(
     setTimeout(() => {
+      // 焦點原本在操作列（例如用鍵盤按的）才跟著搬到過關面板；用手指解開時不冒出焦點框
+      const hadFocus = $('controls').contains(document.activeElement);
       $('controls').hidden = true;
       $('win').hidden = false;
-      (next.hidden ? $('win-list') : next).focus({ preventScroll: true });
+      if (hadFocus) (next.hidden ? $('win-list') : next).focus({ preventScroll: true });
     }, panelAt),
     setTimeout(() => ($('seal').hidden = false), stampAt),
   );

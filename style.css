@@ -21,8 +21,8 @@
   --accent: #657a58; /* 深森林綠：主要按鈕、焦點、完成 */
   --accent-text: #ffffff;
   --accent-deep: #4f6145;
-  --danger: #c77c68; /* 陶土紅：衝突外框 */
-  --danger-soft: #f1d8d0; /* 柔和陶土粉：衝突斜紋 */
+  --danger: #b8432e; /* 磚紅：衝突外框 */
+  --danger-soft: #eda898; /* 磚粉：衝突斜紋 */
   --disabled-bg: #e5e0d7;
   --queen: #55483c; /* 刺蝟與 ✕：暖灰棕，不用純黑 */
   --seal: #657a58;
@@ -115,7 +115,7 @@ main {
   cursor: pointer;
 }
 .btn:hover:not(:disabled) { border-color: var(--muted); }
-.btn:disabled { background: var(--disabled-bg); border-color: var(--disabled-bg); color: var(--muted); cursor: default; }
+.btn:disabled { background: var(--disabled-bg); border-color: var(--disabled-bg); box-shadow: none; color: var(--muted); cursor: default; }
 .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); border-bottom-color: var(--accent-deep); }
 .btn.primary:active:not(:disabled) { border-color: var(--accent-deep); }
@@ -179,6 +179,10 @@ main {
   border-radius: 16px;
   line-height: 1.8;
   letter-spacing: 0.05em;
+  /* 只在標點和空白處換行，「刺蝟」不會被拆在兩行 */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 .rules-body p { margin: 0 0 0.4em; }
 .rules-body p:last-child { margin: 0; }
@@ -186,14 +190,17 @@ main {
 
 @media (min-width: 760px) {
   #game-view { max-width: 760px; }
+  /* 標題列和棋盤同寬，關卡名稱置中在棋盤正上方 */
+  #game-view .top { max-width: 520px; }
   /* 規則與棋盤同一列，頂端自然對齊；桌面一律展開，不需要開關 */
   .play {
-    grid-template-columns: 520px auto;
+    grid-template-columns: 520px minmax(0, 1fr);
     grid-template-areas: "board rules" "controls .";
-    justify-content: center;
     column-gap: 16px;
   }
-  .rules { align-self: start; }
+  .rules { align-self: start; justify-self: start; }
+  /* 操作提示的第二句另起一行，直書時不會剩一個「✕。」孤零零掛在下一行 */
+  .rules-body .hint-2 { display: block; }
   .rules > summary { display: none; }
   /* 直書放在每一段上，外層維持橫書、由右往左排段落。
      整塊直書時 Safari 會忽略固定高度來算寬度，白底只有一欄寬、文字溢出到左邊 */
@@ -335,7 +342,7 @@ main {
   border-radius: 50%;
   background: var(--muted);
 }
-.level.next.started::after { background: var(--accent-text); }
+.level.next.started::after { bottom: 3px; background: var(--accent-text); box-shadow: 0 0 0 2px var(--accent); }
 /* 右上角狀態圖示：已完成是墨藍勾，未解鎖是鎖頭 */
 .level .badge {
   position: absolute;
@@ -415,10 +422,10 @@ main {
 /* 刺蝟身形扁長，比格子的 58% 再放大一點才撐得起來 */
 .cell svg.q { width: 64%; height: 64%; fill: var(--queen); }
 
-/* 衝突：陶土紅外框加陶土粉斜紋，不只靠顏色；刺蝟本身維持原色 */
+/* 衝突：4px 磚紅外框加磚粉斜紋，不只靠顏色；刺蝟本身維持原色 */
 .cell.conflict {
   background-image: repeating-linear-gradient(45deg, transparent 0 5px, var(--danger-soft) 5px 10px);
-  box-shadow: inset 0 0 0 0.5px var(--grid), inset 0 0 0 3px var(--danger);
+  box-shadow: inset 0 0 0 0.5px var(--grid), inset 0 0 0 4px var(--danger);
 }
 
 .board.locked .cell { cursor: default; }
