@@ -431,7 +431,7 @@ main {
   overflow: visible;
   pointer-events: none;
 }
-.cell svg.x { width: 34%; height: 34%; fill: none; stroke: var(--queen); stroke-width: 2.5; stroke-linecap: round; opacity: var(--mark-alpha); }
+.cell svg.x { width: 34%; height: 34%; fill: none; stroke: var(--queen); stroke-width: 4; stroke-linecap: round; opacity: var(--mark-alpha); }
 .cell svg.x path { stroke-dasharray: 1 2; }
 /* 刺蝟身形扁長，比格子的 58% 再放大一點才撐得起來 */
 .cell svg.q { width: 64%; height: 64%; fill: var(--queen); }
