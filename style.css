@@ -10,9 +10,9 @@
   --muted: #8b7d6b; /* 柔和棕灰 */
   --hint: #5e5144; /* 燕麥米面板上的次要文字：#8B7D6B 在那裡太淡 */
   --btn-text: #46573d;
-  --line: #b8b09f; /* 暖灰米：格線與色塊邊界，不用黑線 */
-  --grid: #b8b09f;
-  --frame: #b8b09f;
+  --line: #7a6c5b; /* 深暖棕：色塊邊界與棋盤外框，比格線深一階，不用黑線 */
+  --grid: #b8b09f; /* 暖灰米：同色塊內的細格線 */
+  --frame: #7a6c5b;
   --edge: #a9b69b; /* 按鈕與關卡格的外框 */
   --select: #657a58; /* 按下的格子 */
   --shadow: 0 2px 6px rgba(85, 72, 60, 0.12); /* 低透明度暖灰棕 */
@@ -184,9 +184,22 @@ main {
   overflow-wrap: anywhere;
   text-wrap: pretty;
 }
-.rules-body p { margin: 0 0 0.4em; }
+.rules-body p { display: flex; gap: 10px; margin: 0 0 0.4em; }
 .rules-body p:last-child { margin: 0; }
 .rules-body .hint { color: var(--hint); font-size: 0.9rem; }
+/* 每一點前的小圖示：高度對齊第一行文字，第二行起和文字對齊、不鑽到圖示下面 */
+.rules-body .ri {
+  flex: none;
+  width: 20px;
+  height: 1.8em;
+  fill: none;
+  stroke: var(--btn-text);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.rules-body .ri .solid { fill: var(--btn-text); stroke: none; }
+.rules-body .nb { white-space: nowrap; }
 
 @media (min-width: 760px) {
   #game-view { max-width: 760px; }
@@ -212,6 +225,7 @@ main {
     font-size: 1.05rem;
   }
   .rules-body p { writing-mode: vertical-rl; height: 100%; margin: 0 0 0 0.6em; }
+  .rules-body .ri { width: 1.8em; height: 20px; }
   .rules-body p:last-child { margin: 0; }
 }
 
@@ -396,7 +410,7 @@ main {
   cursor: pointer;
 }
 
-/* 色塊邊界：疊在格子上、比格線略粗的暖灰米線，不影響格子尺寸；相鄰兩格各畫一半 */
+/* 色塊邊界：疊在格子上、比格線粗也比格線深的暖棕線，不影響格子尺寸；相鄰兩格各畫一半 */
 .cell::after {
   content: "";
   position: absolute;
