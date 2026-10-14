@@ -55,16 +55,26 @@ function penStroke(x1, y1, x2, y2) {
 const markSvg = () =>
   `<svg class="x" viewBox="0 0 24 24" aria-hidden="true">${penStroke(7, 7, 17, 17)}${penStroke(17, 7, 7, 17)}</svg>`;
 
-/** 刺蝟（側面、頭朝右）：背上一排刺、挖空的眼睛、圓鼻頭、兩隻小腳 */
+/** 刺蝟（側面、頭朝右）：圓滾滾的棕色刺背、奶油色的臉、亮晶晶的眼睛、腮紅和圓鼻頭。
+ *  顏色交給 style.css 的 .hh-* 決定，棋盤上、刊頭上、教學卡上都是同一隻 */
+const HEDGEHOG_VIEWBOX = '-1.5 2.5 25.5 20';
 const HEDGEHOG =
-  '<g transform="translate(1.3 0.7) scale(0.94)">' +
-  '<path fill-rule="evenodd" d="M2.18 16.9L-1.18 14.51L2.44 12.54L0.79 8.77L4.91 8.94L5.43 4.85L8.88 7.11L11.43 3.87L13.22 7.58L17.08 6.11L16.71 10.21L20.77 10.93Q20 11.6 22.4 15.4Q23 16.6 21.7 17.3Q19.6 18.6 17.2 18.8L4.6 18.8Q1.6 18.6 1.8 16.4zM16.05 13.9a1.45 1.45 0 1 0 2.9 0a1.45 1.45 0 1 0 -2.9 0z"/>' +
-  '<rect x="5.4" y="18" width="3" height="3.6" rx="1.5"/><rect x="13.2" y="18" width="3" height="3.6" rx="1.5"/>' +
-  '<circle cx="22.2" cy="15.9" r="1.3"/></g>';
+  '<g class="hh-line">' +
+  '<rect class="hh-foot" x="5" y="17.4" width="2.8" height="3.6" rx="1.4"/>' +
+  '<rect class="hh-foot" x="13.2" y="17.4" width="2.8" height="3.6" rx="1.4"/>' +
+  '<path class="hh-spine" d="M2.2 16.1L-0.3 14.8L2.4 13.9L0.3 12L3.1 11.8L1.6 9.4L4.4 10L3.6 7.3L6 8.5L6 5.7L8 7.6L8.7 4.9L10.2 7.3L11.6 4.9L12.4 7.6L14.4 5.6L14.4 8.4L16.8 7.1L16.1 9.8L18.8 9.2L17.4 11.6L16 19.4L4.6 19.4Q2.1 19.2 2.2 16.1Z"/>' +
+  '<path class="hh-face" d="M13.7 9.9Q18.6 9.6 21.4 14Q22.8 16.1 21.8 17.4Q20 19.4 14.3 19.5Q11 15.3 13.7 9.9Z"/>' +
+  '</g>' +
+  '<ellipse class="hh-blush" cx="17" cy="16.7" rx="1.5" ry=".9"/>' +
+  '<circle class="hh-eye" cx="17.9" cy="13.8" r="1.3"/><circle class="hh-glint" cx="18.3" cy="13.35" r=".45"/>' +
+  '<circle class="hh-eye" cx="22" cy="15.9" r="1.15"/>';
 
-/** 刺蝟像手蓋的章，角度微歪，墨色紋理三選一 */
+const hedgehogSvg = (cls = '') =>
+  `<svg class="${cls}" viewBox="${HEDGEHOG_VIEWBOX}" aria-hidden="true">${HEDGEHOG}</svg>`;
+
+/** 棋盤上的刺蝟：每一隻站的角度都有點不一樣，看起來像一隻隻自己走進來的 */
 const queenSvg = () =>
-  `<svg class="q" viewBox="0 0 24 24" aria-hidden="true"><g filter="url(#ink-${Math.floor(Math.random() * 3)})" transform="rotate(${fmt(wobble(3.5))} 12 13)">${HEDGEHOG}</g></svg>`;
+  `<svg class="q" viewBox="${HEDGEHOG_VIEWBOX}" aria-hidden="true"><g transform="rotate(${fmt(wobble(4))} 11 14)">${HEDGEHOG}</g></svg>`;
 
 // 墨跡離場的時間（和 style.css 的 pen-out／lift 對齊），之後才從 DOM 移除
 const LEAVE_MS = { [MARK]: 200, [QUEEN]: 160 };
@@ -152,7 +162,7 @@ function buildPack(size, all, started) {
   const h2 = document.createElement('h2');
   // 中間的空白讓樣式未套用或螢幕報讀時不會黏成「6×60 / 10」
   h2.innerHTML =
-    `${label} <span class="progress">已完成 ${solved.size} / ${puzzles.length}` +
+    `<span class="size">${label}</span> <span class="progress">已完成 ${solved.size} / ${puzzles.length}` +
     `${complete ? CHEVRON_SVG : ''}</span>`;
 
   const tiles = (from, to, name) => {
@@ -237,7 +247,7 @@ function levelButton(size, i, solved, started) {
   btn.classList.toggle('next', unlocked && !done);
   btn.innerHTML =
     (done ? printSvg(parsePuzzle(PUZZLES[size][i])) : '') +
-    `<span class="num">${i + 1}</span>${done ? CHECK_SVG : unlocked ? '' : LOCK_SVG}`;
+    `<span class="num">${i + 1}</span>${done ? CHECK_SVG : unlocked ? hedgehogSvg('peek') : LOCK_SVG}`;
   btn.setAttribute(
     'aria-label',
     `${label} 第 ${i + 1} 關${done ? '，已完成' : inProgress ? '，玩到一半' : unlocked ? '' : '，未解鎖'}`,
@@ -535,6 +545,17 @@ $('win-next').addEventListener('click', (e) => (location.hash = e.currentTarget.
 // 視窗跨過桌面寬度時，規則跟著展開（桌面沒有收合開關）
 desktop.addEventListener('change', () => {
   if (desktop.matches) $('rules').open = true;
+});
+
+// 刊頭、教學卡、規則裡的刺蝟都是同一隻
+document.querySelectorAll('span.hedgehog').forEach((el) => (el.innerHTML = hedgehogSvg()));
+
+// 刊頭的刺蝟：戳一下會跳起來
+$('mascot').addEventListener('click', (e) => {
+  const el = e.currentTarget;
+  el.classList.remove('hop');
+  void el.offsetWidth;
+  el.classList.add('hop');
 });
 
 // 已破關卡重玩：存檔盤面已在破關時清除，因此會從空盤面開始。

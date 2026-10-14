@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360">
+  <!-- 紙上的小塗鴉：葉子、刺蝟腳印、橡實、香菇、蘋果和幾顆小星星。
+       顏色比紙底深一點點就好，只是背景，不能搶棋盤和文字 -->
+  <g fill="none" stroke="#dccdb2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 葉子 -->
+    <g transform="translate(34 58) rotate(-32)">
+      <path d="M0 0C9-13 29-13 36 0C29 13 9 13 0 0Z" fill="#e3ead7" />
+      <path d="M-5 0H27M14 0l7-5M8 0l6 5" />
+    </g>
+    <g transform="translate(312 26) rotate(118) scale(0.75)">
+      <path d="M0 0C9-13 29-13 36 0C29 13 9 13 0 0Z" fill="#ebe3c8" />
+      <path d="M-5 0H27M14 0l7-5" />
+    </g>
+    <g transform="translate(206 336) rotate(-8) scale(0.85)">
+      <path d="M0 0C9-13 29-13 36 0C29 13 9 13 0 0Z" fill="#e3ead7" />
+      <path d="M-5 0H27M16 0l6 5" />
+    </g>
+
+    <!-- 橡實 -->
+    <g transform="translate(296 172) rotate(14)">
+      <path d="M-11 0C-11 13-5 21 0 23C5 21 11 13 11 0Z" fill="#eedcc4" />
+      <path d="M-14 0C-14-8 14-8 14 0Z" fill="#e5d6bd" />
+      <path d="M0-6V-11M-7-2l3 2M0-3v3M7-2l-3 2" />
+    </g>
+
+    <!-- 香菇 -->
+    <g transform="translate(84 236) rotate(-6)">
+      <path d="M-18 0C-18-16 18-16 18 0Z" fill="#f4dcd3" />
+      <path d="M-7 0L-6 15Q0 18 6 15L7 0" fill="#f6f0e5" />
+      <circle cx="-7" cy="-7" r="2.2" fill="#f6f0e5" />
+      <circle cx="5" cy="-9" r="1.6" fill="#f6f0e5" />
+      <circle cx="10" cy="-3" r="1.4" fill="#f6f0e5" />
+    </g>
+
+    <!-- 蘋果：刺蝟最愛扎在背上帶走的那種 -->
+    <g transform="translate(156 304) rotate(8)">
+      <path d="M0-9C-6-14-15-11-15-1C-15 9-8 15-3 15C-1 15 0 14 0 14C0 14 1 15 3 15C8 15 15 9 15-1C15-11 6-14 0-9Z" fill="#f4d9d2" />
+      <path d="M0-9C0-13 1-16 3-18" />
+      <path d="M2-14C5-20 12-20 14-17C10-13 5-13 2-14Z" fill="#e3ead7" />
+      <path d="M-9-3C-10 0-9 4-7 6" />
+    </g>
+
+    <!-- 小捲線 -->
+    <path d="M232 230c6-8 16-6 16 2s-10 10-12 3 6-9 9-4" />
+    <path d="M24 150c8-6 16-6 22 0s14 6 22 0" />
+
+    <!-- 小星星 -->
+    <path d="M168 150v12M162 156h12" />
+    <path d="M334 290v10M329 295h10" />
+    <path d="M118 30v8M114 34h8" />
+    <path d="M26 326v10M21 331h10" />
+  </g>
+
+  <!-- 刺蝟走過的小腳印：一路斜斜地往右上 -->
+  <g fill="#e1d3ba">
+    <g transform="translate(180 92) rotate(-30)">
+      <ellipse cx="0" cy="0" rx="3.4" ry="4.4" /><circle cx="-3.6" cy="-5.4" r="1.4" /><circle cx="0" cy="-6.6" r="1.4" /><circle cx="3.6" cy="-5.4" r="1.4" />
+    </g>
+    <g transform="translate(200 72) rotate(-30)">
+      <ellipse cx="0" cy="0" rx="3.4" ry="4.4" /><circle cx="-3.6" cy="-5.4" r="1.4" /><circle cx="0" cy="-6.6" r="1.4" /><circle cx="3.6" cy="-5.4" r="1.4" />
+    </g>
+    <g transform="translate(214 98) rotate(-30)">
+      <ellipse cx="0" cy="0" rx="3.4" ry="4.4" /><circle cx="-3.6" cy="-5.4" r="1.4" /><circle cx="0" cy="-6.6" r="1.4" /><circle cx="3.6" cy="-5.4" r="1.4" />
+    </g>
+    <g transform="translate(234 78) rotate(-30)">
+      <ellipse cx="0" cy="0" rx="3.4" ry="4.4" /><circle cx="-3.6" cy="-5.4" r="1.4" /><circle cx="0" cy="-6.6" r="1.4" /><circle cx="3.6" cy="-5.4" r="1.4" />
+    </g>
+    <!-- 零星的小圓點 -->
+    <circle cx="262" cy="128" r="2.2" />
+    <circle cx="120" cy="196" r="1.8" />
+    <circle cx="70" cy="300" r="2" />
+    <circle cx="340" cy="220" r="1.8" />
+    <circle cx="190" cy="250" r="2" />
+  </g>
+</svg>

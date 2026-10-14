@@ -15,41 +15,18 @@
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="apple-mobile-web-app-title" content="刺蝟排排站">
   <meta name="application-name" content="刺蝟排排站">
+  <!-- 粉圓（jf open-huninn）：圓滾滾的繁中圓體，只有一種粗細 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&display=swap">
   <link rel="stylesheet" href="style.css">
   <script type="module" src="src/main.js"></script>
 </head>
 
 <body>
-  <!-- 墨跡濾鏡：刺蝟的印痕（邊緣微糙、墨色深淺不均，三種紋理輪流用）與過關印章的印泥 -->
+  <!-- 過關印章的印泥濾鏡：邊緣毛、有沒沾到的空隙 -->
   <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
     <defs>
-      <filter id="ink-0" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="2" result="edge" />
-        <feDisplacementMap in="SourceGraphic" in2="edge" scale="0.7" xChannelSelector="R" yChannelSelector="G"
-          result="rough" />
-        <feTurbulence type="fractalNoise" baseFrequency="0.42" numOctaves="2" seed="5" result="grain" />
-        <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.55 0 0 0 1.27"
-          result="density" />
-        <feComposite in="rough" in2="density" operator="in" />
-      </filter>
-      <filter id="ink-1" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="11" result="edge" />
-        <feDisplacementMap in="SourceGraphic" in2="edge" scale="0.7" xChannelSelector="R" yChannelSelector="G"
-          result="rough" />
-        <feTurbulence type="fractalNoise" baseFrequency="0.42" numOctaves="2" seed="17" result="grain" />
-        <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.55 0 0 0 1.27"
-          result="density" />
-        <feComposite in="rough" in2="density" operator="in" />
-      </filter>
-      <filter id="ink-2" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="23" result="edge" />
-        <feDisplacementMap in="SourceGraphic" in2="edge" scale="0.7" xChannelSelector="R" yChannelSelector="G"
-          result="rough" />
-        <feTurbulence type="fractalNoise" baseFrequency="0.42" numOctaves="2" seed="31" result="grain" />
-        <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.55 0 0 0 1.27"
-          result="density" />
-        <feComposite in="rough" in2="density" operator="in" />
-      </filter>
       <!-- 印章：單位是 CSS px，邊緣更毛、印泥有沒沾到的空隙 -->
       <filter id="ink-seal" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
         <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="3" seed="7" result="edge" />
@@ -65,15 +42,15 @@
 
   <main id="levels-view" hidden>
     <header class="masthead">
-      <h1>刺蝟排排站</h1>
-      <p class="tagline">排好位置，別互相傷害！</p>
+      <h1 class="title"><span>刺</span><span>蝟</span><span>排</span><span>排</span><span>站</span></h1>
+      <div class="tag-row">
+        <p class="tagline">排好位置，別互相傷害！</p>
+        <span id="mascot" class="mascot hedgehog" aria-hidden="true"></span>
+      </div>
     </header>
     <!-- 教學入口：常駐在目錄最上面，第一次玩的人自己決定要不要先學 -->
     <button type="button" id="learn" class="learn">
-      <svg class="learn-icon" viewBox="-2 2 26 22" aria-hidden="true">
-        <path fill-rule="evenodd"
-          d="M2.18 16.9L-1.18 14.51L2.44 12.54L0.79 8.77L4.91 8.94L5.43 4.85L8.88 7.11L11.43 3.87L13.22 7.58L17.08 6.11L16.71 10.21L20.77 10.93Q20 11.6 22.4 15.4Q23 16.6 21.7 17.3Q19.6 18.6 17.2 18.8L4.6 18.8Q1.6 18.6 1.8 16.4zM16.05 13.9a1.45 1.45 0 1 0 2.9 0a1.45 1.45 0 1 0 -2.9 0z" />
-      </svg>
+      <span class="learn-icon hedgehog" aria-hidden="true"></span>
       <span class="learn-text">
         <strong>怎麼玩</strong>
         <span>第一次玩？花一分鐘跟著做一遍</span>
@@ -121,10 +98,7 @@
               <path d="M3 9h18M3 15h18M9 3v18M15 3v18" />
               <circle class="solid" cx="12" cy="12" r="1.8" />
             </svg><span>每一列、每一行、每個色塊<strong>恰好一隻</strong>刺蝟。</span></p>
-          <p><svg class="ri" viewBox="-2 2 26 22" aria-hidden="true">
-              <path class="solid" fill-rule="evenodd"
-                d="M2.18 16.9L-1.18 14.51L2.44 12.54L0.79 8.77L4.91 8.94L5.43 4.85L8.88 7.11L11.43 3.87L13.22 7.58L17.08 6.11L16.71 10.21L20.77 10.93Q20 11.6 22.4 15.4Q23 16.6 21.7 17.3Q19.6 18.6 17.2 18.8L4.6 18.8Q1.6 18.6 1.8 16.4zM16.05 13.9a1.45 1.45 0 1 0 2.9 0a1.45 1.45 0 1 0 -2.9 0z" />
-            </svg><span>刺蝟靠太近會被刺到，任兩隻<strong>不可相鄰</strong>，斜角也不行。</span></p>
+          <p><span class="ri hedgehog" aria-hidden="true"></span><span>刺蝟靠太近會被刺到，任兩隻<strong>不可相鄰</strong>，斜角也不行。</span></p>
           <p class="hint"><svg class="ri" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M22 14a8 8 0 0 1-8 8M18 11v-1a2 2 0 0 0-4 0M14 10V9a2 2 0 0 0-4 0v1M10 9.5V4a2 2 0 0 0-4 0v10" />
               <path
