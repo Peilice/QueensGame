@@ -23,9 +23,9 @@ test('無解的題目', () => {
   assert.equal(solve(p), null);
 });
 
-test('題庫分 6 到 9 四種尺寸，各 10 題，每題唯一解、色塊連通且不重複', () => {
+test('題庫分 6 到 9 四種尺寸，各 20 題，每題唯一解、色塊連通且不重複', () => {
   assert.deepEqual(Object.keys(PUZZLES), ['6', '7', '8', '9']);
-  for (const list of Object.values(PUZZLES)) assert.equal(list.length, 10);
+  for (const list of Object.values(PUZZLES)) assert.equal(list.length, 20);
   for (const { level, error } of verifyAll()) {
     assert.equal(error, null, `${level}：${error}`);
   }
