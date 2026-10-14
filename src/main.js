@@ -2,6 +2,7 @@ import { parsePuzzle, findConflicts, EMPTY, MARK, QUEEN } from './rules.js';
 import { Game, isUnlocked } from './game.js';
 import { PUZZLES } from './puzzles.js';
 import * as storage from './storage.js';
+import { LESSON, STEPS, currentStep, targets } from './tutorial.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -69,6 +70,7 @@ const queenSvg = () =>
 const LEAVE_MS = { [MARK]: 200, [QUEEN]: 160 };
 
 let level = null; // { size, index }
+let lesson = null; // 教學進行中：{ step }，和 level 不會同時有值
 let game = null;
 let cells = [];
 let shown = []; // 每格目前畫在紙上的狀態，只有變了才重畫
@@ -84,9 +86,10 @@ function solvedIn(size, solved = storage.getSolved()) {
   return new Set(PUZZLES[size].flatMap((_, i) => (solved.has(levelId(size, i)) ? [i] : [])));
 }
 
-// ---------- 路由：#6-3 代表 6×6 第 3 關，空白代表關卡列表 ----------
+// ---------- 路由：#6-3 代表 6×6 第 3 關，#learn 是教學，空白代表關卡列表 ----------
 
 function route() {
+  if (location.hash === '#learn') return openLesson();
   const [, size, n] = location.hash.match(/^#(\d+)-(\d+)$/) ?? [];
   const index = n - 1;
   if (PUZZLES[size] && index >= 0 && index < PUZZLES[size].length && isUnlocked(index, solvedIn(size))) {
@@ -111,7 +114,7 @@ const openPacks = new Set();
 
 function showLevels() {
   const from = level;
-  level = game = null;
+  level = lesson = game = null;
   clearWin();
   $('game-view').hidden = true;
   $('levels-view').hidden = false;
@@ -218,20 +221,53 @@ function levelButton(size, i, solved, started) {
 
 function openLevel(size, index) {
   level = { size, index };
+  lesson = null;
   const id = levelId(size, index);
   const puzzle = parsePuzzle(PUZZLES[size][index]);
   game = new Game(puzzle, storage.getBoard(id));
 
-  $('levels-view').hidden = true;
-  $('game-view').hidden = false;
-  clearWin();
+  showGame(`${size}×${size} 第 ${index + 1} 關`);
   // 桌面規則一律展開；手機只在還沒破過任何一關時預設展開，之後收成頁邊籤
   $('rules').open = desktop.matches || storage.getSolved().size === 0;
-  $('level-title').textContent = `${size}×${size} 第 ${index + 1} 關`;
 
   buildBoard(puzzle);
   // 回到存檔的盤面：墨跡本來就在紙上，不重寫一次
   render(new Set(), { instant: true });
+}
+
+/** 教學：同一張棋盤、同一套操作，棋盤上方多一行引導；不存盤面，每次都從頭開始 */
+function openLesson() {
+  level = null;
+  lesson = { step: 0 };
+  game = new Game(parsePuzzle(LESSON));
+
+  showGame('怎麼玩');
+  coach();
+
+  buildBoard(game.puzzle);
+  render(new Set(), { instant: true });
+}
+
+function showGame(title) {
+  $('levels-view').hidden = true;
+  $('game-view').hidden = false;
+  clearWin();
+  $('level-title').textContent = title;
+  // 教學本身就在教規則，規則欄先收起來，畫面只留引導和棋盤
+  $('rules').hidden = lesson !== null;
+  $('coach').hidden = lesson === null;
+}
+
+/** 換成目前這一步的引導；文字沒變就不動，免得報讀器重念 */
+function coach() {
+  const el = $('coach');
+  const text = STEPS[lesson.step].text;
+  if (el.textContent === text) return;
+  el.textContent = text;
+  // 換一步時引導文字輕輕浮上來，讓人注意到換了
+  el.classList.remove('fresh');
+  void el.offsetWidth;
+  el.classList.add('fresh');
 }
 
 function buildBoard({ size, regions }) {
@@ -257,26 +293,31 @@ function buildBoard({ size, regions }) {
 
 function render(preview = new Set(), { instant = false } = {}) {
   const conflicts = findConflicts(game.puzzle, game.board);
+  // 教學中這一步要玩家動的格子會亮起；過關後就不再提示
+  const step = lesson && !game.solved ? STEPS[lesson.step] : null;
+  const lit = new Set(step ? targets(step, game.board) : []);
   const changed = [];
   game.board.forEach((state, i) => {
     const next = state === EMPTY && preview.has(i) ? MARK : state;
     cells[i].classList.toggle('queen', next === QUEEN);
     cells[i].classList.toggle('mark', next === MARK);
     cells[i].classList.toggle('conflict', conflicts.has(i));
+    cells[i].classList.toggle('target', lit.has(i));
     if (next !== shown[i]) changed.push([i, next]);
   });
 
   const animate = !instant && !reducedMotion.matches;
   // 一次改很多格（重來、撤銷一整次拖曳或重來）時，墨跡沿對角線由左上一路掃過去
   const n = game.puzzle.size;
-  const step = changed.length > 1 ? Math.min(24, 380 / (2 * n - 2)) : 0;
+  const sweep = changed.length > 1 ? Math.min(24, 380 / (2 * n - 2)) : 0;
   for (const [i, next] of changed) {
-    const delay = step * (Math.floor(i / n) + (i % n));
+    const delay = sweep * (Math.floor(i / n) + (i % n));
     ink(cells[i], shown[i], next, animate, delay);
     shown[i] = next;
   }
 
   $('undo').disabled = game.solved || !game.canUndo;
+  $('undo').classList.toggle('target', step?.undo === true);
   // 盤面已經是空的，「重來」沒有東西可清
   $('reset').disabled = game.solved || game.board.every((v) => v === EMPTY);
 }
@@ -307,32 +348,69 @@ function ink(cell, from, to, animate, delay) {
 }
 
 function afterChange() {
+  if (lesson) {
+    if (game.solved) {
+      render();
+      showWin(lessonWin());
+      return;
+    }
+    lesson.step = currentStep(game.puzzle, game.board, lesson.step);
+    render();
+    coach();
+    return;
+  }
   if (game.solved) {
     storage.markSolved(levelId(level.size, level.index));
     render();
-    showWin();
+    showWin(levelWin());
   } else {
     storage.saveBoard(levelId(level.size, level.index), game.board);
     render();
   }
 }
 
+/** 一般關卡的過關面板：下一關，或一組全破時挑戰下一個尺寸 */
+function levelWin() {
+  const { size, index } = level;
+  const last = index === PUZZLES[size].length - 1;
+  const nextSize = last ? Object.keys(PUZZLES).map(Number).find((s) => s > size) : null;
+  return {
+    title: last ? `${size}×${size} 全部完成！` : '過關！',
+    seal: '過關',
+    next: !last
+      ? { label: '下一關', hash: levelId(size, index + 1) }
+      : nextSize && { label: `挑戰 ${nextSize}×${nextSize}`, hash: levelId(nextSize, 0) },
+  };
+}
+
+/** 教學做完：直接帶去最小尺寸裡還沒破的第一關 */
+function lessonWin() {
+  const solved = storage.getSolved();
+  const size = Object.keys(PUZZLES).map(Number).find((s) => solvedIn(s, solved).size < PUZZLES[s].length);
+  const index = size ? PUZZLES[size].findIndex((_, i) => !solved.has(levelId(size, i))) : -1;
+  return {
+    title: '學會了！',
+    seal: '學會',
+    next: size && { label: `開始 ${size}×${size} 第 ${index + 1} 關`, hash: levelId(size, index) },
+  };
+}
+
 // 過關的節奏：刺蝟由上而下依序蓋印 → 操作列換成過關面板 → 頁邊蓋上「過關」章。
 // 盤面一直留在畫面上，玩家可以看著自己解開的那一頁。
-function showWin() {
+function showWin({ title, seal, next: target }) {
   const board = $('board');
   board.classList.add('locked', 'solved');
   const queens = cells.filter((cell) => cell.classList.contains('queen'));
   queens.forEach((cell, order) => cell.style.setProperty('--order', order));
 
-  const { size, index } = level;
-  const last = index === PUZZLES[size].length - 1;
-  const nextSize = last ? Object.keys(PUZZLES).map(Number).find((s) => s > size) : null;
-  $('win-title').textContent = last ? `${size}×${size} 全部完成！` : '過關！';
+  $('win-title').textContent = title;
+  $('seal').firstElementChild.textContent = seal;
   const next = $('win-next');
-  next.hidden = last && !nextSize;
-  next.textContent = last ? `挑戰 ${nextSize}×${nextSize}` : '下一關';
-  next.dataset.target = last ? `${nextSize}-0` : `${size}-${index + 1}`;
+  next.hidden = !target;
+  if (target) {
+    next.textContent = target.label;
+    next.dataset.target = target.hash;
+  }
 
   const panelAt = reducedMotion.matches ? 0 : queens.length * 90 + 180;
   const stampAt = reducedMotion.matches ? 0 : panelAt + 240;
@@ -420,11 +498,9 @@ $('reset').addEventListener('click', () => {
 });
 
 $('back').addEventListener('click', () => go(null));
+$('learn').addEventListener('click', () => (location.hash = 'learn'));
 $('win-list').addEventListener('click', () => go(null));
-$('win-next').addEventListener('click', (e) => {
-  const [size, index] = e.currentTarget.dataset.target.split('-').map(Number);
-  go({ size, index });
-});
+$('win-next').addEventListener('click', (e) => (location.hash = e.currentTarget.dataset.target));
 
 // 視窗跨過桌面寬度時，規則跟著展開（桌面沒有收合開關）
 desktop.addEventListener('change', () => {

@@ -14,6 +14,7 @@ LinkedIn Queens 風格的邏輯解謎遊戲（棋子換成刺蝟），純 HTML�
 - 點一下標 ✕，再點一下放刺蝟，再點一下清空
 - 按住拖曳可連續標 ✕（只會標在空格上）
 - 「上一步」可撤銷上一個操作（一次拖曳、一次重來都算一步）
+- 關卡列表最上面的「怎麼玩」是一分鐘的互動教學，在 5×5 小盤上照著引導做一遍
 
 關卡依棋盤尺寸分成 6×6、7×7、8×8、9×9 四組，每組 10 關，由易到難排列。各組獨立解鎖，可直接從任一尺寸的第 1 關開始；組內須破前一關才能玩下一關。進度與未完成的盤面存在瀏覽器的 `localStorage`。
 
@@ -33,7 +34,7 @@ npx serve .
 
 ```sh
 npm test          # 單元測試
-npm run verify    # 驗證題庫每題皆為唯一解且色塊連通
+npm run verify    # 驗證題庫（含教學題）每題皆為唯一解且色塊連通
 ```
 
 ## 專案結構
@@ -45,6 +46,7 @@ src/rules.js           規則判定：衝突偵測、過關判定
 src/solver.js          回溯解題器
 src/game.js            盤面狀態、Undo、解鎖規則
 src/puzzles.js         題庫（依尺寸分組，每題 N 個字串，字元代表色塊）
+src/tutorial.js        教學題目與每一步的引導、提示格、完成條件
 src/storage.js         localStorage 進度存取
 src/main.js            畫面與操作
 scripts/verify-puzzles.js  題庫驗證
