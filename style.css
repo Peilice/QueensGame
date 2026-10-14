@@ -72,6 +72,15 @@ body {
   font-synthesis-weight: none;
   line-height: 1.5;
 }
+/* 手機上內容鋪滿整個寬度，塗鴉會直接壓在文字和卡片底下：
+   疊一層半透明的紙色把它再洗淡，圖案也排得疏一點 */
+@media (max-width: 759px) {
+  body {
+    background:
+      linear-gradient(rgba(246, 240, 229, 0.55), rgba(246, 240, 229, 0.55)),
+      var(--bg) url("doodles.svg") repeat 0 0 / 440px 440px;
+  }
+}
 
 html { scrollbar-color: var(--panel) var(--bg); }
 
@@ -503,6 +512,7 @@ main {
 
 /* 下一關那一排之後的未解鎖關：不再一格一格畫鎖頭，收成一道印在頁面上的長空框 */
 .locked-rest {
+  background: var(--bg);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -559,8 +569,9 @@ main {
 .level:hover:not(:disabled) { border-color: var(--muted); }
 .level:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 /* 未解鎖：還不是一張能拿起來的卡，只是印在頁面上的空框——沒有底色、沒有厚度 */
+/* 填上紙色：空框裡不讓背景塗鴉透出來 */
 .level:disabled {
-  background: transparent;
+  background: var(--bg);
   border-width: 1px;
   box-shadow: none;
   color: var(--muted);
