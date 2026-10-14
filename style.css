@@ -343,7 +343,7 @@ main {
 }
 .pack.done[open] .chevron,
 .solved-rest[open] .chevron { transform: rotate(90deg); }
-/* 每一題一張小印，十張一排；題目再多就自動換行，仍是一條緞帶 */
+/* 最後十題各一張小印，固定一排；不滿十題時靠左、小印大小不變 */
 .ribbon {
   display: grid;
   grid-template-columns: repeat(10, minmax(0, 1fr));

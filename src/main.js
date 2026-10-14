@@ -108,6 +108,8 @@ function go(target) {
 
 // 關卡格一排幾格，要和 style.css 的 .level-list 欄數一致
 const COLUMNS = 5;
+// 緞帶只印最後幾題、固定一排，要和 style.css 的 .ribbon 欄數一致
+const RIBBON = 10;
 
 // 這次瀏覽中翻開過的已完成組（鍵是尺寸）和進行中組的已破段落（鍵是「尺寸-solved」）：從關卡回到列表時維持翻開
 const openPacks = new Set();
@@ -160,12 +162,13 @@ function buildPack(size, all, started) {
     for (let i = from; i < to; i++) list.append(levelButton(size, i, solved, started));
     return list;
   };
-  const ribbon = (from, to) => {
+  // 緞帶只印到 to 為止的最後一排，翻開才看得到全部
+  const ribbon = (to) => {
     const el = document.createElement('span');
     el.className = 'ribbon';
     el.setAttribute('aria-hidden', 'true');
     el.innerHTML = puzzles
-      .slice(from, to)
+      .slice(Math.max(0, to - RIBBON), to)
       .map((p) => `<span>${regionSvg(parsePuzzle(p))}</span>`)
       .join('');
     return el;
@@ -180,7 +183,7 @@ function buildPack(size, all, started) {
     pack.dataset.size = size;
     pack.open = openPacks.has(size);
     const summary = document.createElement('summary');
-    summary.append(h2, ribbon(0, puzzles.length));
+    summary.append(h2, ribbon(puzzles.length));
     pack.append(summary, tiles(0, puzzles.length, label));
     remember(pack, size);
     return pack;
@@ -202,7 +205,7 @@ function buildPack(size, all, started) {
     const summary = document.createElement('summary');
     const range = `第 1–${row} 關`;
     summary.innerHTML = `<span class="head"><span>${range}</span><span class="why">已完成${CHEVRON_SVG}</span></span>`;
-    summary.append(ribbon(0, row));
+    summary.append(ribbon(row));
     earlier.append(summary, tiles(0, row, `${label} ${range}`));
     remember(earlier, `${size}-solved`);
     pack.append(earlier);
