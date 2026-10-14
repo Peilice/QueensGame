@@ -308,7 +308,8 @@ main {
 
 /* 全部完成的組：收成章名加一條淡印緞帶，像目錄上一行已經讀完的章；點開才攤開關卡格 */
 .pack.done + .pack.done { margin-top: 20px; }
-.pack.done > summary {
+.pack.done > summary,
+.solved-rest > summary {
   display: block;
   margin: -6px -8px 0;
   padding: 6px 8px 8px;
@@ -317,12 +318,15 @@ main {
   list-style: none;
   -webkit-tap-highlight-color: transparent;
 }
-.pack.done > summary::-webkit-details-marker { display: none; }
+.pack.done > summary::-webkit-details-marker,
+.solved-rest > summary::-webkit-details-marker { display: none; }
 /* 只在有滑鼠的裝置提示可點；手機點過後 :hover 會黏著不放 */
 @media (hover: hover) {
-  .pack.done > summary:hover { background: color-mix(in srgb, var(--panel) 30%, transparent); }
+  .pack.done > summary:hover,
+  .solved-rest > summary:hover { background: color-mix(in srgb, var(--panel) 30%, transparent); }
 }
-.pack.done > summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 0; }
+.pack.done > summary:focus-visible,
+.solved-rest > summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 0; }
 .pack.done[open] > summary { margin-bottom: 4px; }
 .pack.done h2 { margin-bottom: 10px; }
 .pack.done[open] h2 { margin-bottom: 4px; }
@@ -337,14 +341,16 @@ main {
   stroke-linejoin: round;
   transition: transform 160ms var(--ease-out);
 }
-.pack.done[open] .chevron { transform: rotate(90deg); }
+.pack.done[open] .chevron,
+.solved-rest[open] .chevron { transform: rotate(90deg); }
 /* 每一題一張小印，十張一排；題目再多就自動換行，仍是一條緞帶 */
 .ribbon {
   display: grid;
   grid-template-columns: repeat(10, minmax(0, 1fr));
   gap: 4px;
 }
-.pack.done[open] .ribbon { display: none; }
+.pack.done[open] .ribbon,
+.solved-rest[open] .ribbon { display: none; }
 .ribbon > span {
   aspect-ratio: 1;
   border-radius: 5px;
@@ -354,6 +360,21 @@ main {
 }
 .ribbon svg { display: block; width: 100%; height: 100%; }
 .ribbon path { fill: none; stroke: var(--line); stroke-width: 1px; vector-effect: non-scaling-stroke; opacity: 0.35; }
+
+/* 進行中的組：下一關那一排之前已破的整排，也收成一條淡印緞帶，點開可以重玩 */
+.solved-rest { margin-bottom: 4px; }
+.solved-rest[open] { margin-bottom: 10px; }
+.solved-rest > summary { color: var(--muted); font-variant-numeric: tabular-nums; }
+.solved-rest .head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 24px;
+  margin-bottom: 8px;
+}
+.solved-rest .why { display: inline-flex; align-items: center; gap: 2px; font-size: 0.85rem; }
+.solved-rest[open] > summary { margin-bottom: 4px; padding-bottom: 6px; }
+.solved-rest[open] .head { margin-bottom: 0; }
 
 /* 下一關那一排之後的未解鎖關：不再一格一格畫鎖頭，收成一道印在頁面上的長空框 */
 .locked-rest {

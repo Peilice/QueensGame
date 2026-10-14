@@ -109,7 +109,7 @@ function go(target) {
 // 關卡格一排幾格，要和 style.css 的 .level-list 欄數一致
 const COLUMNS = 5;
 
-// 這次瀏覽中翻開過的已完成組：從關卡回到列表時維持翻開
+// 這次瀏覽中翻開過的已完成組（鍵是尺寸）和進行中組的已破段落（鍵是「尺寸-solved」）：從關卡回到列表時維持翻開
 const openPacks = new Set();
 
 function showLevels() {
@@ -129,16 +129,18 @@ function showLevels() {
   // 從關卡回來：捲到剛剛那一組的下一關（或剛重玩的那一關），不必自己往下找
   if (from) {
     const pack = packs.find((p) => p.dataset.size === String(from.size));
-    const target =
-      pack.tagName === 'DETAILS' && !pack.open
-        ? pack
-        : pack.querySelector('.level.next') ?? pack.querySelector(`[data-index="${from.index}"]`);
+    const tile = pack.querySelector('.level.next') ?? pack.querySelector(`[data-index="${from.index}"]`);
+    // 關卡格收在沒翻開的緞帶裡時，捲到那條緞帶
+    const target = tile.closest('details:not([open])') ?? tile;
     const { top, bottom } = target.getBoundingClientRect();
     if (top < 0 || bottom > innerHeight) target.scrollIntoView({ block: 'center' });
   }
 }
 
-/** 一組關卡。全部完成的組收成一條淡印緞帶，點開才是完整的關卡格 */
+/**
+ * 一組關卡。全部完成的組收成一條淡印緞帶，點開才是完整的關卡格；
+ * 進行中的組只畫下一關所在那一排，之前已破的收成緞帶、之後未解鎖的收成一行
+ */
 function buildPack(size, all, started) {
   const puzzles = PUZZLES[size];
   const solved = solvedIn(size, all);
@@ -151,15 +153,26 @@ function buildPack(size, all, started) {
     `${label} <span class="progress">已完成 ${solved.size} / ${puzzles.length}` +
     `${complete ? CHEVRON_SVG : ''}</span>`;
 
-  // 每組最前面那一關還沒破的，就是這一組的「下一關」；全部完成時沒有
-  const next = complete ? -1 : puzzles.findIndex((_, i) => !solved.has(i));
-  // 未解鎖的關只補滿下一關所在那一排，再往後收成一行
-  const shown = complete ? puzzles.length : Math.min(puzzles.length, Math.ceil((next + 1) / COLUMNS) * COLUMNS);
-
-  const list = document.createElement('ol');
-  list.className = 'level-list';
-  list.setAttribute('aria-label', label);
-  for (let i = 0; i < shown; i++) list.append(levelButton(size, i, solved, started));
+  const tiles = (from, to, name) => {
+    const list = document.createElement('ol');
+    list.className = 'level-list';
+    list.setAttribute('aria-label', name);
+    for (let i = from; i < to; i++) list.append(levelButton(size, i, solved, started));
+    return list;
+  };
+  const ribbon = (from, to) => {
+    const el = document.createElement('span');
+    el.className = 'ribbon';
+    el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = puzzles
+      .slice(from, to)
+      .map((p) => `<span>${regionSvg(parsePuzzle(p))}</span>`)
+      .join('');
+    return el;
+  };
+  // 翻開或收起時記下來，從關卡回到列表時維持原樣
+  const remember = (details, key) =>
+    details.addEventListener('toggle', () => (details.open ? openPacks.add(key) : openPacks.delete(key)));
 
   if (complete) {
     const pack = document.createElement('details');
@@ -167,24 +180,38 @@ function buildPack(size, all, started) {
     pack.dataset.size = size;
     pack.open = openPacks.has(size);
     const summary = document.createElement('summary');
-    const ribbon = document.createElement('span');
-    ribbon.className = 'ribbon';
-    ribbon.setAttribute('aria-hidden', 'true');
-    ribbon.innerHTML = puzzles.map((p) => `<span>${regionSvg(parsePuzzle(p))}</span>`).join('');
-    summary.append(h2, ribbon);
-    pack.append(summary, list);
-    pack.addEventListener('toggle', () => (pack.open ? openPacks.add(size) : openPacks.delete(size)));
+    summary.append(h2, ribbon(0, puzzles.length));
+    pack.append(summary, tiles(0, puzzles.length, label));
+    remember(pack, size);
     return pack;
   }
+
+  // 每組最前面那一關還沒破的，就是這一組的「下一關」；只完整畫出它所在的那一排
+  const next = puzzles.findIndex((_, i) => !solved.has(i));
+  const row = Math.floor(next / COLUMNS) * COLUMNS;
+  const end = Math.min(puzzles.length, row + COLUMNS);
 
   const pack = document.createElement('section');
   pack.className = 'pack';
   pack.dataset.size = size;
-  pack.append(h2, list);
-  if (shown < puzzles.length) {
+  pack.append(h2);
+  if (row > 0) {
+    const earlier = document.createElement('details');
+    earlier.className = 'solved-rest';
+    earlier.open = openPacks.has(`${size}-solved`);
+    const summary = document.createElement('summary');
+    const range = `第 1–${row} 關`;
+    summary.innerHTML = `<span class="head"><span>${range}</span><span class="why">已完成${CHEVRON_SVG}</span></span>`;
+    summary.append(ribbon(0, row));
+    earlier.append(summary, tiles(0, row, `${label} ${range}`));
+    remember(earlier, `${size}-solved`);
+    pack.append(earlier);
+  }
+  pack.append(tiles(row, end, label));
+  if (end < puzzles.length) {
     const rest = document.createElement('p');
     rest.className = 'locked-rest';
-    const range = shown + 1 === puzzles.length ? `第 ${puzzles.length} 關` : `第 ${shown + 1}–${puzzles.length} 關`;
+    const range = end + 1 === puzzles.length ? `第 ${puzzles.length} 關` : `第 ${end + 1}–${puzzles.length} 關`;
     rest.innerHTML = `${LOCK_SVG}<span>${range}</span><span class="why">依序解鎖</span>`;
     pack.append(rest);
   }
