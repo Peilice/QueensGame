@@ -11,8 +11,13 @@ const CHECK_SVG =
 const LOCK_SVG =
   '<svg class="badge" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
 
+// 已完成組的章名右側：和規則頁邊籤同一個箭頭，翻開時轉向下
+const CHEVRON_SVG = '<svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+
 /** 已破關卡在目錄上的淡印：那一題的色塊縮圖加上色塊邊界，像印在目錄頁上的小圖 */
-function printSvg({ size, regions }) {
+const printSvg = (puzzle) => `<span class="print" aria-hidden="true">${regionSvg(puzzle)}</span>`;
+
+function regionSvg({ size, regions }) {
   const at = (r, c) => regions[r * size + c];
   let fills = '';
   // 同一列連續同色的格子合成一塊，相鄰兩塊略為重疊，避免縮放後露出接縫
@@ -31,7 +36,7 @@ function printSvg({ size, regions }) {
       if (r + 1 < size && at(r, c) !== at(r + 1, c)) edges += `M${c} ${r + 1}h1`;
     }
   }
-  return `<span class="print" aria-hidden="true"><svg viewBox="0 0 ${size} ${size}" preserveAspectRatio="none">${fills}<path d="${edges}"/></svg></span>`;
+  return `<svg viewBox="0 0 ${size} ${size}" preserveAspectRatio="none">${fills}<path d="${edges}"/></svg>`;
 }
 
 // ---------- 墨跡：每一筆都是手畫的，所以每一次都不完全一樣 ----------
@@ -98,7 +103,14 @@ function go(target) {
 
 // ---------- 關卡列表 ----------
 
+// 關卡格一排幾格，要和 style.css 的 .level-list 欄數一致
+const COLUMNS = 5;
+
+// 這次瀏覽中翻開過的已完成組：從關卡回到列表時維持翻開
+const openPacks = new Set();
+
 function showLevels() {
+  const from = level;
   level = game = null;
   clearWin();
   $('game-view').hidden = true;
@@ -108,49 +120,98 @@ function showLevels() {
   const boards = storage.getBoards();
   const started = (id) => boards[id]?.some((v) => v !== 0) ?? false;
 
-  $('level-packs').replaceChildren(
-    ...Object.keys(PUZZLES).map((key) => {
-      const size = Number(key);
-      const solved = solvedIn(size, all);
-      const section = document.createElement('section');
-      section.className = 'pack';
-      const label = `${size}×${size}`;
-      const h2 = document.createElement('h2');
-      // 中間的空白讓樣式未套用或螢幕報讀時不會黏成「6×60 / 10」
-      h2.innerHTML = `${label} <span class="progress">已完成 ${solved.size} / ${PUZZLES[size].length}</span>`;
-      const list = document.createElement('ol');
-      list.className = 'level-list';
-      list.setAttribute('aria-label', label);
-      list.append(
-        ...PUZZLES[size].map((_, i) => {
-          const li = document.createElement('li');
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'level';
-          const unlocked = isUnlocked(i, solved);
-          const done = solved.has(i);
-          const inProgress = !done && started(levelId(size, i));
-          btn.disabled = !unlocked;
-          btn.classList.toggle('solved', done);
-          btn.classList.toggle('started', inProgress);
-          // 每組最前面那一關還沒破的，就是這一組的「下一關」
-          btn.classList.toggle('next', unlocked && !done && (i === 0 || solved.has(i - 1)));
-          btn.innerHTML =
-            (done ? printSvg(parsePuzzle(PUZZLES[size][i])) : '') +
-            `<span class="num">${i + 1}</span>${done ? CHECK_SVG : unlocked ? '' : LOCK_SVG}`;
-          btn.setAttribute(
-            'aria-label',
-            `${label} 第 ${i + 1} 關${done ? '，已完成' : inProgress ? '，玩到一半' : unlocked ? '' : '，未解鎖'}`,
-          );
-          btn.addEventListener('click', () => go({ size, index: i }));
-          li.append(btn);
-          return li;
-        }),
-      );
-      section.append(h2, list);
-      return section;
-    }),
+  const packs = Object.keys(PUZZLES).map((key) => buildPack(Number(key), all, started));
+  $('level-packs').replaceChildren(...packs);
+
+  // 從關卡回來：捲到剛剛那一組的下一關（或剛重玩的那一關），不必自己往下找
+  if (from) {
+    const pack = packs.find((p) => p.dataset.size === String(from.size));
+    const target =
+      pack.tagName === 'DETAILS' && !pack.open
+        ? pack
+        : pack.querySelector('.level.next') ?? pack.querySelector(`[data-index="${from.index}"]`);
+    const { top, bottom } = target.getBoundingClientRect();
+    if (top < 0 || bottom > innerHeight) target.scrollIntoView({ block: 'center' });
+  }
+}
+
+/** 一組關卡。全部完成的組收成一條淡印緞帶，點開才是完整的關卡格 */
+function buildPack(size, all, started) {
+  const puzzles = PUZZLES[size];
+  const solved = solvedIn(size, all);
+  const complete = solved.size === puzzles.length;
+  const label = `${size}×${size}`;
+
+  const h2 = document.createElement('h2');
+  // 中間的空白讓樣式未套用或螢幕報讀時不會黏成「6×60 / 10」
+  h2.innerHTML =
+    `${label} <span class="progress">已完成 ${solved.size} / ${puzzles.length}` +
+    `${complete ? CHEVRON_SVG : ''}</span>`;
+
+  // 每組最前面那一關還沒破的，就是這一組的「下一關」；全部完成時沒有
+  const next = complete ? -1 : puzzles.findIndex((_, i) => !solved.has(i));
+  // 未解鎖的關只補滿下一關所在那一排，再往後收成一行
+  const shown = complete ? puzzles.length : Math.min(puzzles.length, Math.ceil((next + 1) / COLUMNS) * COLUMNS);
+
+  const list = document.createElement('ol');
+  list.className = 'level-list';
+  list.setAttribute('aria-label', label);
+  for (let i = 0; i < shown; i++) list.append(levelButton(size, i, solved, started));
+
+  if (complete) {
+    const pack = document.createElement('details');
+    pack.className = 'pack done';
+    pack.dataset.size = size;
+    pack.open = openPacks.has(size);
+    const summary = document.createElement('summary');
+    const ribbon = document.createElement('span');
+    ribbon.className = 'ribbon';
+    ribbon.setAttribute('aria-hidden', 'true');
+    ribbon.innerHTML = puzzles.map((p) => `<span>${regionSvg(parsePuzzle(p))}</span>`).join('');
+    summary.append(h2, ribbon);
+    pack.append(summary, list);
+    pack.addEventListener('toggle', () => (pack.open ? openPacks.add(size) : openPacks.delete(size)));
+    return pack;
+  }
+
+  const pack = document.createElement('section');
+  pack.className = 'pack';
+  pack.dataset.size = size;
+  pack.append(h2, list);
+  if (shown < puzzles.length) {
+    const rest = document.createElement('p');
+    rest.className = 'locked-rest';
+    const range = shown + 1 === puzzles.length ? `第 ${puzzles.length} 關` : `第 ${shown + 1}–${puzzles.length} 關`;
+    rest.innerHTML = `${LOCK_SVG}<span>${range}</span><span class="why">依序解鎖</span>`;
+    pack.append(rest);
+  }
+  return pack;
+}
+
+function levelButton(size, i, solved, started) {
+  const label = `${size}×${size}`;
+  const li = document.createElement('li');
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'level';
+  btn.dataset.index = i;
+  const unlocked = isUnlocked(i, solved);
+  const done = solved.has(i);
+  const inProgress = !done && started(levelId(size, i));
+  btn.disabled = !unlocked;
+  btn.classList.toggle('solved', done);
+  btn.classList.toggle('started', inProgress);
+  btn.classList.toggle('next', unlocked && !done);
+  btn.innerHTML =
+    (done ? printSvg(parsePuzzle(PUZZLES[size][i])) : '') +
+    `<span class="num">${i + 1}</span>${done ? CHECK_SVG : unlocked ? '' : LOCK_SVG}`;
+  btn.setAttribute(
+    'aria-label',
+    `${label} 第 ${i + 1} 關${done ? '，已完成' : inProgress ? '，玩到一半' : unlocked ? '' : '，未解鎖'}`,
   );
+  btn.addEventListener('click', () => go({ size, index: i }));
+  li.append(btn);
+  return li;
 }
 
 // ---------- 遊戲畫面 ----------

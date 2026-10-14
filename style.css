@@ -270,6 +270,80 @@ main {
 }
 .pack h2 .progress { font-size: 0.85rem; font-weight: 400; letter-spacing: normal; color: var(--muted); }
 
+/* 全部完成的組：收成章名加一條淡印緞帶，像目錄上一行已經讀完的章；點開才攤開關卡格 */
+.pack.done + .pack.done { margin-top: 20px; }
+.pack.done > summary {
+  display: block;
+  margin: -6px -8px 0;
+  padding: 6px 8px 8px;
+  border-radius: 16px;
+  cursor: pointer;
+  list-style: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.pack.done > summary::-webkit-details-marker { display: none; }
+/* 只在有滑鼠的裝置提示可點；手機點過後 :hover 會黏著不放 */
+@media (hover: hover) {
+  .pack.done > summary:hover { background: color-mix(in srgb, var(--panel) 30%, transparent); }
+}
+.pack.done > summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 0; }
+.pack.done[open] > summary { margin-bottom: 4px; }
+.pack.done h2 { margin-bottom: 10px; }
+.pack.done[open] h2 { margin-bottom: 4px; }
+.pack h2 .progress { display: inline-flex; align-items: center; gap: 2px; }
+.pack .chevron {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 160ms var(--ease-out);
+}
+.pack.done[open] .chevron { transform: rotate(90deg); }
+/* 每一題一張小印，十張一排；題目再多就自動換行，仍是一條緞帶 */
+.ribbon {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 4px;
+}
+.pack.done[open] .ribbon { display: none; }
+.ribbon > span {
+  aspect-ratio: 1;
+  border-radius: 5px;
+  overflow: hidden;
+  opacity: 0.8;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 25%, transparent);
+}
+.ribbon svg { display: block; width: 100%; height: 100%; }
+.ribbon path { fill: none; stroke: var(--line); stroke-width: 1px; vector-effect: non-scaling-stroke; opacity: 0.35; }
+
+/* 下一關那一排之後的未解鎖關：不再一格一格畫鎖頭，收成一道印在頁面上的長空框 */
+.locked-rest {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: 10px 0 0;
+  padding: 0 14px;
+  border: 1px solid color-mix(in srgb, var(--edge) 70%, transparent);
+  border-radius: 16px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.locked-rest svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.locked-rest .why { margin-left: auto; font-size: 0.85rem; }
+
 .level-list {
   list-style: none;
   margin: 0;
@@ -551,7 +625,7 @@ main {
 @keyframes rise { from { transform: translateY(6px); opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn, .level, .rules > summary svg, .board.solved { transition: none; }
+  .btn, .level, .rules > summary svg, .pack .chevron, .board.solved { transition: none; }
   .cell svg.in,
   .cell svg.in path,
   .board.solved .cell.queen svg.q,
