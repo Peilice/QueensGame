@@ -33,7 +33,7 @@ export class Game {
     return true;
   }
 
-  /** 點擊：空 → ✕ → 皇后 → 空 */
+  /** 點擊：空 → ✕ → 刺蝟 → 空 */
   cycle(index) {
     const next = [...this.board];
     next[index] = NEXT[next[index]];

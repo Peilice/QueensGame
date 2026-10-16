@@ -34,7 +34,7 @@ function attacks(puzzle, a, b) {
   );
 }
 
-/** 回傳互相衝突的皇后格子索引集合。 */
+/** 回傳互相衝突的刺蝟格子索引集合。 */
 export function findConflicts(puzzle, board) {
   const queens = [];
   board.forEach((s, i) => { if (s === QUEEN) queens.push(i); });
@@ -50,7 +50,7 @@ export function findConflicts(puzzle, board) {
   return conflicts;
 }
 
-/** 放滿 N 個皇后且互不衝突即過關，✕ 不影響判定。 */
+/** 放滿 N 隻刺蝟且互不衝突即過關，✕ 不影響判定。 */
 export function isSolved(puzzle, board) {
   const count = board.filter((s) => s === QUEEN).length;
   return count === puzzle.size && findConflicts(puzzle, board).size === 0;

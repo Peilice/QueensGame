@@ -381,7 +381,7 @@ main {
   align-items: center;
   gap: 14px;
   width: 100%;
-  margin: 0 0 36px;
+  margin: 0 0 24px;
   padding: 12px 10px 12px 14px;
   border-radius: 18px;
   rotate: -0.8deg;
@@ -655,16 +655,56 @@ main {
 }
 .level.solved .badge { color: var(--accent); }
 
-/* ---------- 隨機一題：題庫之後的最後一章，每個尺寸一張卡 ---------- */
+/* ---------- 列表分頁：一條燕麥米的軌道，選中的那一頁是貼在上面的紙卡 ---------- */
 
-.pack.random { margin-top: 44px; }
-.dice-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-/* 和關卡格同一種紙卡，但不是一格一題，所以不是正方形：上面寫尺寸、下面寫解了幾題 */
-.level.dice { aspect-ratio: auto; min-height: 76px; padding: 10px 4px 12px; gap: 2px; }
-.level.dice .num { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
-.level.dice .count { font-size: 0.8rem; color: var(--hint); white-space: nowrap; }
-/* 玩到一半的鉛筆點移到右上角，底下留給題數 */
-.level.dice.started::after { top: 8px; right: 8px; bottom: auto; left: auto; margin: 0; }
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin: 0 0 28px;
+  padding: 4px;
+  border-radius: var(--radius-btn);
+  background: var(--panel);
+}
+.tab {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-btn);
+  background: transparent;
+  color: var(--hint);
+  font: inherit;
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+.tab[aria-selected="true"] {
+  background: var(--surface);
+  border-color: var(--edge);
+  color: var(--btn-text);
+  box-shadow: var(--shadow);
+  cursor: default;
+}
+@media (hover: hover) {
+  .tab[aria-selected="false"]:hover { color: var(--btn-text); }
+}
+.tab:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- 隨機難度：每個尺寸一張卡 ---------- */
+
+/* 四種尺寸由上往下排：和教學卡同寬的橫向紙卡，左邊尺寸、右邊解了幾題 */
+.dice-list { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.level.dice { aspect-ratio: auto; min-height: 72px; flex-direction: row; justify-content: space-between; padding: 12px 22px; border-radius: 18px; }
+.level.dice .num { font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.level.dice .count { font-size: 0.9rem; color: var(--hint); white-space: nowrap; }
+/* 一排一張卡，歪的角度收小一點，長卡歪太多會像要掉下來 */
+.dice-list li:nth-child(odd) .level { rotate: -0.6deg; }
+.dice-list li:nth-child(even) .level { rotate: 0.5deg; }
+/* 玩到一半的鉛筆點：放在題數左邊 */
+.level.dice.started::after { position: static; order: 1; margin: 0 8px 0 auto; }
+.level.dice .count { order: 2; }
 
 /* ---------- 教學 ---------- */
 

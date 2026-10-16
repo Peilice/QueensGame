@@ -59,10 +59,15 @@
         <path d="M9 6l6 6-6 6" />
       </svg>
     </button>
-    <div id="level-packs"></div>
-    <!-- 隨機出題：題庫之外再來一題，每次都是新的一盤 -->
-    <section class="pack random" aria-labelledby="random-title">
-      <h2 id="random-title"><span class="size">隨機一題</span> <span class="progress">每次都是新的一盤</span></h2>
+    <!-- 列表分兩頁：固定的關卡路線，和每次都是新的一盤、難度不固定的「隨機難度」 -->
+    <div id="tabs" class="tabs" role="tablist" aria-label="玩法">
+      <button type="button" id="tab-levels" class="tab" role="tab" aria-controls="panel-levels" aria-selected="true">關卡</button>
+      <button type="button" id="tab-random" class="tab" role="tab" aria-controls="panel-random" aria-selected="false" tabindex="-1">隨機難度</button>
+    </div>
+    <div id="panel-levels" role="tabpanel" aria-labelledby="tab-levels">
+      <div id="level-packs"></div>
+    </div>
+    <section id="panel-random" role="tabpanel" aria-labelledby="tab-random" hidden>
       <ol id="random-list" class="level-list dice-list"></ol>
     </section>
   </main>

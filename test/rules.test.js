@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parsePuzzle, findConflicts, isSolved, EMPTY, MARK, QUEEN } from '../src/rules.js';
 
-// 4x4 的唯一解範例：皇后在 (0,2) (1,0) (2,3) (3,1)
+// 4x4 的唯一解範例：刺蝟在 (0,2) (1,0) (2,3) (3,1)
 const ROWS = ['ABBB', 'AABB', 'CCDD', 'CCDD'];
 
 function boardWith(size, queens, marks = []) {
@@ -23,7 +23,7 @@ test('parsePuzzle 拒絕非正方形與色塊數量不符', () => {
   assert.throws(() => parsePuzzle(['AA', 'AA']));
 });
 
-test('同列、同行、同色塊、相鄰的皇后都算衝突', () => {
+test('同列、同行、同色塊、相鄰的刺蝟都算衝突', () => {
   const p = parsePuzzle(['ABCD', 'ABCD', 'ABCD', 'ABCD']);
   assert.deepEqual([...findConflicts(p, boardWith(4, [[0, 0], [0, 3]]))].sort(), [0, 3]); // 同列
   assert.equal(findConflicts(p, boardWith(4, [[0, 0], [3, 0]])).size, 2); // 同行（也同色塊）
@@ -31,7 +31,7 @@ test('同列、同行、同色塊、相鄰的皇后都算衝突', () => {
   assert.equal(findConflicts(p, boardWith(4, [[0, 0], [2, 1]])).size, 0); // 不相鄰、不同色塊
 });
 
-test('只標出互相衝突的皇后', () => {
+test('只標出互相衝突的刺蝟', () => {
   const p = parsePuzzle(['ABCD', 'ABCD', 'ABCD', 'ABCD']);
   const conflicts = findConflicts(p, boardWith(4, [[0, 0], [0, 1], [3, 3]]));
   assert.deepEqual([...conflicts].sort(), [0, 1]);

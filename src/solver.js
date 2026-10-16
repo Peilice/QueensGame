@@ -1,6 +1,6 @@
 /**
  * 逐列回溯計算解的數量，找到 limit 個就停止。
- * 每列恰好一個皇后，所以相鄰限制只需檢查上一列的皇后。
+ * 每列恰好一隻刺蝟，所以相鄰限制只需檢查上一列的刺蝟。
  */
 export function countSolutions(puzzle, limit = 2) {
   const { size, regions } = puzzle;
@@ -27,7 +27,7 @@ export function countSolutions(puzzle, limit = 2) {
   return found;
 }
 
-/** 回傳第一個找到的解（每列皇后所在的欄），無解則回傳 null。 */
+/** 回傳第一個找到的解（每列刺蝟所在的欄），無解則回傳 null。 */
 export function solve(puzzle) {
   const { size, regions } = puzzle;
   const usedCols = new Array(size).fill(false);

@@ -12,7 +12,7 @@ test('唯一解的題目', () => {
 });
 
 test('多解的題目', () => {
-  // 每欄一個色塊：等同 4 皇后＋相鄰限制，有 2 個解
+  // 每欄一個色塊：等同 4 皇后問題＋相鄰限制，有 2 個解
   const p = parsePuzzle(['ABCD', 'ABCD', 'ABCD', 'ABCD']);
   assert.equal(countSolutions(p, 10), 2);
 });

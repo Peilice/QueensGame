@@ -5,7 +5,7 @@ import { Game, isUnlocked } from '../src/game.js';
 
 const puzzle = parsePuzzle(['ABBB', 'AABB', 'CCDD', 'CCDD']);
 
-test('點擊循環：空 → ✕ → 皇后 → 空', () => {
+test('點擊循環：空 → ✕ → 刺蝟 → 空', () => {
   const g = new Game(puzzle);
   g.cycle(0);
   assert.equal(g.board[0], MARK);
@@ -18,7 +18,7 @@ test('點擊循環：空 → ✕ → 皇后 → 空', () => {
 test('拖曳標 ✕ 只標空格，整批一步 Undo', () => {
   const g = new Game(puzzle);
   g.cycle(1);
-  g.cycle(1); // (0,1) 為皇后
+  g.cycle(1); // (0,1) 為刺蝟
   g.mark([0, 1, 2, 3]);
   assert.deepEqual(g.board.slice(0, 4), [MARK, QUEEN, MARK, MARK]);
   g.undo();

@@ -100,10 +100,12 @@ function solvedIn(size, solved = storage.getSolved()) {
   return new Set(PUZZLES[size].flatMap((_, i) => (solved.has(levelId(size, i)) ? [i] : [])));
 }
 
-// ---------- 路由：#6-3 代表 6×6 第 3 關，#r6-xxxx 是隨機題，#learn 是教學，空白代表關卡列表 ----------
+// ---------- 路由：#6-3 代表 6×6 第 3 關，#r6-xxxx 是隨機題，#learn 是教學；
+// 列表分兩頁：空白是「關卡」，#random 是「隨機難度」 ----------
 
 function route() {
   if (location.hash === '#learn') return openLesson();
+  if (location.hash === '#random') return showLevels('random');
   const [, rSize, rSeed] = location.hash.match(/^#r(\d+)-([0-9a-z]{1,7})$/) ?? [];
   const seed = parseInt(rSeed, 36);
   if (PUZZLES[rSize] && seed < 2 ** 32) return openRandom(Number(rSize), seed);
@@ -121,6 +123,9 @@ function go(target) {
   location.hash = target === null ? '' : levelId(target.size, target.index);
 }
 
+/** 回列表：從隨機題回來就回到「隨機難度」那一頁 */
+const goList = () => (location.hash = random ? 'random' : '');
+
 // ---------- 關卡列表 ----------
 
 // 關卡格一排幾格，要和 style.css 的 .level-list 欄數一致
@@ -131,13 +136,18 @@ const RIBBON = 10;
 // 這次瀏覽中翻開過的已完成組（鍵是尺寸）和進行中組的已破段落（鍵是「尺寸-solved」）：從關卡回到列表時維持翻開
 const openPacks = new Set();
 
-function showLevels() {
+function showLevels(tab = 'levels') {
   const from = level;
   const fromRandom = random;
   level = lesson = random = game = null;
   clearWin();
   $('game-view').hidden = true;
   $('levels-view').hidden = false;
+  for (const name of ['levels', 'random']) {
+    $(`tab-${name}`).setAttribute('aria-selected', name === tab);
+    $(`tab-${name}`).tabIndex = name === tab ? 0 : -1;
+    $(`panel-${name}`).hidden = name !== tab;
+  }
 
   const all = storage.getSolved();
   const boards = storage.getBoards();
@@ -605,9 +615,24 @@ $('reset').addEventListener('click', () => {
   if (game && !game.solved && game.reset()) afterChange();
 });
 
-$('back').addEventListener('click', () => go(null));
+$('back').addEventListener('click', goList);
 $('learn').addEventListener('click', () => (location.hash = 'learn'));
-$('win-list').addEventListener('click', () => go(null));
+$('win-list').addEventListener('click', goList);
+
+// 列表的分頁：換頁不留在上一頁的歷史裡，按瀏覽器返回不會在兩頁之間來回跳
+function switchTab(name) {
+  history.replaceState(null, '', name === 'random' ? '#random' : location.pathname);
+  showLevels(name);
+}
+$('tab-levels').addEventListener('click', () => switchTab('levels'));
+$('tab-random').addEventListener('click', () => switchTab('random'));
+// 左右方向鍵在兩個分頁之間移動
+$('tabs').addEventListener('keydown', (e) => {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  const name = $('tab-levels').getAttribute('aria-selected') === 'true' ? 'random' : 'levels';
+  switchTab(name);
+  $(`tab-${name}`).focus();
+});
 $('win-next').addEventListener('click', (e) => (location.hash = e.currentTarget.dataset.target));
 
 // 視窗跨過桌面寬度時，規則跟著展開（桌面沒有收合開關）
