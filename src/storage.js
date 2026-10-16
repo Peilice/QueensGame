@@ -61,6 +61,12 @@ export function saveRandom(size, seed, board) {
   save(data);
 }
 
+export function clearRandom(size) {
+  const data = load();
+  delete data.random.current[size];
+  save(data);
+}
+
 export function markRandomSolved(size) {
   const data = load();
   delete data.random.current[size];

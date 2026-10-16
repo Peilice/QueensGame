@@ -86,6 +86,13 @@
       <div id="controls" class="controls">
         <button type="button" id="undo" class="btn">上一步</button>
         <button type="button" id="reset" class="btn">重來</button>
+        <button type="button" id="shuffle" class="btn" hidden>換一題</button>
+      </div>
+      <!-- 盤面上已經有東西時，「換一題」先在操作列原地問一句，不跳對話框蓋住盤面 -->
+      <div id="ask" class="controls ask" role="group" aria-labelledby="ask-text" hidden>
+        <span id="ask-text">確定要換嗎？</span>
+        <button type="button" id="ask-yes" class="btn">換一題</button>
+        <button type="button" id="ask-no" class="btn">不換</button>
       </div>
       <section id="win" class="win" hidden aria-labelledby="win-title">
         <h2 id="win-title">過關！</h2>

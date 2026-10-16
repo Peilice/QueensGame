@@ -362,6 +362,9 @@ function showGame(title) {
   // 教學本身就在教規則，規則欄先收起來，畫面只留引導和棋盤
   $('rules').hidden = lesson !== null;
   $('coach').hidden = lesson === null;
+  // 隨機題才有「換一題」
+  $('shuffle').hidden = random === null;
+  $('controls').classList.toggle('three', random !== null);
 }
 
 /** 換成目前這一步的引導；文字沒變就不動，免得報讀器重念 */
@@ -466,6 +469,8 @@ function afterChange() {
     return;
   }
   if (random) {
+    // 問著「確定要換嗎？」時又去動盤面，就當作不換了
+    ask(false);
     const { size, seed } = random;
     if (game.solved) storage.markRandomSolved(size);
     else storage.saveRandom(size, seed, game.board);
@@ -549,6 +554,7 @@ function clearWin() {
   winTimers = [];
   $('seal').hidden = true;
   $('win').hidden = true;
+  $('ask').hidden = true;
   $('controls').hidden = false;
 }
 
@@ -614,6 +620,30 @@ $('undo').addEventListener('click', () => {
 $('reset').addEventListener('click', () => {
   if (game && !game.solved && game.reset()) afterChange();
 });
+
+// 換一題：同尺寸抽新種子，這一盤放掉；用 replace 不留歷史，按返回不會回到被換掉的那題
+function shuffle() {
+  if (!random || game.solved) return;
+  storage.clearRandom(random.size);
+  location.replace(`#${randomId(random.size, newSeed())}`);
+}
+
+/** 操作列換成「確定要換嗎？」，或換回來；焦點跟著搬，用鍵盤操作時不會掉到頁面最上面 */
+function ask(show) {
+  if ($('ask').hidden === !show) return;
+  const hadFocus = (show ? $('controls') : $('ask')).contains(document.activeElement);
+  $('controls').hidden = show;
+  $('ask').hidden = !show;
+  if (hadFocus) (show ? $('ask-no') : $('shuffle')).focus({ preventScroll: true });
+}
+
+// 盤面還是空的就直接換，有填東西才先問一句
+$('shuffle').addEventListener('click', () => {
+  if (game?.board.every((v) => v === EMPTY)) shuffle();
+  else ask(true);
+});
+$('ask-yes').addEventListener('click', shuffle);
+$('ask-no').addEventListener('click', () => ask(false));
 
 $('back').addEventListener('click', goList);
 $('learn').addEventListener('click', () => (location.hash = 'learn'));

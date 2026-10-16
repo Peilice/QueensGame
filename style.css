@@ -912,6 +912,12 @@ main {
   gap: 12px;
 }
 .controls .btn { min-width: 108px; }
+/* 隨機題多一顆「換一題」：三顆各縮到 96px，360px 寬的手機也排得下一行 */
+.controls.three .btn { min-width: 96px; padding: 0 14px; white-space: nowrap; }
+/* 換一題的確認：一行問句加兩顆按鈕，取代操作列的位置 */
+.controls.ask { align-items: center; }
+.controls.ask .btn { min-width: 84px; padding: 0 14px; white-space: nowrap; }
+#ask-text { color: var(--text); white-space: nowrap; }
 
 /* 過關面板：取代操作列的位置，盤面留在原地供欣賞。
    印章蓋在右側頁邊自己的欄位裡，不會壓到棋盤上的解，也不會壓到按鈕 */
