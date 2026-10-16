@@ -1,6 +1,7 @@
 import { parsePuzzle, findConflicts, EMPTY, MARK, QUEEN } from './rules.js';
 import { Game, isUnlocked } from './game.js';
 import { PUZZLES } from './puzzles.js';
+import { generate, newSeed } from './generator.js';
 import * as storage from './storage.js';
 import { LESSON, STEPS, currentStep, targets } from './tutorial.js';
 
@@ -81,6 +82,7 @@ const LEAVE_MS = { [MARK]: 200, [QUEEN]: 160 };
 
 let level = null; // { size, index }
 let lesson = null; // 教學進行中：{ step }，和 level 不會同時有值
+let random = null; // 隨機題進行中：{ size, seed }，和 level、lesson 不會同時有值
 let game = null;
 let cells = [];
 let shown = []; // 每格目前畫在紙上的狀態，只有變了才重畫
@@ -90,16 +92,21 @@ const desktop = matchMedia('(min-width: 760px)');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 const levelId = (size, index) => `${size}-${index + 1}`;
+// 隨機題的網址：r 加尺寸再加 base36 的種子，例如 r7-1k2f9x；同一個網址永遠是同一題
+const randomId = (size, seed) => `r${size}-${seed.toString(36)}`;
 
 /** 某尺寸已破關的索引集合 */
 function solvedIn(size, solved = storage.getSolved()) {
   return new Set(PUZZLES[size].flatMap((_, i) => (solved.has(levelId(size, i)) ? [i] : [])));
 }
 
-// ---------- 路由：#6-3 代表 6×6 第 3 關，#learn 是教學，空白代表關卡列表 ----------
+// ---------- 路由：#6-3 代表 6×6 第 3 關，#r6-xxxx 是隨機題，#learn 是教學，空白代表關卡列表 ----------
 
 function route() {
   if (location.hash === '#learn') return openLesson();
+  const [, rSize, rSeed] = location.hash.match(/^#r(\d+)-([0-9a-z]{1,7})$/) ?? [];
+  const seed = parseInt(rSeed, 36);
+  if (PUZZLES[rSize] && seed < 2 ** 32) return openRandom(Number(rSize), seed);
   const [, size, n] = location.hash.match(/^#(\d+)-(\d+)$/) ?? [];
   const index = n - 1;
   if (PUZZLES[size] && index >= 0 && index < PUZZLES[size].length && isUnlocked(index, solvedIn(size))) {
@@ -126,7 +133,8 @@ const openPacks = new Set();
 
 function showLevels() {
   const from = level;
-  level = lesson = game = null;
+  const fromRandom = random;
+  level = lesson = random = game = null;
   clearWin();
   $('game-view').hidden = true;
   $('levels-view').hidden = false;
@@ -137,6 +145,14 @@ function showLevels() {
 
   const packs = Object.keys(PUZZLES).map((key) => buildPack(Number(key), all, started));
   $('level-packs').replaceChildren(...packs);
+  buildRandom();
+
+  // 從隨機題回來：那一張尺寸卡不在畫面上就捲過去
+  if (fromRandom) {
+    const card = $('random-list').querySelector(`[data-size="${fromRandom.size}"]`);
+    const { top, bottom } = card.getBoundingClientRect();
+    if (top < 0 || bottom > innerHeight) card.scrollIntoView({ block: 'center' });
+  }
 
   // 從關卡回來：捲到剛剛那一組的下一關（或剛重玩的那一關），不必自己往下找
   if (from) {
@@ -257,11 +273,36 @@ function levelButton(size, i, solved, started) {
   return li;
 }
 
+/** 隨機出題：每個尺寸一張卡。有玩到一半的就接著玩那一題，否則抽一個新種子 */
+function buildRandom() {
+  const solved = storage.getRandomSolved();
+  const cards = Object.keys(PUZZLES).map((key) => {
+    const size = Number(key);
+    const current = storage.getRandom(size);
+    const count = solved[size] ?? 0;
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'level dice';
+    btn.dataset.size = size;
+    btn.classList.toggle('started', current !== null);
+    btn.innerHTML = `<span class="num">${size}×${size}</span><span class="count">${count ? `已解 ${count} 題` : '還沒解過'}</span>`;
+    btn.setAttribute(
+      'aria-label',
+      `隨機 ${size}×${size}${current ? '，玩到一半' : ''}${count ? `，已解 ${count} 題` : ''}`,
+    );
+    btn.addEventListener('click', () => (location.hash = randomId(size, current?.seed ?? newSeed())));
+    li.append(btn);
+    return li;
+  });
+  $('random-list').replaceChildren(...cards);
+}
+
 // ---------- 遊戲畫面 ----------
 
 function openLevel(size, index) {
   level = { size, index };
-  lesson = null;
+  lesson = random = null;
   const id = levelId(size, index);
   const puzzle = parsePuzzle(PUZZLES[size][index]);
   game = new Game(puzzle, storage.getBoard(id));
@@ -275,9 +316,24 @@ function openLevel(size, index) {
   render(new Set(), { instant: true });
 }
 
+/** 隨機題：當場依種子出題。存著的盤面是同一個種子才接著玩，別人分享的網址從空盤開始 */
+function openRandom(size, seed) {
+  level = lesson = null;
+  random = { size, seed };
+  const puzzle = parsePuzzle(generate(size, seed));
+  const saved = storage.getRandom(size);
+  game = new Game(puzzle, saved?.seed === seed ? saved.board : null);
+
+  showGame(`隨機 ${size}×${size}`);
+  $('rules').open = desktop.matches || storage.getSolved().size === 0;
+
+  buildBoard(puzzle);
+  render(new Set(), { instant: true });
+}
+
 /** 教學：同一張棋盤、同一套操作，棋盤上方多一行引導；不存盤面，每次都從頭開始 */
 function openLesson() {
-  level = null;
+  level = random = null;
   lesson = { step: 0 };
   game = new Game(parsePuzzle(LESSON));
 
@@ -399,6 +455,16 @@ function afterChange() {
     coach();
     return;
   }
+  if (random) {
+    const { size, seed } = random;
+    if (game.solved) storage.markRandomSolved(size);
+    else storage.saveRandom(size, seed, game.board);
+    render();
+    if (game.solved) {
+      showWin({ title: '過關！', seal: '過關', next: { label: '再來一題', hash: randomId(size, newSeed()) } });
+    }
+    return;
+  }
   if (game.solved) {
     storage.markSolved(levelId(level.size, level.index));
     render();
@@ -409,7 +475,7 @@ function afterChange() {
   }
 }
 
-/** 一般關卡的過關面板：下一關，或一組全破時挑戰下一個尺寸 */
+/** 一般關卡的過關面板：下一關，或一組全破時挑戰下一個尺寸；最大的尺寸也破完了就來隨機題 */
 function levelWin() {
   const { size, index } = level;
   const last = index === PUZZLES[size].length - 1;
@@ -419,7 +485,9 @@ function levelWin() {
     seal: '過關',
     next: !last
       ? { label: '下一關', hash: levelId(size, index + 1) }
-      : nextSize && { label: `挑戰 ${nextSize}×${nextSize}`, hash: levelId(nextSize, 0) },
+      : nextSize
+        ? { label: `挑戰 ${nextSize}×${nextSize}`, hash: levelId(nextSize, 0) }
+        : { label: `隨機 ${size}×${size}`, hash: randomId(size, newSeed()) },
   };
 }
 

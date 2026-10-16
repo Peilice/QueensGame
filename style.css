@@ -655,6 +655,17 @@ main {
 }
 .level.solved .badge { color: var(--accent); }
 
+/* ---------- 隨機一題：題庫之後的最後一章，每個尺寸一張卡 ---------- */
+
+.pack.random { margin-top: 44px; }
+.dice-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+/* 和關卡格同一種紙卡，但不是一格一題，所以不是正方形：上面寫尺寸、下面寫解了幾題 */
+.level.dice { aspect-ratio: auto; min-height: 76px; padding: 10px 4px 12px; gap: 2px; }
+.level.dice .num { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.level.dice .count { font-size: 0.8rem; color: var(--hint); white-space: nowrap; }
+/* 玩到一半的鉛筆點移到右上角，底下留給題數 */
+.level.dice.started::after { top: 8px; right: 8px; bottom: auto; left: auto; margin: 0; }
+
 /* ---------- 教學 ---------- */
 
 /* 引導：和規則同一種燕麥米面板，放在棋盤正上方、和棋盤同寬。

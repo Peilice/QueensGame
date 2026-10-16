@@ -1,13 +1,14 @@
 // localStorage 存取；在無痕模式等情況下可能失敗，一律容錯。
 // 關卡以 "尺寸-第幾關"（如 "6-3"）識別。
+// 隨機題每個尺寸只留一盤玩到一半的（種子＋盤面），另外記各尺寸解了幾題。
 const KEY = 'queens-game-v2';
 
 function load() {
   try {
     const data = JSON.parse(localStorage.getItem(KEY));
-    if (data && Array.isArray(data.solved) && data.boards) return data;
+    if (data && Array.isArray(data.solved) && data.boards) return { random: { current: {}, solved: {} }, ...data };
   } catch {}
-  return { solved: [], boards: {} };
+  return { solved: [], boards: {}, random: { current: {}, solved: {} } };
 }
 
 function save(data) {
@@ -48,3 +49,26 @@ export function getBoards() {
   return load().boards;
 }
 
+
+/** 某尺寸玩到一半的隨機題：{ seed, board }，沒有則為 null */
+export function getRandom(size) {
+  return load().random.current[size] ?? null;
+}
+
+export function saveRandom(size, seed, board) {
+  const data = load();
+  data.random.current[size] = { seed, board };
+  save(data);
+}
+
+export function markRandomSolved(size) {
+  const data = load();
+  delete data.random.current[size];
+  data.random.solved[size] = (data.random.solved[size] ?? 0) + 1;
+  save(data);
+}
+
+/** 各尺寸解過幾題隨機題，以尺寸為 key */
+export function getRandomSolved() {
+  return load().random.solved;
+}
