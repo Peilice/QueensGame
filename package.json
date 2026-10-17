@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "verify": "node scripts/verify-puzzles.js"
+    "verify": "node scripts/verify-puzzles.js",
+    "icons": "node scripts/build-icons.js"
   }
 }

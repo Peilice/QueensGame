@@ -38,6 +38,7 @@ npx serve .
 ```sh
 npm test          # 單元測試
 npm run verify    # 驗證題庫（含教學題）每題皆為唯一解且色塊連通
+npm run icons     # 重新產生主畫面圖示與 favicon（需要電腦上有 Chrome 或 Edge）
 ```
 
 ## 專案結構
@@ -55,6 +56,7 @@ src/tips.js            解題技巧的說明與圖解（色塊、墨跡、提示
 src/storage.js         localStorage 進度存取
 src/main.js            畫面與操作
 scripts/verify-puzzles.js  題庫驗證
+scripts/build-icons.js     由 src/main.js 的刺蝟產生 icons/ 的 SVG 與 PNG 圖示
 test/                  node --test 單元測試
 ```
 
