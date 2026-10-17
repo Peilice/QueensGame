@@ -609,6 +609,9 @@ function showWin({ title, seal, next: target }) {
   const queens = cells.filter((cell) => cell.classList.contains('queen'));
   queens.forEach((cell, order) => cell.style.setProperty('--order', order));
 
+  // 一般過關只留頁邊的紅印章；綠字標題只在有額外的話要說時（全部完成、學會了）才出現
+  const quiet = title === '過關！';
+  $('win').classList.toggle('quiet', quiet);
   $('win-title').textContent = title;
   $('seal').firstElementChild.textContent = seal;
   const next = $('win-next');

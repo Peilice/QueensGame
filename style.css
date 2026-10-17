@@ -1094,6 +1094,12 @@ svg.bulb .glass { fill: var(--hl); }
 .win h2 { grid-area: title; margin: 0; font-size: 1.6rem; font-weight: 400; letter-spacing: 0.04em; color: var(--title); }
 .win-actions { grid-area: actions; display: flex; flex-wrap: wrap; gap: 12px; }
 .win-actions .btn { min-width: 108px; }
+/* 一般過關：標題只留給報讀器，畫面上只有按鈕和印章 */
+.play .win.quiet { grid-template-areas: "actions seal"; }
+.win.quiet h2 {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
 
 @keyframes rise { from { transform: translateY(6px); opacity: 0; } }
 
