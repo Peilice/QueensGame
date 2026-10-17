@@ -126,15 +126,16 @@ main {
   margin-bottom: 12px;
 }
 
+/* 遊戲頁和技巧頁的標題：置中在返回鍵和右側等寬的空位之間 */
 .top h1 {
+  flex: 1;
   margin: 0;
   font-weight: 400;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   letter-spacing: 0.02em;
+  text-align: center;
+  color: var(--title);
 }
-
-#game-view .top h1,
-#tips-view .top h1 { flex: 1; text-align: center; font-size: 1.4rem; color: var(--title); }
 .top .spacer { width: 72px; }
 
 /* ---------- 按鈕 ---------- */
@@ -167,13 +168,39 @@ main {
   color: var(--btn-text);
   cursor: pointer;
 }
-.btn:hover:not(:disabled) { border-color: var(--muted); }
+/* 只在有滑鼠的裝置加深邊框；手機點過後 :hover 會黏著不放 */
+@media (hover: hover) {
+  .btn:hover:not(:disabled) { border-color: var(--muted); }
+}
 .btn:disabled { background: var(--disabled-bg); border-color: var(--disabled-bg); box-shadow: none; color: var(--muted); cursor: default; }
 .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); border-bottom-color: var(--accent-deep); }
 .btn.primary:active:not(:disabled) { border-color: var(--accent-deep); }
-.btn.ghost { border-color: transparent; border-bottom-width: 1.5px; border-radius: 12px; background: transparent; box-shadow: none; color: var(--text); padding: 0 8px; width: 72px; text-align: left; }
+@media (hover: hover) {
+  /* 綠卡 hover 加深成深森林綠，和下一關的綠卡一樣，不換成灰框 */
+  .btn.primary:hover:not(:disabled) { border-color: var(--accent-deep); }
+}
+/* 返回鍵：不是紙卡，只是頁角一行字；箭頭和其他地方同一款線條 */
+.btn.ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  border-color: transparent;
+  border-bottom-width: 1.5px;
+  border-radius: 12px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text);
+  padding: 0 8px 0 2px;
+  width: 72px;
+  transition: background-color 120ms var(--ease-out);
+}
+.btn.ghost svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .btn.ghost:active { transform: none; border-color: transparent; }
+/* hover 時鋪一層淡燕麥米，和收起來的章名同一種提示，不冒出紙卡的邊框 */
+@media (hover: hover) {
+  .btn.ghost:hover:not(:disabled) { border-color: transparent; background: color-mix(in srgb, var(--panel) 30%, transparent); }
+}
 
 /* ---------- 遊戲版面：手機由上而下是棋盤、操作、規則（拇指順手）；桌面規則在棋盤右方 ---------- */
 
@@ -282,6 +309,9 @@ main {
     column-gap: 16px;
   }
   .rules { align-self: start; justify-self: start; }
+  /* 教學沒有規則欄：只剩棋盤一欄，整頁置中，不空出右邊一大塊 */
+  #game-view.lesson { max-width: 552px; }
+  #game-view.lesson .play { grid-template-columns: minmax(0, 1fr); grid-template-areas: "board" "controls"; }
   /* 操作提示的第二句另起一行，直書時不會剩一個「✕。」孤零零掛在下一行 */
   .rules-body .hint-2 { display: block; }
   .rules > summary { display: none; }
@@ -406,7 +436,9 @@ main {
   text-align: left;
   cursor: pointer;
 }
-.learn:hover { border-color: var(--muted); }
+@media (hover: hover) {
+  .learn:hover { border-color: var(--muted); }
+}
 .learn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 /* 一段紙膠帶把這張卡貼在目錄頁上 */
 .learn::before {
@@ -592,7 +624,10 @@ svg.bulb .glass { fill: var(--hl); }
 .level-list li:nth-child(5n + 3) .level { rotate: -0.5deg; }
 .level-list li:nth-child(5n + 4) .level { rotate: 1.5deg; }
 .level-list li:nth-child(5n + 5) .level { rotate: -1deg; }
-.level:hover:not(:disabled) { border-color: var(--muted); }
+@media (hover: hover) {
+  .level:hover:not(:disabled) { border-color: var(--muted); }
+  .level.next:hover:not(:disabled) { border-color: var(--accent-deep); }
+}
 .level:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 /* 未解鎖：還不是一張能拿起來的卡，只是印在頁面上的空框——沒有底色、沒有厚度 */
 /* 填上紙色：空框裡不讓背景塗鴉透出來 */
@@ -635,7 +670,6 @@ svg.bulb .glass { fill: var(--hl); }
   border-color: var(--accent);
   border-bottom-color: var(--accent-deep);
 }
-.level.next:hover:not(:disabled),
 .level.next:active:not(:disabled) { border-color: var(--accent-deep); }
 /* 一隻刺蝟趴在下一關的卡片角落，等你來；每隔幾秒探頭一下 */
 .level .peek {
@@ -826,7 +860,8 @@ svg.bulb .glass { fill: var(--hl); }
 }
 .tip-figs { grid-area: figs; display: flex; justify-content: center; gap: 12px; }
 .tip figure { flex: 0 1 220px; min-width: 0; margin: 0; }
-.tip figcaption { margin-top: 6px; text-align: center; color: var(--hint); font-size: 0.85rem; }
+/* 只在標點處換行、兩行等長，不會剩「地方放…」掛在第二行 */
+.tip figcaption { margin-top: 6px; text-align: center; color: var(--hint); font-size: 0.85rem; word-break: keep-all; overflow-wrap: anywhere; text-wrap: balance; }
 .tip > p {
   grid-area: text;
   margin: 0;
@@ -1063,16 +1098,18 @@ svg.bulb .glass { fill: var(--hl); }
 @keyframes rise { from { transform: translateY(6px); opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn, .level, .learn, .rules > summary svg, .pack .chevron, .board.solved { transition: none; }
+  .btn, .level, .learn, .tab, .rules > summary svg, .pack .chevron, .board.solved { transition: none; }
+  /* 選擇器要和原本的一樣具體，否則媒體查詢壓不過去 */
   .cell svg.in,
   .cell svg.in path,
   .board.solved .cell.queen svg.q,
   .seal,
-  .win,
+  .play .win,
   .coach.fresh,
   .cell.target::before,
-  .btn.target,
+  .btn.target:not(:disabled),
   .mascot,
+  .mascot.hop,
   .level .peek { animation: none; }
 }
 

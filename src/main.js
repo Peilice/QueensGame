@@ -369,7 +369,10 @@ function openLesson() {
 function showGame(title) {
   showView('game-view');
   clearWin();
+  // 從列表下方點進來、或在過關後按下一關，都從頁頂的標題和棋盤開始
+  scrollTo(0, 0);
   $('level-title').textContent = title;
+  $('game-view').classList.toggle('lesson', lesson !== null);
   // 教學本身就在教規則，規則欄先收起來，畫面只留引導和棋盤
   $('rules').hidden = lesson !== null;
   $('coach').hidden = lesson === null;
