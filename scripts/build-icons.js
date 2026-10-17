@@ -25,21 +25,49 @@ const STYLE =
   `.hh-blush{fill:${token('hh-blush')};opacity:.9}.hh-glint{fill:${token('hh-glint')}}</style>`;
 
 const fmt = (n) => +n.toFixed(3);
-/** 刺蝟放進 100×100 的畫布：寬 w、中心 (50, 52)（視覺上略低於正中，腳下比較穩）、歪 -4° */
-const placed = (w) => {
-  const s = w / vw, cx = 50, cy = 52;
+/** 刺蝟：寬 w、中心 (cx, cy)、歪 -4° */
+const placed = (w, cx, cy) => {
+  const s = w / vw;
   const tx = cx - w / 2 - vx * s, ty = cy - (vh * s) / 2 - vy * s;
   return `<g transform="rotate(-4 ${cx} ${cy}) translate(${fmt(tx)} ${fmt(ty)}) scale(${fmt(s)})">${HEDGEHOG}</g>`;
 };
-const icon = (w) =>
+
+/** 棋盤一角：5×5 的色塊，一般圖示只露出中間 3×3。字元對應 style.css 的 --r*。
+ *  正中間站一隻刺蝟，四個斜角標 ✕（刺蝟不能斜著相鄰） */
+const BOARD = ['22004', '22006', '33066', '33366', '13366'];
+const MARKS = [[1, 1], [1, 3], [3, 1], [3, 3]];
+const C = 100 / 3; // 一格的邊長，讓中間 3×3 剛好鋪滿畫布
+const board = (k) => {
+  const at = (i) => (i - 1) * C; // 第 i 格的左（上）緣，中間 3×3 是第 1～3 格
+  const color = (r, c) => BOARD[r]?.[c];
+  let cells = '', grid = '', edges = '', marks = '';
+  // 一般圖示的畫布邊就是 0 和 100，落在邊上的線只會露出半條，不畫
+  const shown = (p) => k < 1 || (p > 0.1 && p < 99.9);
+  const line = (same, p, d) => { if (shown(p)) same ? (grid += d) : (edges += d); };
+  for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) {
+    cells += `<rect x="${fmt(at(c))}" y="${fmt(at(r))}" width="${fmt(C)}" height="${fmt(C)}" fill="${token('r' + color(r, c))}"/>`;
+    // 和右邊、下面那格比：同色塊畫細格線，不同色塊畫色塊邊界
+    if (c < 4) line(color(r, c) === color(r, c + 1), at(c + 1), `M${fmt(at(c + 1))} ${fmt(at(r))}v${fmt(C)}`);
+    if (r < 4) line(color(r, c) === color(r + 1, c), at(r + 1), `M${fmt(at(c))} ${fmt(at(r + 1))}h${fmt(C)}`);
+  }
+  for (const [r, c] of MARKS) {
+    const x = at(c) + C / 2, y = at(r) + C / 2, d = C * 0.13;
+    marks += `M${fmt(x - d)} ${fmt(y - d)}L${fmt(x + d)} ${fmt(y + d)}M${fmt(x + d)} ${fmt(y - d)}L${fmt(x - d)} ${fmt(y + d)}`;
+  }
+  return cells +
+    `<path d="${grid}" stroke="${token('grid')}" stroke-width="1"/>` +
+    `<path d="${edges}" stroke="${token('line')}" stroke-width="2.4" stroke-linecap="square"/>` +
+    `<path d="${marks}" stroke="${token('queen')}" stroke-width="2.8" stroke-linecap="round" opacity=".6"/>` +
+    placed(52, 50, 51);
+};
+/** k：整個場景以中心縮放的比例；maskable 用 0.8，四角的 ✕ 才會落在半徑 40% 的安全圓內，外圈露出更多棋盤 */
+const icon = (k) =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">${STYLE}` +
-  `<rect width="100" height="100" fill="${PAPER}"/>${placed(w)}</svg>\n`;
+  `<g transform="translate(50 50) scale(${k}) translate(-50 -50)">${board(k)}</g></svg>\n`;
 
 const svgs = {
-  // 一般圖示：刺蝟佔寬 74%
-  'icons/icon.svg': icon(74),
-  // maskable：Android 可能裁成圓形，整隻刺蝟要在半徑 40% 的安全圓內，所以縮到 62%
-  'icons/icon-maskable.svg': icon(62),
+  'icons/icon.svg': icon(1),
+  'icons/icon-maskable.svg': icon(0.8),
   // favicon：不留紙底、裁到剛好，16px 時才不會只剩一個點
   'icons/favicon.svg':
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vx} ${fmt(vy + vh / 2 - vw / 2)} ${vw} ${vw}">${STYLE}${HEDGEHOG}</svg>\n`,
