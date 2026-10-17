@@ -110,6 +110,11 @@ main {
   padding: 16px 16px calc(24px + env(safe-area-inset-bottom));
 }
 
+/* 過關印章歪著蓋在右側頁邊，轉過的外框和蓋下去時的放大會超出手機畫面右緣；
+   在頁面這層裁掉，不讓頁面多出橫向捲動、把規則擠窄撐高。
+   不能放在 body 上：body 的 overflow 會轉交給整個視窗，變成 hidden，照樣捲得動 */
+#game-view { overflow-x: clip; }
+
 [hidden] { display: none !important; }
 
 /* 反白像用墨藍螢光筆劃過，不用瀏覽器預設的亮藍 */
