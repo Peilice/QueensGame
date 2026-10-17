@@ -133,7 +133,8 @@ main {
   letter-spacing: 0.02em;
 }
 
-#game-view .top h1 { flex: 1; text-align: center; font-size: 1.4rem; color: var(--title); }
+#game-view .top h1,
+#tips-view .top h1 { flex: 1; text-align: center; font-size: 1.4rem; color: var(--title); }
 .top .spacer { width: 72px; }
 
 /* ---------- 按鈕 ---------- */
@@ -255,6 +256,20 @@ main {
 }
 .rules-body .ri .solid { fill: var(--btn-text); stroke: none; }
 .rules-body .nb { white-space: nowrap; }
+/* 規則最後一點是去解題技巧的連結：整行都好按，高度至少 44px（直書時是寬度） */
+.tips-link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  margin-block: -10px;
+  color: var(--btn-text);
+  text-decoration: underline;
+  text-decoration-color: var(--edge);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+.tips-link:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 
 @media (min-width: 760px) {
   #game-view { max-width: 760px; }
@@ -406,6 +421,17 @@ main {
   pointer-events: none;
 }
 .learn-icon { flex: none; width: 52px; }
+/* 兩張入口卡疊在一起：教學卡下方縮小間距，技巧卡往另一邊歪、沒有紙膠帶 */
+#learn { margin-bottom: 14px; }
+.tips-card { rotate: 0.6deg; }
+.tips-card::before { content: none; }
+/* 燈泡：深綠線條，燈泡裡塗一筆螢光筆黃 */
+.bulb svg,
+svg.bulb { fill: none; stroke: var(--btn-text); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.bulb .glass,
+svg.bulb .glass { fill: var(--hl); }
+.learn-icon.bulb { display: flex; justify-content: center; }
+.learn-icon.bulb svg { width: 36px; height: 36px; }
 .learn-text { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .learn-text strong { font-size: 1.25rem; letter-spacing: 0.04em; color: var(--btn-text); background: none; padding: 0; }
 .learn-text > span { color: var(--hint); font-size: 0.9rem; }
@@ -748,6 +774,104 @@ main {
   animation: beckon-ring 1.1s ease-in-out infinite alternate;
 }
 @keyframes beckon-ring { to { outline-color: color-mix(in srgb, var(--accent) 25%, transparent); } }
+
+/* ---------- 解題技巧：一招一張平貼在頁面上的紙卡（不能按，所以沒有厚度） ---------- */
+
+.tips-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
+  margin: 0 0 20px;
+  color: var(--hint);
+  font-size: 0.9rem;
+}
+.tips-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.tips-legend .key { flex: none; width: 20px; height: 20px; border-radius: 5px; background: var(--surface); }
+.tips-legend .key.look { border: 2.5px dashed var(--accent); }
+.tips-legend .key.got { border: 2.5px solid var(--accent-deep); }
+
+.tips { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.tip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "head" "figs" "text";
+  gap: 12px;
+  padding: 16px;
+  border: 1.5px solid var(--panel);
+  border-radius: 18px;
+  /* 填上紙色：圖解和說明底下不透出背景塗鴉 */
+  background: var(--bg);
+}
+.tip h2 {
+  grid-area: head;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  color: var(--title);
+}
+/* 編號像章名一樣劃一筆螢光筆 */
+.tip-num {
+  flex: none;
+  padding: 0 0.2em;
+  font-size: 1.5rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(transparent 55%, var(--hl) 55% 92%, transparent 92%);
+}
+.tip-figs { grid-area: figs; display: flex; justify-content: center; gap: 12px; }
+.tip figure { flex: 0 1 220px; min-width: 0; margin: 0; }
+.tip figcaption { margin-top: 6px; text-align: center; color: var(--hint); font-size: 0.85rem; }
+.tip > p {
+  grid-area: text;
+  margin: 0;
+  line-height: 1.8;
+  letter-spacing: 0.05em;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+/* 桌面和寬一點的手機：單張圖的技巧，圖在左、說明在右 */
+@media (min-width: 520px) {
+  .tip:not(.pair) {
+    grid-template-columns: 180px minmax(0, 1fr);
+    grid-template-areas: "head head" "figs text";
+    column-gap: 16px;
+  }
+  .tip:not(.pair) > p { align-self: center; }
+}
+
+/* 圖解小盤面：和遊戲盤同一套色塊與墨跡，只是縮小、不能點 */
+.board.mini {
+  border-width: 2px;
+  border-radius: 8px;
+  touch-action: auto;
+  user-select: auto;
+  -webkit-user-select: auto;
+  pointer-events: none;
+}
+.board.mini .cell { --b: 2px; cursor: default; }
+/* 先看這裡：森林綠虛線圈 */
+.board.mini .cell.look::before,
+.board.mini .cell.got-q::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 2.5px dashed var(--accent);
+  border-radius: 5px;
+}
+/* 推出來的刺蝟：實線圈；推出來的 ✕：深森林綠、不透明 */
+.board.mini .cell.got-q::before { border: 2.5px solid var(--accent-deep); }
+.board.mini .cell.got svg.x { stroke: var(--accent-deep); opacity: 1; stroke-width: 4.5; }
+/* 假裝放下的刺蝟、和牠刺到的格子（想像中的 ✕）都畫得淡淡的；
+   小盤面上的 ✕ 太小，畫成虛線會糊成一團點，所以只調淡 */
+.board.mini .cell.maybe svg.q { opacity: 0.45; }
+.board.mini .cell.maybe svg.x { opacity: 0.35; }
 
 /* ---------- 棋盤 ---------- */
 

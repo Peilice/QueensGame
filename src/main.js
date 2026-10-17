@@ -4,6 +4,7 @@ import { PUZZLES } from './puzzles.js';
 import { generate, newSeed } from './generator.js';
 import * as storage from './storage.js';
 import { LESSON, STEPS, currentStep, targets } from './tutorial.js';
+import { TIPS, cellsOf } from './tips.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -100,10 +101,17 @@ function solvedIn(size, solved = storage.getSolved()) {
   return new Set(PUZZLES[size].flatMap((_, i) => (solved.has(levelId(size, i)) ? [i] : [])));
 }
 
-// ---------- 路由：#6-3 代表 6×6 第 3 關，#r6-xxxx 是隨機題，#learn 是教學；
+// ---------- 路由：#6-3 代表 6×6 第 3 關，#r6-xxxx 是隨機題，#learn 是教學，#tips 是解題技巧；
 // 列表分兩頁：空白是「關卡」，#random 是「隨機難度」 ----------
 
+// 已經在這個網站裡換過畫面：技巧頁的「返回」才能放心用瀏覽器上一頁
+let routed = false;
+let tipsFromApp = false;
+
 function route() {
+  const wasRouted = routed;
+  routed = true;
+  if (location.hash === '#tips') return openTips(wasRouted);
   if (location.hash === '#learn') return openLesson();
   if (location.hash === '#random') return showLevels('random');
   const [, rSize, rSeed] = location.hash.match(/^#r(\d+)-([0-9a-z]{1,7})$/) ?? [];
@@ -136,13 +144,17 @@ const RIBBON = 10;
 // 這次瀏覽中翻開過的已完成組（鍵是尺寸）和進行中組的已破段落（鍵是「尺寸-solved」）：從關卡回到列表時維持翻開
 const openPacks = new Set();
 
+/** 三個畫面一次只顯示一個 */
+function showView(id) {
+  for (const view of ['levels-view', 'game-view', 'tips-view']) $(view).hidden = view !== id;
+}
+
 function showLevels(tab = 'levels') {
   const from = level;
   const fromRandom = random;
   level = lesson = random = game = null;
   clearWin();
-  $('game-view').hidden = true;
-  $('levels-view').hidden = false;
+  showView('levels-view');
   for (const name of ['levels', 'random']) {
     $(`tab-${name}`).setAttribute('aria-selected', name === tab);
     $(`tab-${name}`).tabIndex = name === tab ? 0 : -1;
@@ -355,8 +367,7 @@ function openLesson() {
 }
 
 function showGame(title) {
-  $('levels-view').hidden = true;
-  $('game-view').hidden = false;
+  showView('game-view');
   clearWin();
   $('level-title').textContent = title;
   // 教學本身就在教規則，規則欄先收起來，畫面只留引導和棋盤
@@ -379,11 +390,18 @@ function coach() {
   el.classList.add('fresh');
 }
 
-function buildBoard({ size, regions }) {
+function buildBoard(puzzle) {
   const board = $('board');
-  board.style.setProperty('--n', size);
+  board.style.setProperty('--n', puzzle.size);
   board.classList.remove('locked', 'solved');
-  cells = regions.map((region, i) => {
+  cells = regionCells(puzzle);
+  board.replaceChildren(...cells);
+  shown = new Array(cells.length).fill(EMPTY);
+}
+
+/** 一格一格塗上色塊色、畫出色塊邊界；遊戲盤和技巧頁的圖解共用 */
+function regionCells({ size, regions }) {
+  return regions.map((region, i) => {
     const r = Math.floor(i / size), c = i % size;
     const cell = document.createElement('div');
     cell.className = 'cell';
@@ -396,8 +414,70 @@ function buildBoard({ size, regions }) {
     if (c === size - 1 || regions[i + 1] !== region) cell.classList.add('br');
     return cell;
   });
-  board.replaceChildren(...cells);
-  shown = new Array(cells.length).fill(EMPTY);
+}
+
+// ---------- 解題技巧：靜態圖解，不能點 ----------
+
+/** 技巧頁：內容固定，第一次打開才畫；從網站裡點進來的，「返回」就回到原本那一頁 */
+function openTips(fromApp) {
+  level = lesson = random = game = null;
+  clearWin();
+  tipsFromApp = fromApp;
+  if (!$('tips-list').firstChild) $('tips-list').replaceChildren(...TIPS.map(buildTip));
+  showView('tips-view');
+  scrollTo(0, 0);
+}
+
+function buildTip(tip, n) {
+  const li = document.createElement('li');
+  li.className = 'tip';
+  li.classList.toggle('pair', tip.figures.length > 1);
+  const h2 = document.createElement('h2');
+  h2.innerHTML = `<span class="tip-num">${n + 1}</span>`;
+  h2.append(tip.title);
+  const figs = document.createElement('div');
+  figs.className = 'tip-figs';
+  figs.append(...tip.figures.map(buildFigure));
+  const text = document.createElement('p');
+  text.textContent = tip.text;
+  li.append(h2, figs, text);
+  return li;
+}
+
+// 圖解上每一種墨跡畫成什麼：刺蝟或 ✕，再加上說明它是哪一種的 class
+const FIGURE_INK = {
+  Q: [QUEEN],
+  x: [MARK],
+  '*': [QUEEN, 'got-q'],
+  '+': [MARK, 'got'],
+  '?': [QUEEN, 'maybe'],
+  '~': [MARK, 'maybe'],
+};
+
+function buildFigure({ regions, ink, look, caption }) {
+  const figure = document.createElement('figure');
+  const board = document.createElement('div');
+  board.className = 'board mini';
+  board.setAttribute('aria-hidden', 'true');
+  const puzzle = parsePuzzle(regions);
+  board.style.setProperty('--n', puzzle.size);
+  const figCells = regionCells(puzzle);
+  for (const [ch, [state, cls]] of Object.entries(FIGURE_INK)) {
+    for (const i of cellsOf(ink, ch)) {
+      figCells[i].insertAdjacentHTML('beforeend', state === QUEEN ? queenSvg() : markSvg());
+      if (cls) figCells[i].classList.add(cls);
+    }
+  }
+  for (const i of cellsOf(look, 'o')) figCells[i].classList.add('look');
+  for (const i of cellsOf(look, '!')) figCells[i].classList.add('conflict');
+  board.replaceChildren(...figCells);
+  figure.append(board);
+  if (caption) {
+    const cap = document.createElement('figcaption');
+    cap.textContent = caption;
+    figure.append(cap);
+  }
+  return figure;
 }
 
 function render(preview = new Set(), { instant = false } = {}) {
@@ -647,6 +727,9 @@ $('ask-no').addEventListener('click', () => ask(false));
 
 $('back').addEventListener('click', goList);
 $('learn').addEventListener('click', () => (location.hash = 'learn'));
+$('tips').addEventListener('click', () => (location.hash = 'tips'));
+// 從列表或關卡點進來的回到原本那一頁；直接開技巧頁網址的，回關卡列表
+$('tips-back').addEventListener('click', () => (tipsFromApp ? history.back() : (location.hash = '')));
 $('win-list').addEventListener('click', goList);
 
 // 列表的分頁：換頁不留在上一頁的歷史裡，按瀏覽器返回不會在兩頁之間來回跳
