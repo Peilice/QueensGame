@@ -330,8 +330,6 @@ function openLevel(size, index) {
   game = new Game(puzzle, storage.getBoard(id));
 
   showGame(`${size}×${size} 第 ${index + 1} 關`);
-  // 桌面規則一律展開；手機只在還沒破過任何一關時預設展開，之後收成頁邊籤
-  $('rules').open = desktop.matches || storage.getSolved().size === 0;
 
   buildBoard(puzzle);
   // 回到存檔的盤面：墨跡本來就在紙上，不重寫一次
@@ -347,7 +345,6 @@ function openRandom(size, seed) {
   game = new Game(puzzle, saved?.seed === seed ? saved.board : null);
 
   showGame(`隨機 ${size}×${size}`);
-  $('rules').open = desktop.matches || storage.getSolved().size === 0;
 
   buildBoard(puzzle);
   render(new Set(), { instant: true });
@@ -366,6 +363,14 @@ function openLesson() {
   render(new Set(), { instant: true });
 }
 
+/** 桌面規則一律展開；手機照自己上次的選擇，沒動過就只在還沒破過任何一題（固定或隨機）時展開 */
+function rulesOpen() {
+  if (desktop.matches) return true;
+  const chosen = storage.getRulesOpen();
+  if (chosen !== null) return chosen;
+  return storage.getSolved().size === 0 && Object.keys(storage.getRandomSolved()).length === 0;
+}
+
 function showGame(title) {
   showView('game-view');
   clearWin();
@@ -375,6 +380,7 @@ function showGame(title) {
   $('game-view').classList.toggle('lesson', lesson !== null);
   // 教學本身就在教規則，規則欄先收起來，畫面只留引導和棋盤
   $('rules').hidden = lesson !== null;
+  $('rules').open = rulesOpen();
   $('coach').hidden = lesson === null;
   // 隨機題才有「換一題」
   $('shuffle').hidden = random === null;
@@ -753,6 +759,9 @@ $('tabs').addEventListener('keydown', (e) => {
   $(`tab-${name}`).focus();
 });
 $('win-next').addEventListener('click', (e) => (location.hash = e.currentTarget.dataset.target));
+
+// 手機上自己點過規則的頁邊籤，之後每一關都照這個選擇，不再自動打開或收起
+$('rules').querySelector('summary').addEventListener('click', () => storage.setRulesOpen(!$('rules').open));
 
 // 視窗跨過桌面寬度時，規則跟著展開（桌面沒有收合開關）
 desktop.addEventListener('change', () => {

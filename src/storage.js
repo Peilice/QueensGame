@@ -78,3 +78,14 @@ export function markRandomSolved(size) {
 export function getRandomSolved() {
   return load().random.solved;
 }
+
+/** 手機上自己收合／展開過規則就記住：true／false，沒動過則為 null */
+export function getRulesOpen() {
+  return load().rulesOpen ?? null;
+}
+
+export function setRulesOpen(open) {
+  const data = load();
+  data.rulesOpen = open;
+  save(data);
+}
