@@ -172,7 +172,7 @@ components:
 
 ## Typography
 
-**Display / Body Font:** Huninn（粉圓），從 Google Fonts 載入（`display=swap`）；fallback 依序為 system-ui、-apple-system、Segoe UI、Noto Sans TC、PingFang TC、Microsoft JhengHei。離線時退回系統字，照樣能玩。
+**Display / Body Font:** Huninn（粉圓），從 Google Fonts 載入（`display=swap`）；fallback 依序為 system-ui、-apple-system、Segoe UI、Noto Sans TC、PingFang TC、Microsoft JhengHei。第一次載入後由 service worker 存起來，離線時沿用；沒存到的字（只會下載畫面上用到的字）退回系統字，照樣能玩。
 
 **Character:** 圓滾滾的繁中圓體，是整體可愛感的主要來源。粉圓只有 400 一種粗細，所以全站關掉合成粗體（`font-synthesis-weight: none`），層次靠字級、顏色和螢光筆；`<strong>` 不加粗，改成底下劃一筆螢光筆。
 

@@ -54,6 +54,7 @@ src/puzzles.js         題庫（依尺寸分組，每題 N 個字串，字元代
 src/tutorial.js        教學題目與每一步的引導、提示格、完成條件
 src/tips.js            解題技巧的說明與圖解（色塊、墨跡、提示格都用字串畫）
 src/storage.js         localStorage 進度存取
+sw.js                  service worker：離線遊玩（新增檔案時要加進 PRECACHE，npm test 會檢查）
 src/main.js            畫面與操作
 scripts/verify-puzzles.js  題庫驗證
 scripts/build-icons.js     由 src/main.js 的刺蝟產生 icons/ 的 SVG 與 PNG 圖示
@@ -72,3 +73,5 @@ test/                  node --test 單元測試
    ```
 3. 到 repository 的 **Settings → Pages**，Source 選 **Deploy from a branch**，Branch 選 `main`、資料夾選 `/ (root)`，儲存
 4. 約一分鐘後即可在 `https://<帳號>.github.io/<repo>/` 遊玩
+
+離線遊玩：第一次連網打開後，service worker 會把整個遊戲存起來，之後沒網路也能打開（含加到主畫面的版本）。有網路時一律抓最新版，部署後不必改版號。service worker 只在 https 或 localhost 下運作，直接開 `file://` 不會啟用。

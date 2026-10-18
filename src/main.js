@@ -782,3 +782,8 @@ $('mascot').addEventListener('click', (e) => {
 // 已破關卡重玩：存檔盤面已在破關時清除，因此會從空盤面開始。
 window.addEventListener('hashchange', route);
 route();
+
+// 離線遊玩：service worker 把整個遊戲存起來（file:// 或不支援的瀏覽器就略過）
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
