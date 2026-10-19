@@ -788,7 +788,7 @@ desktop.addEventListener('change', () => {
   if (desktop.matches) $('rules').open = true;
 });
 
-// 音效開關：預設關閉；打開時「啵」一聲，順便讓瀏覽器准許之後出聲
+// 音效開關：預設打開；打開時「啵」一聲，順便讓瀏覽器准許之後出聲
 function showSound() {
   $('sound').setAttribute('aria-pressed', storage.getSound());
 }

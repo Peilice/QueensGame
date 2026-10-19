@@ -90,9 +90,9 @@ export function setRulesOpen(open) {
   save(data);
 }
 
-/** 音效開關：預設關閉，玩家自己打開才有聲音 */
+/** 音效開關：預設打開，玩家自己關掉才安靜 */
 export function getSound() {
-  return load().sound === true;
+  return load().sound !== false;
 }
 
 export function setSound(on) {
