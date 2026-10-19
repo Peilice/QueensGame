@@ -207,6 +207,14 @@ main {
   .btn.ghost:hover:not(:disabled) { border-color: transparent; background: color-mix(in srgb, var(--panel) 30%, transparent); }
 }
 
+/* 音效開關：和返回鍵同一種頁角 ghost 鍵，靠右；關著時喇叭淡一點、打個 ✕ */
+.btn.ghost.sound { justify-content: flex-end; padding: 0 10px; color: var(--muted); }
+.btn.ghost.sound svg { width: 22px; height: 22px; }
+.btn.ghost.sound .on { display: none; }
+.btn.ghost.sound[aria-pressed="true"] { color: var(--text); }
+.btn.ghost.sound[aria-pressed="true"] .on { display: inline; }
+.btn.ghost.sound[aria-pressed="true"] .off { display: none; }
+
 /* ---------- 遊戲版面：手機由上而下是棋盤、操作、規則（拇指順手）；桌面規則在棋盤右方 ---------- */
 
 .play {

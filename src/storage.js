@@ -89,3 +89,14 @@ export function setRulesOpen(open) {
   data.rulesOpen = open;
   save(data);
 }
+
+/** 音效開關：預設關閉，玩家自己打開才有聲音 */
+export function getSound() {
+  return load().sound === true;
+}
+
+export function setSound(on) {
+  const data = load();
+  data.sound = on;
+  save(data);
+}

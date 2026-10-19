@@ -3,6 +3,7 @@ import { Game, isUnlocked } from './game.js';
 import { PUZZLES } from './puzzles.js';
 import { generate, newSeed } from './generator.js';
 import * as storage from './storage.js';
+import * as sound from './sound.js';
 import { LESSON, STEPS, currentStep, targets } from './tutorial.js';
 import { TIPS, cellsOf } from './tips.js';
 
@@ -88,6 +89,7 @@ let game = null;
 let cells = [];
 let shown = []; // 每格目前畫在紙上的狀態，只有變了才重畫
 let winTimers = [];
+let conflictCount = 0; // 上一次的衝突格數：多出新的衝突才「咚」一聲
 
 const desktop = matchMedia('(min-width: 760px)');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -504,6 +506,7 @@ function render(preview = new Set(), { instant = false } = {}) {
     if (next !== shown[i]) changed.push([i, next]);
   });
 
+  if (instant) conflictCount = conflicts.size;
   const animate = !instant && !reducedMotion.matches;
   // 一次改很多格（重來、撤銷一整次拖曳或重來）時，墨跡沿對角線由左上一路掃過去
   const n = game.puzzle.size;
@@ -546,6 +549,10 @@ function ink(cell, from, to, animate, delay) {
 }
 
 function afterChange() {
+  // 放下去會刺到別人：「啵」之後接一聲「咚」；過關的那一下不算
+  const conflicts = findConflicts(game.puzzle, game.board).size;
+  if (conflicts > conflictCount && !game.solved) sound.play('conflict');
+  conflictCount = conflicts;
   if (lesson) {
     if (game.solved) {
       render();
@@ -629,6 +636,9 @@ function showWin({ title, seal, next: target }) {
 
   const panelAt = reducedMotion.matches ? 0 : queens.length * 90 + 180;
   const stampAt = reducedMotion.matches ? 0 : panelAt + 240;
+  // 刺蝟跳一隻響一個音，印章壓到紙上（stamp 動畫的 60%）時「咚」；沒有動畫時音階一口氣跑完再蓋章
+  sound.play('cheer', queens.length, reducedMotion.matches ? 0.05 : 0.09);
+  sound.play('stamp', reducedMotion.matches ? queens.length * 0.05 + 0.15 : (stampAt + 250) / 1000);
   winTimers.push(
     setTimeout(() => {
       // 焦點原本在操作列（例如用鍵盤按的）才跟著搬到過關面板；用手指解開時不冒出焦點框
@@ -682,6 +692,8 @@ $('board').addEventListener('pointermove', (e) => {
   const i = cellAt(e.clientX, e.clientY);
   if (i === null || drag.cells.has(i)) return;
   drag.cells.add(i);
+  // 拖曳經過空格時劃一筆
+  if (game.board[i] === EMPTY || (!drag.moved && game.board[drag.start] === EMPTY)) sound.play('mark', 1);
   drag.moved = true;
   render(drag.cells);
 });
@@ -691,8 +703,10 @@ $('board').addEventListener('pointerup', () => {
   const { start, cells: touched, moved } = drag;
   drag = null;
   cells[start].classList.remove('pressed');
-  if (moved ? game.mark(touched) : game.cycle(start)) afterChange();
-  else render();
+  if (moved ? game.mark(touched) : game.cycle(start)) {
+    if (!moved) sound.play({ [MARK]: 'mark', [QUEEN]: 'queen', [EMPTY]: 'lift' }[game.board[start]]);
+    afterChange();
+  } else render();
 });
 
 $('board').addEventListener('pointercancel', cancelDrag);
@@ -706,11 +720,17 @@ $('board').addEventListener('touchend', (e) => {
 // ---------- 按鈕 ----------
 
 $('undo').addEventListener('click', () => {
-  if (game && !game.solved && game.undo()) afterChange();
+  if (game && !game.solved && game.undo()) {
+    sound.play('undo');
+    afterChange();
+  }
 });
 
 $('reset').addEventListener('click', () => {
-  if (game && !game.solved && game.reset()) afterChange();
+  if (game && !game.solved && game.reset()) {
+    sound.play('reset');
+    afterChange();
+  }
 });
 
 // 換一題：同尺寸抽新種子，這一盤放掉；用 replace 不留歷史，按返回不會回到被換掉的那題
@@ -767,6 +787,24 @@ $('rules').querySelector('summary').addEventListener('click', () => storage.setR
 desktop.addEventListener('change', () => {
   if (desktop.matches) $('rules').open = true;
 });
+
+// 音效開關：預設關閉；打開時「啵」一聲，順便讓瀏覽器准許之後出聲
+function showSound() {
+  $('sound').setAttribute('aria-pressed', storage.getSound());
+}
+sound.setEnabled(storage.getSound());
+showSound();
+$('sound').addEventListener('click', () => {
+  const on = !storage.getSound();
+  storage.setSound(on);
+  sound.setEnabled(on);
+  showSound();
+  sound.play('queen');
+});
+// 瀏覽器只在使用者手勢當下准許出聲：重新載入後，第一次碰畫面就把聲音喚醒
+for (const type of ['pointerdown', 'pointerup', 'touchend', 'keydown']) {
+  document.addEventListener(type, sound.unlock, { capture: true, passive: true });
+}
 
 // 刊頭、教學卡、規則裡的刺蝟都是同一隻
 document.querySelectorAll('span.hedgehog').forEach((el) => (el.innerHTML = hedgehogSvg()));
