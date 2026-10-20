@@ -26,7 +26,7 @@
   --danger-soft: #eda898; /* 磚粉：衝突斜紋 */
   --disabled-bg: #e5e0d7;
   --queen: #55483c; /* 刺蝟與 ✕：暖灰棕，不用純黑 */
-  --trial: #221d19; /* 標記（試放）：近黑的虛線輪廓，和上了色的刺蝟一眼分得開 */
+  --trial: #3d6a96; /* 標記（試放）：藍墨水，像換一支藍色原子筆試寫；整套介面只有試放用藍色 */
   --seal: #c0392b; /* 朱紅印泥：過關印章 */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -1030,7 +1030,7 @@ svg.bulb .glass { fill: var(--hl); }
 }
 
 /* ---------- 標記（試放）----------
-   按下「標記」之後畫的都是試放：盤面外框改成 3px 近黑虛線，上緣貼一段「標記中」紙膠帶；刺蝟是空心的黑色虛線輪廓，只留眼睛和鼻頭；
+   按下「標記」之後畫的都是試放：盤面外框改成 3px 藍墨水虛線，上緣貼一段「標記中」紙膠帶；刺蝟是空心的藍墨水虛線輪廓，只留眼睛和鼻頭；
    ✕ 是三段短線。按「留下」才描成實線、上色，按「擦掉」就整批收回 */
 .board.trying { border: 3px dashed var(--trial); }
 /* 棋盤正上方一直留著 16px 高的錨點（和上面的標題列、引導面板之間共 28px），膠帶貼上來不會疊到標題列或引導文字。
@@ -1057,8 +1057,9 @@ svg.bulb .glass { fill: var(--hl); }
 .cell svg.q.trial .hh-eye,
 .board.mini .cell.maybe svg.q .hh-eye { fill: var(--trial); }
 /* pathLength=1：一筆切成三段平頭短線，圓頭會把空隙補滿 */
-.cell svg.x.trial { stroke: var(--trial); stroke-width: 3.2; stroke-linecap: butt; opacity: 0.85; }
-.cell svg.x.trial path { stroke-dasharray: 0.24 0.14; }
+/* 試放的 ✕ 比鋼筆 ✕ 長一截（70%），線寬跟著縮，看起來差不多粗；每筆切成四段 */
+.cell svg.x.trial { width: 70%; height: 70%; stroke: var(--trial); stroke-width: 2.4; stroke-linecap: butt; opacity: 1; }
+.cell svg.x.trial path { stroke-dasharray: 0.19 0.08; }
 /* 虛線沒辦法一筆描出來，改成淡入 */
 .cell svg.x.trial.in path,
 .cell svg.x.trial.out path { animation-name: dot-in; }
