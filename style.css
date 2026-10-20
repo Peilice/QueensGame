@@ -17,7 +17,7 @@
   --edge: #a9b69b; /* 按鈕與關卡格的外框 */
   --select: #657a58; /* 按下的格子 */
   --shadow: 0 2px 6px rgba(85, 72, 60, 0.12); /* 低透明度暖灰棕 */
-  --mark-alpha: 0.6;
+  --mark-alpha: 0.8;
   --print-alpha: 0.6; /* 目錄上已破關卡的色塊淡印 */
   --accent: #657a58; /* 深森林綠：主要按鈕、焦點、完成 */
   --accent-text: #ffffff;
@@ -26,6 +26,7 @@
   --danger-soft: #eda898; /* 磚粉：衝突斜紋 */
   --disabled-bg: #e5e0d7;
   --queen: #55483c; /* 刺蝟與 ✕：暖灰棕，不用純黑 */
+  --trial: #221d19; /* 標記（試放）：近黑的虛線輪廓，和上了色的刺蝟一眼分得開 */
   --seal: #c0392b; /* 朱紅印泥：過關印章 */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -296,6 +297,8 @@ main {
 }
 .rules-body .ri .solid { fill: var(--btn-text); stroke: none; }
 .rules-body .nb { white-space: nowrap; }
+/* 「標記」那一句一律自己一行，不接在拖曳那句後面被拆成兩半 */
+.rules-body .hint-own { display: block; }
 /* 規則最後一點是去解題技巧的連結：整行都好按，高度至少 44px（直書時是寬度） */
 .tips-link {
   display: inline-flex;
@@ -321,7 +324,8 @@ main {
     grid-template-areas: "board rules" "controls .";
     column-gap: 16px;
   }
-  .rules { align-self: start; justify-self: start; }
+  /* 棋盤上方多留了 16px 給「標記中」膠帶，規則跟著往下，頂端照樣對齊 */
+  .rules { align-self: start; justify-self: start; margin-top: 16px; }
   /* 教學沒有規則欄：只剩棋盤一欄，整頁置中，不空出右邊一大塊 */
   #game-view.lesson { max-width: 552px; }
   #game-view.lesson .play { grid-template-columns: minmax(0, 1fr); grid-template-areas: "board" "controls"; }
@@ -916,9 +920,8 @@ svg.bulb .glass { fill: var(--hl); }
 /* 推出來的刺蝟：實線圈；推出來的 ✕：深森林綠、不透明 */
 .board.mini .cell.got-q::before { border: 2.5px solid var(--accent-deep); }
 .board.mini .cell.got svg.x { stroke: var(--accent-deep); opacity: 1; stroke-width: 4.5; }
-/* 假裝放下的刺蝟、和牠刺到的格子（想像中的 ✕）都畫得淡淡的；
-   小盤面上的 ✕ 太小，畫成虛線會糊成一團點，所以只調淡 */
-.board.mini .cell.maybe svg.q { opacity: 0.45; }
+/* 假裝放下的刺蝟：和遊戲裡「標記」試放的一樣是虛線輪廓（樣式在墨跡那一節）；
+   牠刺到的格子（想像中的 ✕）在小盤面上太小，畫成虛線會糊成一團點，所以只調淡 */
 .board.mini .cell.maybe svg.x { opacity: 0.35; }
 
 /* ---------- 棋盤 ---------- */
@@ -980,7 +983,7 @@ svg.bulb .glass { fill: var(--hl); }
   overflow: visible;
   pointer-events: none;
 }
-.cell svg.x { width: 34%; height: 34%; fill: none; stroke: var(--queen); stroke-width: 4; stroke-linecap: round; opacity: var(--mark-alpha); }
+.cell svg.x { width: 44%; height: 44%; fill: none; stroke: var(--queen); stroke-width: 4; stroke-linecap: round; opacity: var(--mark-alpha); }
 .cell svg.x path { stroke-dasharray: 1 2; }
 /* 刺蝟身形扁長，寬度撐到格子的 78%，高度跟著比例 */
 .cell svg.q { width: 78%; height: 78%; }
@@ -1025,6 +1028,47 @@ svg.bulb .glass { fill: var(--hl); }
 @keyframes lift {
   to { transform: translateY(-6%) scale(1.12); opacity: 0; }
 }
+
+/* ---------- 標記（試放）----------
+   按下「標記」之後畫的都是試放：盤面外框改成 3px 近黑虛線，上緣貼一段「標記中」紙膠帶；刺蝟是空心的黑色虛線輪廓，只留眼睛和鼻頭；
+   ✕ 是三段短線。按「留下」才描成實線、上色，按「擦掉」就整批收回 */
+.board.trying { border: 3px dashed var(--trial); }
+/* 棋盤正上方一直留著 16px 高的錨點（和上面的標題列、引導面板之間共 28px），膠帶貼上來不會疊到標題列或引導文字。
+   膠帶放在棋盤寬 24% 處，避開返回鍵正下方；底緣對齊外框外緣、往上長，歪 -3° 時最低的角也只壓到外框線，不擋任何一格 */
+.trial-tag { position: relative; z-index: 2; height: 16px; margin: 0; pointer-events: none; }
+.trial-tag span {
+  position: absolute;
+  bottom: 0;
+  left: 24%;
+  padding: 0 14px;
+  font-size: 0.9rem;
+  line-height: 24px;
+  letter-spacing: 0.08em;
+  color: var(--text);
+  background: var(--tape);
+  rotate: -3deg;
+}
+.cell svg.q.trial .hh-line,
+.board.mini .cell.maybe svg.q .hh-line { stroke: var(--trial); stroke-dasharray: 1.8 1.2; }
+.cell svg.q.trial :is(.hh-spine, .hh-face, .hh-foot),
+.board.mini .cell.maybe svg.q :is(.hh-spine, .hh-face, .hh-foot) { fill: none; }
+.cell svg.q.trial :is(.hh-blush, .hh-glint),
+.board.mini .cell.maybe svg.q :is(.hh-blush, .hh-glint) { display: none; }
+.cell svg.q.trial .hh-eye,
+.board.mini .cell.maybe svg.q .hh-eye { fill: var(--trial); }
+/* pathLength=1：一筆切成三段平頭短線，圓頭會把空隙補滿 */
+.cell svg.x.trial { stroke: var(--trial); stroke-width: 3.2; stroke-linecap: butt; opacity: 0.85; }
+.cell svg.x.trial path { stroke-dasharray: 0.24 0.14; }
+/* 虛線沒辦法一筆描出來，改成淡入 */
+.cell svg.x.trial.in path,
+.cell svg.x.trial.out path { animation-name: dot-in; }
+.cell svg.x.trial.out path { animation-direction: reverse; }
+@keyframes dot-in { from { opacity: 0; } }
+
+/* 留下：虛線描成實線、上了色，輕輕定下來 */
+.cell.settle svg.q,
+.cell.settle svg.x { animation: settle 280ms var(--ease-out); }
+@keyframes settle { from { transform: scale(1.12); opacity: 0.5; } }
 
 /* ---------- 過關：刺蝟依序蓋印、外框墨線加粗、頁邊蓋上「過關」章 ---------- */
 
@@ -1083,9 +1127,10 @@ svg.bulb .glass { fill: var(--hl); }
   justify-content: center;
   gap: 12px;
 }
-.controls .btn { min-width: 108px; }
-/* 隨機題多一顆「換一題」：三顆各縮到 96px，360px 寬的手機也排得下一行 */
-.controls.three .btn { min-width: 96px; padding: 0 14px; white-space: nowrap; }
+.controls .btn { min-width: 96px; padding: 0 14px; white-space: nowrap; }
+/* 隨機題多一顆「換一題」：四顆平分一行，360px 寬的手機也排得下 */
+.controls.four { width: min(100%, 520px); gap: 8px; }
+.controls.four .btn { flex: 1 1 0; min-width: 0; padding: 0 6px; }
 /* 換一題的確認：一行問句加兩顆按鈕，取代操作列的位置 */
 .controls.ask { align-items: center; }
 .controls.ask .btn { min-width: 84px; padding: 0 14px; white-space: nowrap; }

@@ -10,6 +10,8 @@ const CENTER = at(2, 2);
 const all = [...Array(N * N).keys()];
 const row = (i) => Math.floor(i / N);
 const col = (i) => i % N;
+// 右上角色塊標完這一行以後還沒定的兩格
+const B_OPEN = [at(0, 4), at(1, 4)];
 
 /**
  * 教學的每一步：引導文字、要亮起來提示的格子，以及完成條件。
@@ -30,14 +32,14 @@ export const STEPS = [
     want: MARK,
   },
   {
-    text: '刺蝟靠太近會被刺到，斜角也不行。試試看：在亮起的格子放一隻刺蝟。',
+    text: '刺蝟靠太近會被刺到，斜角也不行。放放看：在亮起的格子放一隻刺蝟。',
     cells: [at(1, 3)],
     done: (puzzle, board) => findConflicts(puzzle, board).size > 0,
   },
   {
     text: '被刺到了！紅框就是衝突。按⁠「上一步」收回來。',
     cells: [],
-    undo: true,
+    button: 'undo',
     done: (puzzle, board) => findConflicts(puzzle, board).size === 0,
   },
   {
@@ -51,14 +53,26 @@ export const STEPS = [
     want: MARK,
   },
   {
+    text: '右上角的色塊還剩兩格，不確定時先試放：按⁠「標記」按鈕，在亮起的格子放刺蝟。',
+    cells: B_OPEN,
+    button: 'trial',
+    done: (puzzle, board, trial) => trial !== null && B_OPEN.some((i) => board[i] === QUEEN && trial[i] !== QUEEN),
+  },
+  {
+    text: '虛線刺蝟是試放的：對了按⁠「留下」，錯了按⁠「擦掉」。現在先按⁠「擦掉」。',
+    cells: [],
+    button: 'erase',
+    done: (puzzle, board, trial) => trial === null,
+  },
+  {
     text: '剩下的你來！每一列、每一行、每個色塊各一隻。提示：先找只剩一個空格的那一列。',
     cells: [],
     done: isSolved,
   },
 ];
 
-export function isDone(step, puzzle, board) {
-  return step.done ? step.done(puzzle, board) : step.cells.every((i) => board[i] === step.want);
+export function isDone(step, puzzle, board, trial = null) {
+  return step.done ? step.done(puzzle, board, trial) : step.cells.every((i) => board[i] === step.want);
 }
 
 /** 這一步要亮起的格子：有 want 的只亮還沒做到的 */
@@ -67,8 +81,8 @@ export function targets(step, board) {
 }
 
 /** 從 from 往後跳過已經完成的步驟，回傳現在該做的那一步；只會前進，不會退回 */
-export function currentStep(puzzle, board, from = 0) {
+export function currentStep(puzzle, board, from = 0, trial = null) {
   let step = from;
-  while (step < STEPS.length - 1 && isDone(STEPS[step], puzzle, board)) step++;
+  while (step < STEPS.length - 1 && isDone(STEPS[step], puzzle, board, trial)) step++;
   return step;
 }

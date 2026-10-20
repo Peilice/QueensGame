@@ -14,7 +14,7 @@ function walk() {
   const seen = [step];
   const act = (fn) => {
     fn(game);
-    step = currentStep(puzzle, game.board, step);
+    step = currentStep(puzzle, game.board, step, game.trial);
     if (seen.at(-1) !== step) seen.push(step);
   };
   return { game, seen, act, get step() { return step; } };
@@ -45,9 +45,20 @@ test('跟著每一步做，會依序走完並過關', () => {
   w.act((g) => g.mark([at(3, 4), at(4, 4)]));
   assert.equal(w.step, 6);
 
+  w.act(place(at(0, 4)));
+  assert.equal(w.step, 6, '沒按標記就放，不算試放');
+  w.act((g) => { g.cycle(at(0, 4)); });
+  w.act((g) => g.startTrial());
+  assert.equal(w.step, 6, '按了標記，還沒放');
+  w.act(place(at(0, 4)));
+  assert.equal(w.step, 7, '試放了一隻，接著教擦掉');
+  w.act((g) => g.erase());
+  assert.equal(w.step, 8);
+  assert.equal(w.game.board[at(0, 4)], 0, '擦掉回到試放之前');
+
   for (const i of [at(3, 0), at(4, 3), at(1, 4), at(0, 1)]) w.act(place(i));
   assert.equal(w.game.solved, true);
-  assert.deepEqual(w.seen, [0, 1, 2, 3, 4, 5, 6]);
+  assert.deepEqual(w.seen, [0, 1, 2, 3, 4, 5, 6, 7, 8]);
 });
 
 test('已經做到的步驟會直接跳過', () => {

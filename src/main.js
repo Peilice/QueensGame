@@ -329,7 +329,7 @@ function openLevel(size, index) {
   lesson = random = null;
   const id = levelId(size, index);
   const puzzle = parsePuzzle(PUZZLES[size][index]);
-  game = new Game(puzzle, storage.getBoard(id));
+  game = new Game(puzzle, storage.getBoard(id), storage.getTrial(id));
 
   showGame(`${size}×${size} 第 ${index + 1} 關`);
 
@@ -344,7 +344,7 @@ function openRandom(size, seed) {
   random = { size, seed };
   const puzzle = parsePuzzle(generate(size, seed));
   const saved = storage.getRandom(size);
-  game = new Game(puzzle, saved?.seed === seed ? saved.board : null);
+  game = new Game(puzzle, ...(saved?.seed === seed ? [saved.board, saved.trial] : []));
 
   showGame(`隨機 ${size}×${size}`);
 
@@ -386,7 +386,7 @@ function showGame(title) {
   $('coach').hidden = lesson === null;
   // 隨機題才有「換一題」
   $('shuffle').hidden = random === null;
-  $('controls').classList.toggle('three', random !== null);
+  $('controls').classList.toggle('four', random !== null);
 }
 
 /** 換成目前這一步的引導；文字沒變就不動，免得報讀器重念 */
@@ -496,15 +496,21 @@ function render(preview = new Set(), { instant = false } = {}) {
   // 教學中這一步要玩家動的格子會亮起；過關後就不再提示
   const step = lesson && !game.solved ? STEPS[lesson.step] : null;
   const lit = new Set(step ? targets(step, game.board) : []);
+  // 標記中畫的格子用虛線；拖曳經過、還沒放開的空格也算
+  const tentative = game.tentative;
   const changed = [];
   game.board.forEach((state, i) => {
-    const next = state === EMPTY && preview.has(i) ? MARK : state;
+    const drawn = state === EMPTY && preview.has(i);
+    const next = drawn ? MARK : state;
+    if (drawn && game.trying) tentative.add(i);
     cells[i].classList.toggle('queen', next === QUEEN);
     cells[i].classList.toggle('mark', next === MARK);
     cells[i].classList.toggle('conflict', conflicts.has(i));
     cells[i].classList.toggle('target', lit.has(i));
     if (next !== shown[i]) changed.push([i, next]);
   });
+  $('board').classList.toggle('trying', game.trying);
+  $('trial-tag').hidden = !game.trying;
 
   if (instant) conflictCount = conflicts.size;
   const animate = !instant && !reducedMotion.matches;
@@ -516,11 +522,25 @@ function render(preview = new Set(), { instant = false } = {}) {
     ink(cells[i], shown[i], next, animate, delay);
     shown[i] = next;
   }
+  // 虛線掛在墨跡上而不是格子上：擦掉時正在收回的那一筆維持虛線，不會先變回實線
+  cells.forEach((cell, i) => cell.querySelector('svg:not(.out)')?.classList.toggle('trial', tentative.has(i)));
 
   $('undo').disabled = game.solved || !game.canUndo;
-  $('undo').classList.toggle('target', step?.undo === true);
   // 盤面已經是空的，「重來」沒有東西可清
   $('reset').disabled = game.solved || game.board.every((v) => v === EMPTY);
+  $('trial').disabled = $('keep').disabled = $('erase').disabled = game.solved;
+  // 標記中「留下」「擦掉」取代「重來」「標記」；按鈕被藏起來時焦點跟著搬到換上來的那一顆
+  showButtons(['reset', 'trial'], ['keep', 'erase'], game.trying);
+  for (const id of ['undo', 'trial', 'erase']) $(id).classList.toggle('target', step?.button === id);
+}
+
+/** 兩組按鈕換著顯示：on 為真時顯示 b、藏起 a；焦點在被藏起來的那顆上時，搬到另一組同位置的那顆 */
+function showButtons(a, b, on) {
+  const [hide, show] = on ? [a, b] : [b, a];
+  const focused = hide.indexOf(document.activeElement?.id);
+  hide.forEach((id) => ($(id).hidden = true));
+  show.forEach((id) => ($(id).hidden = false));
+  if (focused >= 0) $(show[focused]).focus({ preventScroll: true });
 }
 
 /** 把一格從 from 改畫成 to：✕ 一筆一筆描出、反向收回；刺蝟蓋下、提起 */
@@ -559,7 +579,7 @@ function afterChange() {
       showWin(lessonWin());
       return;
     }
-    lesson.step = currentStep(game.puzzle, game.board, lesson.step);
+    lesson.step = currentStep(game.puzzle, game.board, lesson.step, game.trial);
     render();
     coach();
     return;
@@ -569,7 +589,7 @@ function afterChange() {
     ask(false);
     const { size, seed } = random;
     if (game.solved) storage.markRandomSolved(size);
-    else storage.saveRandom(size, seed, game.board);
+    else storage.saveRandom(size, seed, game.board, game.trial);
     render();
     if (game.solved) {
       showWin({ title: '過關！', seal: '過關', next: { label: '再來一題', hash: randomId(size, newSeed()) } });
@@ -581,7 +601,7 @@ function afterChange() {
     render();
     showWin(levelWin());
   } else {
-    storage.saveBoard(levelId(level.size, level.index), game.board);
+    storage.saveBoard(levelId(level.size, level.index), game.board, game.trial);
     render();
   }
 }
@@ -729,6 +749,33 @@ $('undo').addEventListener('click', () => {
 $('reset').addEventListener('click', () => {
   if (game && !game.solved && game.reset()) {
     sound.play('reset');
+    afterChange();
+  }
+});
+
+// 標記：之後畫的都是試放（虛線），再決定留下或擦掉
+$('trial').addEventListener('click', () => {
+  if (game && !game.solved && game.startTrial()) afterChange();
+});
+
+$('keep').addEventListener('click', () => {
+  if (!game || game.solved) return;
+  const kept = [...game.tentative];
+  if (!game.keep()) return;
+  afterChange();
+  // 虛線描成實線：輕輕定下來
+  if (!reducedMotion.matches) {
+    for (const i of kept) {
+      cells[i].classList.remove('settle');
+      void cells[i].offsetWidth;
+      cells[i].classList.add('settle');
+    }
+  }
+});
+
+$('erase').addEventListener('click', () => {
+  if (game && !game.solved && game.erase()) {
+    sound.play('erase');
     afterChange();
   }
 });

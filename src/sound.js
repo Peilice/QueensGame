@@ -105,6 +105,10 @@ const SOUNDS = {
   reset() {
     noise({ from: 2600, to: 500, dur: 0.32, gain: 0.2, q: 0.6 });
   },
+  /** 擦掉試放：橡皮擦來回擦兩下的「唰唰」，比鋼筆悶、比翻頁短 */
+  erase() {
+    for (let s = 0; s < 2; s++) noise({ at: s * 0.11, from: 1500, to: 1000, dur: 0.1, gain: 0.2, q: 0.9 });
+  },
   /** 過關：每隻刺蝟跳起來時一個音，間隔和 style.css 的 cheer 動畫一樣是 90ms */
   cheer(count, gap = 0.09) {
     for (let i = 0; i < count; i++) {
