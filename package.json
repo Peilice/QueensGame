@@ -5,6 +5,8 @@
   "scripts": {
     "test": "node --test",
     "verify": "node scripts/verify-puzzles.js",
+    "rate": "node scripts/rate-puzzles.js",
+    "add-puzzles": "node scripts/add-puzzles.js",
     "icons": "node scripts/build-icons.js"
   }
 }
