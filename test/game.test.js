@@ -25,6 +25,18 @@ test('拖曳標 ✕ 只標空格，整批一步 Undo', () => {
   assert.deepEqual(g.board.slice(0, 4), [EMPTY, QUEEN, EMPTY, EMPTY]);
 });
 
+test('拖曳擦 ✕ 只擦 ✕，刺蝟不動，整批一步 Undo', () => {
+  const g = new Game(puzzle);
+  g.mark([0, 2, 3]);
+  g.cycle(1);
+  g.cycle(1); // (0,1) 為刺蝟
+  assert.equal(g.unmark([0, 1, 2]), true);
+  assert.deepEqual(g.board.slice(0, 4), [EMPTY, QUEEN, EMPTY, MARK]);
+  g.undo();
+  assert.deepEqual(g.board.slice(0, 4), [MARK, QUEEN, MARK, MARK]);
+  assert.equal(g.unmark([1, 4]), false);
+});
+
 test('沒有實際改變的操作不進歷史', () => {
   const g = new Game(puzzle);
   assert.equal(g.mark([]), false);

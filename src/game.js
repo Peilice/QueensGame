@@ -64,6 +64,13 @@ export class Game {
     return this.#commit(next);
   }
 
+  /** 從 ✕ 開始拖曳批次擦 ✕：只擦 ✕，刺蝟不動，整批算一步。 */
+  unmark(indices) {
+    const next = [...this.board];
+    for (const i of indices) if (next[i] === MARK) next[i] = EMPTY;
+    return this.#commit(next);
+  }
+
   /** 重來：清空盤面，標記中也一起結束 */
   reset() {
     return this.#commit(new Array(this.board.length).fill(EMPTY), null);

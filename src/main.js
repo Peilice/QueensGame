@@ -491,17 +491,17 @@ function buildFigure({ regions, ink, look, caption }) {
   return figure;
 }
 
-function render(preview = new Set(), { instant = false } = {}) {
+function render(preview = new Set(), { instant = false, erasing = false } = {}) {
   const conflicts = findConflicts(game.puzzle, game.board);
   // 教學中這一步要玩家動的格子會亮起；過關後就不再提示
   const step = lesson && !game.solved ? STEPS[lesson.step] : null;
   const lit = new Set(step ? targets(step, game.board) : []);
-  // 標記中畫的格子用虛線；拖曳經過、還沒放開的空格也算
+  // 標記中畫的格子用虛線；拖曳經過、還沒放開的空格也算（擦 ✕ 的拖曳則是經過的 ✕ 先擦掉）
   const tentative = game.tentative;
   const changed = [];
   game.board.forEach((state, i) => {
-    const drawn = state === EMPTY && preview.has(i);
-    const next = drawn ? MARK : state;
+    const drawn = preview.has(i) && state === (erasing ? MARK : EMPTY);
+    const next = drawn ? (erasing ? EMPTY : MARK) : state;
     if (drawn && game.trying) tentative.add(i);
     cells[i].classList.toggle('queen', next === QUEEN);
     cells[i].classList.toggle('mark', next === MARK);
@@ -680,7 +680,7 @@ function clearWin() {
   $('controls').hidden = false;
 }
 
-// ---------- 指標操作：點擊循環、拖曳標 ✕（滑鼠與觸控共用） ----------
+// ---------- 指標操作：點擊循環、拖曳標 ✕、從 ✕ 開始拖曳擦 ✕（滑鼠與觸控共用） ----------
 
 let drag = null;
 
@@ -704,7 +704,8 @@ $('board').addEventListener('pointerdown', (e) => {
   e.preventDefault();
   $('board').setPointerCapture(e.pointerId);
   cells[start].classList.add('pressed');
-  drag = { start, cells: new Set([start]), moved: false };
+  // 起點是 ✕ 的拖曳整趟都是擦 ✕；只點一下不拖還是照常循環
+  drag = { start, cells: new Set([start]), moved: false, erasing: game.board[start] === MARK };
 });
 
 $('board').addEventListener('pointermove', (e) => {
@@ -712,18 +713,19 @@ $('board').addEventListener('pointermove', (e) => {
   const i = cellAt(e.clientX, e.clientY);
   if (i === null || drag.cells.has(i)) return;
   drag.cells.add(i);
-  // 拖曳經過空格時劃一筆
-  if (game.board[i] === EMPTY || (!drag.moved && game.board[drag.start] === EMPTY)) sound.play('mark', 1);
+  // 拖曳經過空格時劃一筆；擦 ✕ 時經過 ✕ 擦一下
+  const [target, effect] = drag.erasing ? [MARK, 'erase'] : [EMPTY, 'mark'];
+  if (game.board[i] === target || (!drag.moved && game.board[drag.start] === target)) sound.play(effect, 1);
   drag.moved = true;
-  render(drag.cells);
+  render(drag.cells, { erasing: drag.erasing });
 });
 
 $('board').addEventListener('pointerup', () => {
   if (!drag) return;
-  const { start, cells: touched, moved } = drag;
+  const { start, cells: touched, moved, erasing } = drag;
   drag = null;
   cells[start].classList.remove('pressed');
-  if (moved ? game.mark(touched) : game.cycle(start)) {
+  if (moved ? (erasing ? game.unmark(touched) : game.mark(touched)) : game.cycle(start)) {
     if (!moved) sound.play({ [MARK]: 'mark', [QUEEN]: 'queen', [EMPTY]: 'lift' }[game.board[start]]);
     afterChange();
   } else render();
