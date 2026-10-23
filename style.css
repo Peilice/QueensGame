@@ -318,6 +318,13 @@ main {
   #game-view { max-width: 760px; }
   /* 標題列和棋盤同寬，關卡名稱置中在棋盤正上方 */
   #game-view .top { max-width: 520px; }
+  /* 平板規則一樣放在棋盤下方，寬度跟棋盤一致 */
+  .rules { width: 520px; }
+}
+
+/* 只有桌機（寬螢幕加滑鼠）規則才放到棋盤右方；平板、手機都在棋盤下方。條件要和 main.js 的 desktop 一致 */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  .rules { width: auto; }
   /* 規則與棋盤同一列，頂端自然對齊；桌面一律展開，不需要開關 */
   .play {
     grid-template-columns: 520px minmax(0, 1fr);

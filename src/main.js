@@ -91,7 +91,8 @@ let shown = []; // 每格目前畫在紙上的狀態，只有變了才重畫
 let winTimers = [];
 let conflictCount = 0; // 上一次的衝突格數：多出新的衝突才「咚」一聲
 
-const desktop = matchMedia('(min-width: 760px)');
+// 規則並排在棋盤右方的桌機版面，條件和 style.css 一致
+const desktop = matchMedia('(min-width: 1024px) and (hover: hover) and (pointer: fine)');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 const levelId = (size, index) => `${size}-${index + 1}`;
@@ -832,9 +833,9 @@ $('win-next').addEventListener('click', (e) => (location.hash = e.currentTarget.
 // 手機上自己點過規則的頁邊籤，之後每一關都照這個選擇，不再自動打開或收起
 $('rules').querySelector('summary').addEventListener('click', () => storage.setRulesOpen(!$('rules').open));
 
-// 視窗跨過桌面寬度時，規則跟著展開（桌面沒有收合開關）
+// 視窗跨過桌面寬度時，規則跟著展開（桌面沒有收合開關）；縮回來就照手機的選擇
 desktop.addEventListener('change', () => {
-  if (desktop.matches) $('rules').open = true;
+  $('rules').open = rulesOpen();
 });
 
 // 音效開關：預設打開；打開時「啵」一聲，順便讓瀏覽器准許之後出聲
