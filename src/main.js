@@ -4,10 +4,22 @@ import { PUZZLES } from './puzzles.js';
 import { generate, newSeed } from './generator.js';
 import * as storage from './storage.js';
 import * as sound from './sound.js';
+import * as music from './music.js';
 import { LESSON, STEPS, currentStep, targets } from './tutorial.js';
 import { TIPS, cellsOf } from './tips.js';
 
 const $ = (id) => document.getElementById(id);
+
+// 聲音設定的紙卡用 popover；舊瀏覽器沒有，連 :popover-open 這個選擇器都會丟例外，所以先問清楚
+const POPOVER = 'popover' in HTMLElement.prototype;
+
+function closeAudioMenu() {
+  const menu = $('audio-menu');
+  if (POPOVER ? !menu.matches(':popover-open') : menu.hidden) return;
+  if (POPOVER) return menu.hidePopover();
+  menu.hidden = true;
+  placeAudioMenu(false);
+}
 
 // 關卡格右上角的狀態小圖示：同一套線條粗細
 const CHECK_SVG =
@@ -150,6 +162,9 @@ const openPacks = new Set();
 /** 三個畫面一次只顯示一個 */
 function showView(id) {
   for (const view of ['levels-view', 'game-view', 'tips-view']) $(view).hidden = view !== id;
+  // 換頁時收起聲音設定；離開遊戲頁就不會在標記中
+  closeAudioMenu();
+  if (id !== 'game-view') music.setTrial(false);
 }
 
 function showLevels(tab = 'levels') {
@@ -512,6 +527,7 @@ function render(preview = new Set(), { instant = false, erasing = false } = {}) 
   });
   $('board').classList.toggle('trying', game.trying);
   $('trial-tag').hidden = !game.trying;
+  music.setTrial(game.trying);
 
   if (instant) conflictCount = conflicts.size;
   const animate = !instant && !reducedMotion.matches;
@@ -657,9 +673,12 @@ function showWin({ title, seal, next: target }) {
 
   const panelAt = reducedMotion.matches ? 0 : queens.length * 90 + 180;
   const stampAt = reducedMotion.matches ? 0 : panelAt + 240;
-  // 刺蝟跳一隻響一個音，印章壓到紙上（stamp 動畫的 60%）時「咚」；沒有動畫時音階一口氣跑完再蓋章
-  sound.play('cheer', queens.length, reducedMotion.matches ? 0.05 : 0.09);
-  sound.play('stamp', reducedMotion.matches ? queens.length * 0.05 + 0.15 : (stampAt + 250) / 1000);
+  // 刺蝟跳一隻響一個音，印章壓到紙上（stamp 動畫的 60%）時「咚」；沒有動畫時音階一口氣跑完再蓋章。
+  // 背景音樂先讓位，音階從音樂當下的和弦起跳，蓋章後停一小節再重新淡入
+  const stampSound = reducedMotion.matches ? queens.length * 0.05 + 0.15 : (stampAt + 250) / 1000;
+  sound.play('cheer', music.cheerNotes(queens.length), reducedMotion.matches ? 0.05 : 0.09);
+  sound.play('stamp', stampSound);
+  music.win(stampSound);
   winTimers.push(
     setTimeout(() => {
       // 焦點原本在操作列（例如用鍵盤按的）才跟著搬到過關面板；用手指解開時不冒出焦點框
@@ -838,23 +857,84 @@ desktop.addEventListener('change', () => {
   $('rules').open = rulesOpen();
 });
 
-// 音效開關：預設打開；打開時「啵」一聲，順便讓瀏覽器准許之後出聲
-function showSound() {
-  $('sound').setAttribute('aria-pressed', storage.getSound());
+// 聲音設定：三個頁面的喇叭鍵共用一張小紙卡，音效、音樂分開開關，都預設打開。
+// 兩個都關掉時喇叭才打 ✕
+const SPEAKER_SVG =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/>' +
+  '<path class="on" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/><path class="off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg>';
+const speakers = document.querySelectorAll('.sound');
+speakers.forEach((el) => (el.innerHTML = SPEAKER_SVG));
+
+function showAudio() {
+  const sfx = storage.getSound(), bgm = storage.getMusic();
+  $('sfx-switch').setAttribute('aria-checked', sfx);
+  $('music-switch').setAttribute('aria-checked', bgm);
+  speakers.forEach((el) => el.classList.toggle('muted', !sfx && !bgm));
 }
 sound.setEnabled(storage.getSound());
-showSound();
-$('sound').addEventListener('click', () => {
+music.setEnabled(storage.getMusic());
+showAudio();
+
+// 打開音效時「啵」一聲當作確認；打開音樂時從頭淡入
+$('sfx-switch').addEventListener('click', () => {
   const on = !storage.getSound();
   storage.setSound(on);
   sound.setEnabled(on);
-  showSound();
+  showAudio();
   sound.play('queen');
 });
-// 瀏覽器只在使用者手勢當下准許出聲：重新載入後，第一次碰畫面就把聲音喚醒
-for (const type of ['pointerdown', 'pointerup', 'touchend', 'keydown']) {
-  document.addEventListener(type, sound.unlock, { capture: true, passive: true });
+$('music-switch').addEventListener('click', () => {
+  const on = !storage.getMusic();
+  storage.setMusic(on);
+  music.setEnabled(on);
+  music.wake();
+  showAudio();
+});
+
+// 紙卡掉在目前這一頁的喇叭正下方，右緣對齊；捲動時就收起來，不留在半空中
+function placeAudioMenu(open) {
+  speakers.forEach((el) => el.classList.remove('open'));
+  if (!open) return;
+  const speaker = document.querySelector('main:not([hidden]) .sound');
+  speaker.classList.add('open');
+  const { bottom, right } = speaker.getBoundingClientRect();
+  $('audio-menu').style.top = `${bottom + 4}px`;
+  $('audio-menu').style.right = `${document.documentElement.clientWidth - right}px`;
 }
+if (POPOVER) {
+  $('audio-menu').addEventListener('beforetoggle', (e) => placeAudioMenu(e.newState === 'open'));
+} else {
+  // 不支援 popover 的瀏覽器（例如 iOS 16）：自己開合，點外面或按 Esc 收起
+  $('audio-menu').hidden = true;
+  $('audio-menu').classList.add('fallback');
+  speakers.forEach((el) =>
+    el.addEventListener('click', () => {
+      const open = $('audio-menu').hidden;
+      $('audio-menu').hidden = !open;
+      placeAudioMenu(open);
+    }),
+  );
+  document.addEventListener('pointerdown', (e) => {
+    if (!e.target.closest('#audio-menu, .sound')) closeAudioMenu();
+  });
+  document.addEventListener('keydown', (e) => e.key === 'Escape' && closeAudioMenu());
+}
+addEventListener('scroll', closeAudioMenu, { passive: true });
+
+// 瀏覽器只在使用者手勢當下准許出聲：重新載入後，第一次碰畫面就把聲音喚醒、音樂開始淡入
+function wakeAudio() {
+  sound.unlock();
+  music.wake();
+}
+for (const type of ['pointerdown', 'pointerup', 'touchend', 'keydown']) {
+  document.addEventListener(type, wakeAudio, { capture: true, passive: true });
+}
+// 切到背景時音樂淡出、AudioContext 暫停；回來再淡入（瀏覽器不准的話，等下一次碰畫面）
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) return wakeAudio();
+  music.stop(0.3);
+  setTimeout(() => document.hidden && sound.sleep(), 400);
+});
 
 // 刊頭、教學卡、規則裡的刺蝟都是同一隻
 document.querySelectorAll('span.hedgehog').forEach((el) => (el.innerHTML = hedgehogSvg()));

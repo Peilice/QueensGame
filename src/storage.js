@@ -110,3 +110,14 @@ export function setSound(on) {
   data.sound = on;
   save(data);
 }
+
+/** 背景音樂開關：和音效分開，一樣預設打開 */
+export function getMusic() {
+  return load().music !== false;
+}
+
+export function setMusic(on) {
+  const data = load();
+  data.music = on;
+  save(data);
+}

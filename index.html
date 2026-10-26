@@ -51,6 +51,8 @@
 
   <main id="levels-view" hidden>
     <header class="masthead">
+      <!-- 音樂全站都在播，列表上也要關得掉：喇叭放在書名右上角 -->
+      <button type="button" class="btn ghost sound" popovertarget="audio-menu" aria-label="聲音設定" title="聲音"></button>
       <h1 class="title"><span>刺</span><span>蝟</span><span>排</span><span>排</span><span>站</span></h1>
       <div class="tag-row">
         <p class="tagline">排好位置，別互相傷害！</p>
@@ -101,13 +103,8 @@
     <header class="top">
       <button type="button" id="back" class="btn ghost" aria-label="回關卡列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>關卡</button>
       <h1 id="level-title"></h1>
-      <!-- 音效開關：和返回鍵同寬，標題才會置中；預設打開 -->
-      <button type="button" id="sound" class="btn ghost sound" aria-label="音效" aria-pressed="true" title="音效"><svg
-          viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" />
-          <path class="on" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" />
-          <path class="off" d="M16 9.5l5 5M21 9.5l-5 5" />
-        </svg></button>
+      <!-- 聲音設定：和返回鍵同寬，標題才會置中；喇叭由 main.js 畫上 -->
+      <button type="button" class="btn ghost sound" popovertarget="audio-menu" aria-label="聲音設定" title="聲音"></button>
     </header>
     <div class="play">
       <div class="sheet">
@@ -174,7 +171,7 @@
     <header class="top">
       <button type="button" id="tips-back" class="btn ghost" aria-label="返回"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>返回</button>
       <h1>解題技巧</h1>
-      <span class="spacer"></span>
+      <button type="button" class="btn ghost sound" popovertarget="audio-menu" aria-label="聲音設定" title="聲音"></button>
     </header>
     <p class="tips-legend">
       <span><i class="key look" aria-hidden="true"></i>虛線圈：先看這裡</span>
@@ -182,6 +179,12 @@
     </p>
     <ol id="tips-list" class="tips"></ol>
   </main>
+
+  <!-- 聲音設定：三個頁面的喇叭鍵共用這一張小紙卡，從喇叭下面掉出來；音效和音樂分開開關，都預設打開 -->
+  <div id="audio-menu" class="audio-menu" popover aria-label="聲音設定">
+    <button type="button" id="sfx-switch" class="switch" role="switch" aria-checked="true">音效<span class="track" aria-hidden="true"></span></button>
+    <button type="button" id="music-switch" class="switch" role="switch" aria-checked="true">音樂<span class="track" aria-hidden="true"></span></button>
+  </div>
 </body>
 
 </html>

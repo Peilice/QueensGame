@@ -1,18 +1,42 @@
 // 音效：全部用 Web Audio 當場合成，不下載任何音檔，離線也一樣有聲音。
 // 聲音跟著紙上的動作走：鋼筆劃 ✕ 的沙沙聲、刺蝟蹦進格子的「啵」、翻頁的「唰」、蓋章的「咚」。
 // 預設打開；開關存在 storage，瀏覽器規定要等玩家碰過畫面才能出聲，所以 AudioContext 等第一次手勢才建立。
+// 背景音樂（music.js）共用同一個 AudioContext，走自己的音量線路，音效和音樂分開開關。
 
 let ctx = null;
 let out = null;
+let musicBus = null;
 let noiseBuffer = null;
 let enabled = false;
+let musicEnabled = false;
 let unlockedAt = -Infinity;
 
-/** 開或關；關掉時把 AudioContext 暫停，不佔手機資源 */
+/** 音效開或關 */
 export function setEnabled(on) {
   enabled = on;
-  if (on) unlock();
-  else ctx?.suspend().catch(() => {});
+  update();
+}
+
+/** 音樂開或關：只決定 AudioContext 要不要醒著，排程交給 music.js */
+export function setMusicEnabled(on) {
+  musicEnabled = on;
+  update();
+}
+
+/** 音效、音樂都關掉時把 AudioContext 暫停，不佔手機資源；等音樂淡出完再停 */
+function update() {
+  if (enabled || musicEnabled) unlock();
+  else setTimeout(() => !enabled && !musicEnabled && sleep(), 700);
+}
+
+/** 切到背景時暫停 AudioContext；回來後下一次 unlock 會再喚醒 */
+export function sleep() {
+  ctx?.suspend().catch(() => {});
+}
+
+/** 給背景音樂用：AudioContext、音樂的音量線路和共用的雜訊；還沒建立時是 null */
+export function audio() {
+  return ctx && { ctx, bus: musicBus, noise: noiseBuffer };
 }
 
 /**
@@ -20,7 +44,7 @@ export function setEnabled(on) {
  * iOS 只在手勢當下允許出聲，所以 main.js 在每次點擊、放開手指時都會叫一次。
  */
 export function unlock() {
-  if (!enabled) return;
+  if (!enabled && !musicEnabled) return;
   const AC = globalThis.AudioContext ?? globalThis.webkitAudioContext;
   if (!AC) return;
   if (!ctx) {
@@ -32,6 +56,10 @@ export function unlock() {
     out = ctx.createGain();
     out.gain.value = 0.5;
     out.connect(ctx.destination);
+    // 音樂大約是音效的四成，聽起來是背景，不搶「啵」和「沙沙」
+    musicBus = ctx.createGain();
+    musicBus.gain.value = 0.2;
+    musicBus.connect(ctx.destination);
     noiseBuffer = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
     const data = noiseBuffer.getChannelData(0);
     for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
@@ -76,9 +104,6 @@ function noise({ at = 0, from, to = from, dur, gain, q = 1, type = 'bandpass' })
   src.stop(t + dur + 0.02);
 }
 
-// 過關時刺蝟一隻接一隻跳，音階一格一格往上爬（大調五聲音階，怎麼排都好聽）
-const SCALE = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98, 1760];
-
 const SOUNDS = {
   /** 標 ✕：兩筆鋼筆線，和墨跡動畫的兩筆對齊；拖曳時一格只劃一筆 */
   mark(strokes = 2) {
@@ -89,9 +114,9 @@ const SOUNDS = {
     tone({ from: 700, to: 330, dur: 0.13, gain: 0.5 });
     tone({ from: 1400, to: 900, dur: 0.04, gain: 0.06, type: 'triangle' });
   },
-  /** 拿起刺蝟：反過來往上的「啵」，比較輕 */
+  /** 拿起刺蝟：反過來往上的「啵」，比較輕；從 E4 滑到 D5，和背景音樂同一個音階 */
   lift() {
-    tone({ from: 340, to: 620, dur: 0.09, gain: 0.25 });
+    tone({ from: 329.63, to: 587.33, dur: 0.09, gain: 0.25 });
   },
   /** 放到會刺到別人的位置：低低的一聲「咚」，接在「啵」後面 */
   conflict() {
@@ -109,12 +134,12 @@ const SOUNDS = {
   erase(strokes = 2) {
     for (let s = 0; s < strokes; s++) noise({ at: s * 0.11, from: 1500, to: 1000, dur: 0.1, gain: 0.2, q: 0.9 });
   },
-  /** 過關：每隻刺蝟跳起來時一個音，間隔和 style.css 的 cheer 動畫一樣是 90ms */
-  cheer(count, gap = 0.09) {
-    for (let i = 0; i < count; i++) {
-      const f = SCALE[Math.min(i, SCALE.length - 1)];
-      tone({ at: i * gap + 0.05, from: f, to: f * 1.02, dur: 0.18, gain: 0.2 });
-    }
+  /**
+   * 過關：每隻刺蝟跳起來時一個音，間隔和 style.css 的 cheer 動畫一樣是 90ms。
+   * 音階由 music.js 給：從背景音樂當下的和弦起跳、沿五聲音階往上爬，聽起來像音樂自己接過去
+   */
+  cheer(notes, gap = 0.09) {
+    notes.forEach((f, i) => tone({ at: i * gap + 0.05, from: f, to: f * 1.02, dur: 0.18, gain: 0.2 }));
   },
   /** 蓋章：印章壓到紙上的悶響 */
   stamp(at = 0) {

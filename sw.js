@@ -20,6 +20,7 @@ const PRECACHE = [
   'src/game.js',
   'src/generator.js',
   'src/main.js',
+  'src/music.js',
   'src/puzzles.js',
   'src/rules.js',
   'src/solver.js',
@@ -62,7 +63,9 @@ self.addEventListener('fetch', (event) => {
 /** 先抓網路並更新快取；離線或逾時就拿快取（網址後的 ?v=3 之類不影響比對） */
 async function networkFirst(request, event) {
   const cache = await caches.open(CACHE);
-  const network = fetch(request);
+  // no-cache：每次都向伺服器確認（沒變只回 304），不讓瀏覽器的 HTTP 快取給舊檔，
+  // 否則可能拿到新的 index.html 配舊的 main.js，程式一出錯整頁就是空的
+  const network = fetch(request, { cache: 'no-cache' });
   // 回應先給了快取時，網路那邊抓完仍要存進快取
   event.waitUntil(
     network.then((response) => response.ok && cache.put(request, response.clone())).catch(() => {}),
