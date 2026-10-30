@@ -34,9 +34,9 @@ export function sleep() {
   ctx?.suspend().catch(() => {});
 }
 
-/** 給背景音樂用：AudioContext、音樂的音量線路和共用的雜訊；還沒建立時是 null */
+/** 給背景音樂用：AudioContext 和音樂的音量線路；還沒建立時是 null */
 export function audio() {
-  return ctx && { ctx, bus: musicBus, noise: noiseBuffer };
+  return ctx && { ctx, bus: musicBus };
 }
 
 /**

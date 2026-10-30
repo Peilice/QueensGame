@@ -57,7 +57,7 @@ src/tutorial.js        教學題目與每一步的引導、提示格、完成條
 src/tips.js            解題技巧的說明與圖解（色塊、墨跡、提示格都用字串畫）
 src/storage.js         localStorage 進度存取
 src/sound.js           音效：Web Audio 合成，不用音檔
-src/music.js           背景音樂：Web Audio 合成的木琴小曲，和音效共用 AudioContext
+src/music.js           背景音樂：Web Audio 合成的輕快小曲，和音效共用 AudioContext
 sw.js                  service worker：離線遊玩（新增檔案時要加進 PRECACHE，npm test 會檢查）
 src/main.js            畫面與操作
 scripts/verify-puzzles.js  題庫驗證

@@ -1,6 +1,6 @@
 // 背景音樂：和音效一樣用 Web Audio 當場合成，不下載音檔，離線也一樣有音樂。
-// C 大調五聲音階、92 BPM，八個和弦各一小節一輪約 21 秒。木琴旋律每兩小節換一個節奏、在五聲音階上一格一格走，
-// 底下是第 1、3 拍的低音、2、4 拍輕刷的和弦和反拍的小沙鈴；旋律每次隨機，不會有兩輪一樣。
+// C 大調五聲音階、92 BPM，八個和弦各一小節一輪約 21 秒。弦樂旋律每兩小節換一個節奏、在五聲音階上一格一格走，
+// 底下是第 1、3 拍的低音和 2、4 拍輕刷的和弦，不用任何打擊聲；旋律每次隨機，不會有兩輪一樣。
 // 預設打開、全站都播；AudioContext 由 sound.js 管，音樂走自己的那一條音量線路，和音效分開開關。
 
 import * as sound from './sound.js';
@@ -60,7 +60,7 @@ export function planBar(chord, rhythm, lastNote, trying, random = Math.random) {
 
 let enabled = false;
 let trying = false;
-let a = null; // sound.audio()：{ ctx, bus, noise }
+let a = null; // sound.audio()：{ ctx, bus }
 let mood = null; // 標記中把高頻濾掉，音樂像隔著一層紙
 let fade = null; // 淡入淡出、過關讓位
 let timer = null;
@@ -105,7 +105,7 @@ export function stop(time = 0.6) {
   fadeTo(0.0001, a.ctx.currentTime, time);
 }
 
-/** 標記中：音樂變悶，沙鈴停掉，旋律只留第 1、3 拍 */
+/** 標記中：音樂變悶，旋律只留第 1、3 拍 */
 export function setTrial(on) {
   if (trying === on) return;
   trying = on;
@@ -168,14 +168,13 @@ function playStep(s, t) {
     if (i % 2 === 0) rhythm = RHYTHMS[Math.floor(Math.random() * RHYTHMS.length)];
     ({ plan: bar, last: lastNote } = planBar(chord, rhythm, lastNote, trying));
   }
-  // 低音在第 1、3 拍，第 3 拍彈五度；和弦在 2、4 拍輕輕刷一下；沙鈴在反拍
+  // 低音在第 1、3 拍，第 3 拍彈五度；和弦在 2、4 拍輕輕刷一下
   if (pos === 0) bass(chord.bass, t, 0.5);
   if (pos === 4) bass(chord.bass + 7, t, 0.35);
   if (pos === 2 || pos === 6) for (const m of chord.pad) strum(m, t, STEP * 1.6);
-  if (!trying && pos % 2 === 1) shaker(t, pos === 3 || pos === 7 ? 0.05 : 0.03);
   const m = bar.get(pos);
   // 稍微不準時一點，聽起來比較像人在敲
-  if (m != null) pluck(m, t + Math.random() * 0.015, (pos === 0 ? 0.42 : 0.32) + Math.random() * 0.08);
+  if (m != null) bow(m, t + Math.random() * 0.015, (pos === 0 ? 0.14 : 0.11) + Math.random() * 0.03);
 }
 
 /** 起音快、指數衰減的包絡，接到標記中的濾波器 */
@@ -197,10 +196,34 @@ function osc(freq, t, dur, out, type = 'sine') {
   o.stop(t + dur + 0.05);
 }
 
-/** 木琴：尾巴短而亮，加一點很快消失的高泛音 */
-function pluck(m, t, gain) {
-  osc(hz(m), t, 0.7, envelope(t, gain, 0.004, 0.7));
-  osc(hz(m) * 4, t, 0.08, envelope(t, gain * 0.3, 0.002, 0.08));
+/**
+ * 旋律：弦樂，兩條稍微走音的鋸齒波疊起來像一小組人在拉，濾掉刺耳的高頻、加一點揉弦；
+ * 弓拉進來的起音柔、沒有「敲」的那一下，不會一直把耳朵拉過去；尾巴夠短，跟得上輕快的節奏
+ */
+function bow(m, t, gain) {
+  const dur = 1;
+  const lp = a.ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 1800;
+  lp.Q.value = 0.7;
+  lp.connect(envelope(t, gain, 0.08, dur));
+  const vibrato = a.ctx.createOscillator();
+  const depth = a.ctx.createGain();
+  vibrato.frequency.value = 5.5;
+  depth.gain.value = 6; // cents
+  vibrato.connect(depth);
+  vibrato.start(t);
+  vibrato.stop(t + dur + 0.05);
+  for (const cents of [-5, 5]) {
+    const o = a.ctx.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.value = hz(m);
+    o.detune.value = cents;
+    depth.connect(o.detune);
+    o.connect(lp);
+    o.start(t);
+    o.stop(t + dur + 0.05);
+  }
 }
 
 /** 低音：彈一下就收，給整首一點彈跳感 */
@@ -215,16 +238,4 @@ function strum(m, t, dur) {
   lp.frequency.value = 2200;
   lp.connect(envelope(t, trying ? 0.05 : 0.07, 0.02, dur));
   osc(hz(m), t, dur, lp, 'triangle');
-}
-
-/** 沙鈴：反拍上很小聲的「嚓」 */
-function shaker(t, gain) {
-  const src = a.ctx.createBufferSource();
-  src.buffer = a.noise;
-  const hp = a.ctx.createBiquadFilter();
-  hp.type = 'highpass';
-  hp.frequency.value = 7000;
-  src.connect(hp).connect(envelope(t, gain, 0.01, 0.06));
-  src.start(t, Math.random() * 0.8);
-  src.stop(t + 0.08);
 }
