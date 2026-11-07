@@ -344,9 +344,11 @@ function shelfEl(size, current, solved, started) {
     btn.classList.toggle('partial', open && !done);
     btn.disabled = !open;
     if (p === current) btn.setAttribute('aria-current', 'true');
-    btn.innerHTML = open
-      ? `<img src="${imageOf(pic, true)}" alt="" loading="lazy">${done ? CHECK_SVG : `<span class="meter">${got}/${per}</span>`}`
-      : LOCK_SVG;
+    btn.innerHTML = !open
+      ? LOCK_SVG
+      : done
+        ? `<img src="${imageOf(pic, true)}" alt="" loading="lazy">${CHECK_SVG}`
+        : `${thumbSvg(size, p, solved)}<span class="meter">${got}/${per}</span>`;
     btn.setAttribute('aria-label', open ? `${pic.title}，${done ? '拼好了' : `已拼 ${got} / ${per}`}` : `第 ${p + 1} 幅，還沒打開`);
     btn.addEventListener('click', () => {
       shelf.picture = p;
@@ -357,6 +359,24 @@ function shelfEl(size, current, solved, started) {
   });
   section.append(ol);
   return section;
+}
+
+/** 沒拼完的那一幅的小圖：只露出拼好的那幾片，其他留白，和大拼圖一樣要拼了才看得到 */
+function thumbSvg(size, picture, solved) {
+  const pic = PICTURES[size][picture];
+  const n = GRID[size];
+  const t = shapeOf(size, pic);
+  const W = n * UNIT;
+  const pieces = pic.levels.flatMap((index, slot) => (solved.has(index) ? [`<path d="${piecePath(n, t, slot)}"/>`] : []));
+  const id = `thumb-${pic.id}`;
+  return (
+    `<svg viewBox="0 0 ${W} ${W}" aria-hidden="true">` +
+    (pieces.length
+      ? `<defs><clipPath id="${id}">${pieces.join('')}</clipPath></defs>` +
+        `<image href="${imageOf(pic, true)}" width="${W}" height="${W}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${id})"/>`
+      : '') +
+    `</svg>`
+  );
 }
 
 /** 過關面板上剛拿到的那一片：插圖照這一片的形狀剪下來 */

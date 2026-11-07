@@ -691,7 +691,9 @@ svg.bulb .glass { fill: var(--hl); }
   -webkit-tap-highlight-color: transparent;
 }
 .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.thumb.partial img { opacity: 0.4; }
+/* 沒拼完的：紙色底，只露出拼好的那幾片 */
+.thumb.partial { background: var(--bg); }
+.thumb > svg:not(.badge) { display: block; width: 100%; height: 100%; }
 .thumb .meter {
   position: absolute;
   left: 0;
