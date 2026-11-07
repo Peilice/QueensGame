@@ -31,13 +31,13 @@ export function isContiguous(puzzle) {
 export function verifyAll() {
   const seen = new Set();
   const entries = Object.entries(PUZZLES).flatMap(([size, list]) =>
-    list.map((rows, i) => ({ level: `${size}×${size} 第 ${i + 1} 關`, size, rows })),
+    list.map((rows, i) => ({ level: `${size}×${size} 第 ${i + 1} 題`, size, rows })),
   );
   entries.push({ level: '教學', size: LESSON.length, rows: LESSON });
   return entries.map(({ level, size, rows }) => {
     try {
       if (rows.length !== Number(size)) return { level, error: `尺寸不是 ${size}×${size}` };
-      if (seen.has(rows.join())) return { level, error: '與其他關卡重複' };
+      if (seen.has(rows.join())) return { level, error: '與其他題目重複' };
       seen.add(rows.join());
       const puzzle = parsePuzzle(rows);
       if (!isContiguous(puzzle)) return { level, error: '色塊不連通' };

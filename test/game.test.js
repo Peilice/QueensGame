@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parsePuzzle, EMPTY, MARK, QUEEN } from '../src/rules.js';
-import { Game, isUnlocked } from '../src/game.js';
+import { Game } from '../src/game.js';
 
 const puzzle = parsePuzzle(['ABBB', 'AABB', 'CCDD', 'CCDD']);
 
@@ -65,13 +65,6 @@ test('放出正解即過關', () => {
   const g = new Game(puzzle);
   for (const i of [2, 4, 11, 13]) { g.cycle(i); g.cycle(i); }
   assert.equal(g.solved, true);
-});
-
-test('依序解鎖', () => {
-  assert.equal(isUnlocked(0, new Set()), true);
-  assert.equal(isUnlocked(1, new Set()), false);
-  assert.equal(isUnlocked(1, new Set([0])), true);
-  assert.equal(isUnlocked(3, new Set([0, 1])), false);
 });
 
 test('標記：之後畫的都算試放，跟按下時不一樣的格子就是', () => {

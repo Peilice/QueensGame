@@ -1,11 +1,6 @@
 import { EMPTY, MARK, QUEEN, isSolved } from './rules.js';
 
-/** 同一尺寸內：第一關永遠開放，其餘須先破前一關。solved 為該尺寸已破關的索引。 */
-export function isUnlocked(level, solved) {
-  return level === 0 || solved.has(level - 1);
-}
-
-const NEXT ={ [EMPTY]: MARK, [MARK]: QUEEN, [QUEEN]: EMPTY };
+const NEXT = { [EMPTY]: MARK, [MARK]: QUEEN, [QUEEN]: EMPTY };
 
 /**
  * 單一關卡的盤面狀態與 Undo 歷史。

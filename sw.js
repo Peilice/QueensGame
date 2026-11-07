@@ -1,6 +1,8 @@
 // 離線遊玩：安裝時把整個遊戲存進快取，之後沒有網路也能打開。
 // 有網路時一律先抓最新版（和沒有 service worker 時一樣），抓不到或太慢才拿快取，
 // 所以每次部署不必手動改版號；PRECACHE 只要和實際檔案一致即可（test/sw.test.js 會檢查）。
+// 拼圖插圖（pictures/）太多張，不預先存；看過的那幾張會在抓的時候順便存進快取，
+// 沒存到的插圖離線時畫不出來，拼圖照樣是紙上的虛線碎片，照樣能玩。
 
 const CACHE = 'hedgehog-v1';
 const FONT_CACHE = 'hedgehog-fonts';
@@ -17,10 +19,13 @@ const PRECACHE = [
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/icon-maskable-512.png',
+  'src/album.js',
   'src/game.js',
   'src/generator.js',
+  'src/jigsaw.js',
   'src/main.js',
   'src/music.js',
+  'src/pictures.js',
   'src/puzzles.js',
   'src/rules.js',
   'src/solver.js',

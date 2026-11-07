@@ -4,7 +4,7 @@
   color-scheme: light;
 
   --bg: #f6f0e5; /* 奶油紙白 */
-  --surface: #e2e8da; /* 次要按鈕與關卡格 */
+  --surface: #e2e8da; /* 次要按鈕與尺寸鍵 */
   --panel: #d9c8ab; /* 燕麥米：面板、分隔線 */
   --text: #55483c; /* 暖灰棕 */
   --title: #6f795f; /* 森林深綠 */
@@ -14,11 +14,10 @@
   --line: #7a6c5b; /* 深暖棕：色塊邊界與棋盤外框，比格線深一階，不用黑線 */
   --grid: #b8b09f; /* 暖灰米：同色塊內的細格線 */
   --frame: #7a6c5b;
-  --edge: #a9b69b; /* 按鈕與關卡格的外框 */
+  --edge: #a9b69b; /* 按鈕與尺寸鍵的外框 */
   --select: #657a58; /* 按下的格子 */
   --shadow: 0 2px 6px rgba(85, 72, 60, 0.12); /* 低透明度暖灰棕 */
   --mark-alpha: 0.8;
-  --print-alpha: 0.6; /* 目錄上已破關卡的色塊淡印 */
   --accent: #657a58; /* 深森林綠：主要按鈕、焦點、完成 */
   --accent-text: #ffffff;
   --accent-deep: #4f6145;
@@ -96,7 +95,7 @@ strong {
 /* ---------- 刺蝟角色 ---------- */
 .hedgehog { display: inline-block; }
 .hedgehog svg,
-svg.peek { display: block; width: 100%; height: auto; overflow: visible; stroke: none; }
+.album-next svg { display: block; width: 100%; height: auto; overflow: visible; stroke: none; }
 .hh-line { stroke: var(--hh-ink); stroke-width: 1.2; stroke-linejoin: round; stroke-linecap: round; }
 .hh-foot { fill: var(--hh-ink); }
 .hh-spine { fill: var(--hh-spine); }
@@ -142,6 +141,14 @@ main {
   text-align: center;
   color: var(--title);
 }
+/* 拼圖的題目：上面一行小字寫是哪一幅 */
+.top h1 small {
+  display: block;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
 
 /* ---------- 按鈕 ---------- */
 
@@ -182,7 +189,7 @@ main {
 .btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); border-bottom-color: var(--accent-deep); }
 .btn.primary:active:not(:disabled) { border-color: var(--accent-deep); }
 @media (hover: hover) {
-  /* 綠卡 hover 加深成深森林綠，和下一關的綠卡一樣，不換成灰框 */
+  /* 綠卡 hover 加深成深森林綠，和其他綠色按鈕一樣，不換成灰框 */
   .btn.primary:hover:not(:disabled) { border-color: var(--accent-deep); }
 }
 /* 返回鍵：不是紙卡，只是頁角一行字；箭頭和其他地方同一款線條 */
@@ -377,7 +384,7 @@ main {
 
 @media (min-width: 760px) {
   #game-view { max-width: 760px; }
-  /* 標題列和棋盤同寬，關卡名稱置中在棋盤正上方 */
+  /* 標題列和棋盤同寬，標題置中在棋盤正上方 */
   #game-view .top { max-width: 520px; }
   /* 平板規則一樣放在棋盤下方，寬度跟棋盤一致 */
   .rules { width: 520px; }
@@ -417,7 +424,7 @@ main {
   .rules-body p:last-child { margin: 0; }
 }
 
-/* ---------- 關卡列表：依棋盤尺寸分組 ---------- */
+/* ---------- 列表 ---------- */
 
 /* 刊頭：謎題本的封面。手寫感的大字書名，每個字站得有點歪；
    下面是刺蝟說的話，牠站在一條手畫的波浪線上 */
@@ -505,8 +512,8 @@ main {
   100% { transform: none; }
 }
 
-/* 教學入口：常駐在刊頭下方的一張橫向紙卡，和關卡格同一種卡；
-   下一關才是墨藍卡，這張維持一般卡，不跟它搶 */
+/* 教學入口：常駐在刊頭下方的一張橫向紙卡，和按鈕同一種紙卡；
+   「拼下一片」才是綠色按鈕，這張維持一般卡，不跟它搶 */
 .learn {
   position: relative;
   display: flex;
@@ -566,121 +573,158 @@ svg.bulb .glass { fill: var(--hl); }
   color: var(--muted);
 }
 
-.pack + .pack { margin-top: 36px; }
+/* ---------- 拼圖冊：上面選尺寸，中間是目前這一幅，下面是這一本的每一幅 ---------- */
 
-/* 每組是一章：尺寸用章名的份量寫出來 */
-.pack h2 {
+.album { display: flex; flex-direction: column; gap: 14px; }
+
+/* 四本拼圖冊：選中的那本是貼在頁面上的紙卡，其他只是印上去的虛線框 */
+.album-sizes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.album-size {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 56px;
+  padding: 6px 0 4px;
+  border: 1.5px dashed var(--edge);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--muted);
+  font: inherit;
+  font-size: 1.15rem;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.album-size small { font-size: 0.75rem; }
+.album-size[aria-pressed="true"] {
+  border-style: solid;
+  border-bottom-width: var(--card-edge);
+  background: var(--surface);
+  color: var(--btn-text);
+  box-shadow: var(--shadow);
+  cursor: default;
+}
+@media (hover: hover) {
+  .album-size[aria-pressed="false"]:hover { border-color: var(--muted); color: var(--btn-text); }
+}
+.album-size:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* 幅名用章名的份量寫，底下劃一筆螢光筆；右邊是拼到第幾片 */
+.album-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 8px; }
+.album-head h2 { margin: 0; font-size: 1.6rem; font-weight: 400; line-height: 1.25; color: var(--title); text-wrap: balance; }
+.album-head h2 span { padding: 0 0.12em; background: linear-gradient(transparent 58%, var(--hl) 58% 92%, transparent 92%); }
+.album-head .count { flex: none; font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* 拼圖：插圖墊在底下，還沒拼的片蓋一張紙、畫上鼠尾草虛線輪廓；上面疊一層透明按鈕，一片一顆 */
+.jigsaw { position: relative; width: 100%; max-width: 520px; aspect-ratio: 1; margin: 0 auto; }
+.jigsaw svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.jigsaw .paper { fill: var(--bg); }
+.jigsaw .slot { fill: var(--bg); stroke: var(--edge); stroke-width: 2.5; stroke-dasharray: 7 6; }
+/* 編號大小跟著片數：5×5 的每片比較小，字縮一點才不會碰到凸耳 */
+.jigsaw .num { fill: var(--grid); font-family: inherit; font-size: var(--num, 28px); text-anchor: middle; }
+.jigsaw .dot { fill: var(--muted); }
+.jigsaw .seam { fill: none; stroke: color-mix(in srgb, var(--hh-ink) 22%, transparent); stroke-width: 1.5; }
+.jigsaw .frame { fill: none; stroke: var(--frame); stroke-width: 5; }
+.jigsaw .hit { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--g), minmax(0, 1fr)); }
+.jigsaw .hit button {
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .jigsaw .hit button:hover { background: color-mix(in srgb, var(--select) 10%, transparent); }
+}
+.jigsaw .hit button:focus-visible { outline: 3px solid var(--accent); outline-offset: -4px; }
+.jigsaw .hit button:active { background: color-mix(in srgb, var(--select) 16%, transparent); }
+/* 剛拼上的那一片：從下面飛回來落進位置，再閃一圈綠框 */
+.jigsaw .landing { transform-box: fill-box; transform-origin: center; animation: land 720ms var(--ease-bounce) both; }
+@keyframes land {
+  from { transform: translateY(70%) scale(1.3) rotate(-10deg); opacity: 0; }
+  30% { opacity: 1; }
+  to { transform: none; opacity: 1; }
+}
+.jigsaw .glow { fill: none; stroke: var(--accent); stroke-width: 6; opacity: 0; animation: glow 1.4s ease-out 620ms; }
+@keyframes glow { 15% { opacity: 1; } to { opacity: 0; } }
+/* 一幅拼完：頁邊蓋一枚「拼好了」；剛拼完才有蓋章的動作 */
+.jigsaw .album-seal { position: absolute; right: -6px; bottom: -14px; width: 76px; font-size: 1.05rem; animation: none; }
+.jigsaw .album-seal.fresh { animation: stamp 420ms var(--ease-out) 700ms both; }
+
+.album-credit { margin: -6px 0 0; text-align: center; font-size: 0.8rem; color: var(--muted); }
+.album-next {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 200px;
+}
+.album-next svg { width: 30px; height: 24px; margin: -4px 0 -4px -6px; }
+
+/* 這一本的每一幅：拼好的貼上插圖、打開的淡淡印著、還沒打開的是虛線空框 */
+.shelf h3 {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin: 0 0 12px;
-  font-size: 2rem;
+  margin: 12px 0 10px;
+  font-size: 1.05rem;
   font-weight: 400;
-  line-height: 1.1;
-  letter-spacing: 0;
-  font-variant-numeric: tabular-nums;
   color: var(--title);
 }
-.pack h2 .progress { font-size: 0.85rem; font-weight: 400; letter-spacing: normal; color: var(--muted); }
-/* 章名底下劃一筆螢光筆 */
-.pack h2 .size { padding: 0 0.15em; background: linear-gradient(transparent 58%, var(--hl) 58% 92%, transparent 92%); }
-
-/* 全部完成的組：收成章名加一條淡印緞帶，像目錄上一行已經讀完的章；點開才攤開關卡格 */
-.pack.done + .pack.done { margin-top: 20px; }
-.pack.done > summary,
-.solved-rest > summary {
+.shelf h3 span { font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.shelf ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.thumb {
+  position: relative;
   display: block;
-  margin: -6px -8px 0;
-  padding: 6px 8px 8px;
-  border-radius: 16px;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  overflow: hidden;
+  border: 1.5px solid var(--edge);
+  border-radius: 10px;
+  background: var(--surface);
+  font: inherit;
   cursor: pointer;
-  list-style: none;
   -webkit-tap-highlight-color: transparent;
 }
-.pack.done > summary::-webkit-details-marker,
-.solved-rest > summary::-webkit-details-marker { display: none; }
-/* 只在有滑鼠的裝置提示可點；手機點過後 :hover 會黏著不放 */
-@media (hover: hover) {
-  .pack.done > summary:hover,
-  .solved-rest > summary:hover { background: color-mix(in srgb, var(--panel) 30%, transparent); }
-}
-.pack.done > summary:focus-visible,
-.solved-rest > summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 0; }
-.pack.done[open] > summary { margin-bottom: 4px; }
-.pack.done h2 { margin-bottom: 10px; }
-.pack.done[open] h2 { margin-bottom: 4px; }
-.pack h2 .progress { display: inline-flex; align-items: center; gap: 2px; }
-.pack .chevron {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: transform 160ms var(--ease-out);
-}
-.pack.done[open] .chevron,
-.solved-rest[open] .chevron { transform: rotate(90deg); }
-/* 最後十題各一張小印，固定一排；不滿十題時靠左、小印大小不變 */
-.ribbon {
-  display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  gap: 4px;
-}
-.pack.done[open] .ribbon,
-.solved-rest[open] .ribbon { display: none; }
-.ribbon > span {
-  aspect-ratio: 1;
-  border-radius: 5px;
-  overflow: hidden;
-  opacity: 0.8;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 25%, transparent);
-}
-.ribbon svg { display: block; width: 100%; height: 100%; }
-.ribbon path { fill: none; stroke: var(--line); stroke-width: 1px; vector-effect: non-scaling-stroke; opacity: 0.35; }
-
-/* 進行中的組：下一關那一排之前已破的整排，也收成一條淡印緞帶，點開可以重玩 */
-.solved-rest { margin-bottom: 4px; }
-.solved-rest[open] { margin-bottom: 10px; }
-.solved-rest > summary { color: var(--muted); font-variant-numeric: tabular-nums; }
-.solved-rest .head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 24px;
-  margin-bottom: 8px;
-}
-.solved-rest .why { display: inline-flex; align-items: center; gap: 2px; font-size: 0.85rem; }
-.solved-rest[open] > summary { margin-bottom: 4px; padding-bottom: 6px; }
-.solved-rest[open] .head { margin-bottom: 0; }
-
-/* 下一關那一排之後的未解鎖關：不再一格一格畫鎖頭，收成一道印在頁面上的長空框 */
-.locked-rest {
-  background: var(--bg);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  margin: 10px 0 0;
-  padding: 0 14px;
-  border: 1.5px dashed color-mix(in srgb, var(--edge) 85%, transparent);
-  border-radius: 16px;
-  color: var(--muted);
+.thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.thumb.partial img { opacity: 0.4; }
+.thumb .meter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  color: var(--hint);
+  font-size: 0.7rem;
+  line-height: 1.5;
+  text-align: center;
   font-variant-numeric: tabular-nums;
 }
-.locked-rest svg {
-  flex: none;
+.thumb .badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
   width: 16px;
   height: 16px;
+  padding: 1px;
+  border-radius: 50%;
+  background: var(--bg);
   fill: none;
-  stroke: currentColor;
-  stroke-width: 2.2;
+  stroke: var(--accent);
+  stroke-width: 3;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.locked-rest .why { margin-left: auto; font-size: 0.85rem; }
+.thumb[aria-current="true"] { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4.5px var(--accent); }
+.thumb:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.thumb:disabled { display: grid; place-items: center; border-style: dashed; background: var(--bg); cursor: default; }
+.thumb:disabled .badge { position: static; width: 16px; height: 16px; background: none; stroke: var(--muted); stroke-width: 2.2; }
 
+/* 隨機難度的尺寸卡沿用這一套紙卡 */
 .level-list {
   list-style: none;
   margin: 0;
@@ -705,76 +749,11 @@ svg.bulb .glass { fill: var(--hl); }
   cursor: pointer;
 }
 .level .num { font-size: 1.6rem; line-height: 1.1; }
-/* 每張卡貼得有點歪，像手貼上去的；按下時一樣往下沉 */
-.level-list li:nth-child(5n + 1) .level { rotate: -1.4deg; }
-.level-list li:nth-child(5n + 2) .level { rotate: 1deg; }
-.level-list li:nth-child(5n + 3) .level { rotate: -0.5deg; }
-.level-list li:nth-child(5n + 4) .level { rotate: 1.5deg; }
-.level-list li:nth-child(5n + 5) .level { rotate: -1deg; }
 @media (hover: hover) {
   .level:hover:not(:disabled) { border-color: var(--muted); }
-  .level.next:hover:not(:disabled) { border-color: var(--accent-deep); }
 }
 .level:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-/* 未解鎖：還不是一張能拿起來的卡，只是印在頁面上的空框——沒有底色、沒有厚度 */
-/* 填上紙色：空框裡不讓背景塗鴉透出來 */
-.level:disabled {
-  background: var(--bg);
-  border-width: 1px;
-  box-shadow: none;
-  color: var(--muted);
-  opacity: 0.6;
-  cursor: default;
-}
-.level:disabled .num { font-size: 1.15rem; }
-/* 還沒解鎖的只是印在頁面上的框，不是貼上去的卡，所以是正的 */
-.level-list li .level:disabled { rotate: none; }
-/* 已完成：目錄上印出這一題的色塊，淡淡的一張小圖；破得越多，目錄越滿越彩。
-   色彩仍然只屬於色塊，介面本身沒有多一種顏色。編號墨色，壓在小圖上仍清楚 */
-.level .print {
-  position: absolute;
-  inset: 5px;
-  border-radius: 12px;
-  overflow: hidden;
-  opacity: var(--print-alpha);
-  pointer-events: none;
-}
-.level .print svg { display: block; width: 100%; height: 100%; }
-.level .print path { fill: none; stroke: var(--line); stroke-width: 1px; vector-effect: non-scaling-stroke; opacity: 0.35; }
-.level.solved .num {
-  position: relative;
-  /* 編號像寫在小圖上的墨字：一圈紙色描邊，色塊再雜也讀得出來 */
-  -webkit-text-stroke: 4px var(--surface);
-  paint-order: stroke fill;
-}
-/* 勾壓在小圖上：一圈紙色襯底，任何色塊上都看得清楚 */
-.level.solved .badge { z-index: 1; filter: drop-shadow(0 0 1px var(--surface)) drop-shadow(0 0 1px var(--surface)); }
-/* 這一組的下一關：整張換成墨藍紙卡（和「下一關」按鈕同一種卡），內側再用筆圈一圈；
-   這是每一章唯一該按的那一格，所以是整頁最重的一格 */
-.level.next {
-  background: var(--accent);
-  color: var(--accent-text);
-  border-color: var(--accent);
-  border-bottom-color: var(--accent-deep);
-}
-.level.next:active:not(:disabled) { border-color: var(--accent-deep); }
-/* 一隻刺蝟趴在下一關的卡片角落，等你來；每隔幾秒探頭一下 */
-.level .peek {
-  position: absolute;
-  right: -10px;
-  bottom: -8px;
-  width: 52%;
-  rotate: -8deg;
-  pointer-events: none;
-  transform-origin: 30% 100%;
-  animation: peek 2.8s ease-in-out infinite;
-}
-@keyframes peek {
-  0%, 70%, 100% { transform: none; }
-  78% { transform: rotate(-10deg) translateY(-6%); }
-  86% { transform: rotate(4deg); }
-}
-/* 玩到一半：底部一個鉛筆點 */
+/* 玩到一半：一個鉛筆點 */
 .level.started::after {
   content: "";
   position: absolute;
@@ -786,21 +765,6 @@ svg.bulb .glass { fill: var(--hl); }
   border-radius: 50%;
   background: var(--muted);
 }
-.level.next.started::after { left: 30%; background: var(--accent-text); }
-/* 右上角狀態圖示：已完成是墨藍勾，未解鎖是鎖頭 */
-.level .badge {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 14px;
-  height: 14px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.level.solved .badge { color: var(--accent); }
 
 /* ---------- 列表分頁：一條燕麥米的軌道，選中的那一頁是貼在上面的紙卡 ---------- */
 
@@ -1230,10 +1194,28 @@ svg.bulb .glass { fill: var(--hl); }
   clip-path: inset(50%); white-space: nowrap;
 }
 
+/* 拼圖的過關：左邊是剛拿到的那一片，旁邊一行寫拼到第幾片 */
+.play .win.with-piece {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "title title title" "piece note seal" "piece actions seal";
+  row-gap: 6px;
+}
+.play .win.with-piece.quiet { grid-template-areas: "piece note seal" "piece actions seal"; }
+.win.with-piece h2 { font-size: 1.35rem; text-wrap: balance; }
+.win.with-piece .seal { width: 68px; font-size: 1.1rem; }
+.win.with-piece .win-actions { gap: 8px; flex-wrap: nowrap; }
+.win.with-piece .win-actions .btn { min-width: 0; flex: 1 1 0; padding: 0 10px; white-space: nowrap; }
+.win-piece { grid-area: piece; width: 64px; }
+.win-piece svg { display: block; width: 100%; height: auto; overflow: visible; animation: lift 520ms var(--ease-bounce); }
+.win-piece .paper { fill: var(--bg); }
+.win-piece .edge { fill: none; stroke: var(--hh-ink); stroke-width: 3; stroke-linejoin: round; }
+@keyframes lift { from { transform: translateY(14px) scale(0.7) rotate(-8deg); opacity: 0; } }
+.win-note { grid-area: note; margin: 0; font-size: 0.9rem; color: var(--hint); font-variant-numeric: tabular-nums; }
+
 @keyframes rise { from { transform: translateY(6px); opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn, .level, .learn, .tab, .rules > summary svg, .pack .chevron, .board.solved, .switch .track, .switch .track::after { transition: none; }
+  .btn, .level, .learn, .tab, .rules > summary svg, .board.solved, .switch .track, .switch .track::after { transition: none; }
   /* 選擇器要和原本的一樣具體，否則媒體查詢壓不過去 */
   .cell svg.in,
   .cell svg.in path,
@@ -1245,6 +1227,9 @@ svg.bulb .glass { fill: var(--hl); }
   .btn.target:not(:disabled),
   .mascot,
   .mascot.hop,
-  .level .peek { animation: none; }
+  .jigsaw .landing,
+  .jigsaw .glow,
+  .jigsaw .album-seal.fresh,
+  .win-piece svg { animation: none; }
 }
 

@@ -23,11 +23,10 @@ test('無解的題目', () => {
   assert.equal(solve(p), null);
 });
 
-test('題庫分 6 到 9 四種尺寸，各組題數相同（至少 50 題），每題唯一解、色塊連通且不重複', () => {
+test('題庫分 6 到 9 四種尺寸，每組至少 50 題（改版前的題目都還在），每題唯一解、色塊連通且不重複', () => {
   assert.deepEqual(Object.keys(PUZZLES), ['6', '7', '8', '9']);
-  const counts = Object.values(PUZZLES).map((list) => list.length);
-  assert.ok(counts[0] >= 50);
-  for (const n of counts) assert.equal(n, counts[0]);
+  // 各組題數照拼圖片數往上加，不一定一樣多（每一題剛好在一幅拼圖裡，由 test/pictures.test.js 檢查）
+  for (const list of Object.values(PUZZLES)) assert.ok(list.length >= 50);
   for (const { level, error } of verifyAll()) {
     assert.equal(error, null, `${level}：${error}`);
   }

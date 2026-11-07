@@ -1,6 +1,9 @@
 import { parsePuzzle, findConflicts, EMPTY, MARK, QUEEN } from './rules.js';
-import { Game, isUnlocked } from './game.js';
+import { Game } from './game.js';
 import { PUZZLES } from './puzzles.js';
+import { PICTURES, GRID, BOOKS } from './pictures.js';
+import * as album from './album.js';
+import { tabs, piecePath, hashSeed, UNIT } from './jigsaw.js';
 import { generate, newSeed } from './generator.js';
 import * as storage from './storage.js';
 import * as sound from './sound.js';
@@ -21,39 +24,11 @@ function closeAudioMenu() {
   placeAudioMenu(false);
 }
 
-// 關卡格右上角的狀態小圖示：同一套線條粗細
+// 拼圖冊小圖右上角的狀態圖示：同一套線條粗細
 const CHECK_SVG =
   '<svg class="badge" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
 const LOCK_SVG =
   '<svg class="badge" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
-
-// 已完成組的章名右側：和規則頁邊籤同一個箭頭，翻開時轉向下
-const CHEVRON_SVG = '<svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
-
-/** 已破關卡在目錄上的淡印：那一題的色塊縮圖加上色塊邊界，像印在目錄頁上的小圖 */
-const printSvg = (puzzle) => `<span class="print" aria-hidden="true">${regionSvg(puzzle)}</span>`;
-
-function regionSvg({ size, regions }) {
-  const at = (r, c) => regions[r * size + c];
-  let fills = '';
-  // 同一列連續同色的格子合成一塊，相鄰兩塊略為重疊，避免縮放後露出接縫
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; ) {
-      let end = c;
-      while (end + 1 < size && at(r, end + 1) === at(r, c)) end++;
-      fills += `<rect x="${c}" y="${r}" width="${end - c + 1.04}" height="1.04" style="fill:var(--r${at(r, c)})"/>`;
-      c = end + 1;
-    }
-  }
-  let edges = '';
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      if (c + 1 < size && at(r, c) !== at(r, c + 1)) edges += `M${c + 1} ${r}v1`;
-      if (r + 1 < size && at(r, c) !== at(r + 1, c)) edges += `M${c} ${r + 1}h1`;
-    }
-  }
-  return `<svg viewBox="0 0 ${size} ${size}" preserveAspectRatio="none">${fills}<path d="${edges}"/></svg>`;
-}
 
 // ---------- 墨跡：每一筆都是手畫的，所以每一次都不完全一樣 ----------
 
@@ -111,13 +86,18 @@ const levelId = (size, index) => `${size}-${index + 1}`;
 // 隨機題的網址：r 加尺寸再加 base36 的種子，例如 r7-1k2f9x；同一個網址永遠是同一題
 const randomId = (size, seed) => `r${size}-${seed.toString(36)}`;
 
-/** 某尺寸已破關的索引集合 */
+/** 某尺寸已破關的題目編號集合 */
 function solvedIn(size, solved = storage.getSolved()) {
   return new Set(PUZZLES[size].flatMap((_, i) => (solved.has(levelId(size, i)) ? [i] : [])));
 }
 
-// ---------- 路由：#6-3 代表 6×6 第 3 關，#r6-xxxx 是隨機題，#learn 是教學，#tips 是解題技巧；
-// 列表分兩頁：空白是「關卡」，#random 是「隨機難度」 ----------
+/** 某尺寸存著盤面、玩到一半的題目編號集合 */
+function startedIn(size, boards = storage.getBoards()) {
+  return new Set(PUZZLES[size].flatMap((_, i) => (boards[levelId(size, i)]?.some((v) => v !== 0) ? [i] : [])));
+}
+
+// ---------- 路由：#6-3 代表 6×6 第 3 題（在哪一幅的第幾片由 src/pictures.js 決定），#r6-xxxx 是隨機題，
+// #learn 是教學，#tips 是解題技巧；列表分兩頁：空白是「拼圖」，#random 是「隨機難度」 ----------
 
 // 已經在這個網站裡換過畫面：技巧頁的「返回」才能放心用瀏覽器上一頁
 let routed = false;
@@ -134,7 +114,8 @@ function route() {
   if (PUZZLES[rSize] && seed < 2 ** 32) return openRandom(Number(rSize), seed);
   const [, size, n] = location.hash.match(/^#(\d+)-(\d+)$/) ?? [];
   const index = n - 1;
-  if (PUZZLES[size] && index >= 0 && index < PUZZLES[size].length && isUnlocked(index, solvedIn(size))) {
+  // 拼圖一次開一幅：還沒打開的那幅裡的題（例如別人分享的網址），退回列表
+  if (PUZZLES[size] && index >= 0 && index < PUZZLES[size].length && album.canPlay(size, index, solvedIn(size), startedIn(size))) {
     openLevel(Number(size), index);
   } else {
     if (location.hash) history.replaceState(null, '', location.pathname);
@@ -149,15 +130,20 @@ function go(target) {
 /** 回列表：從隨機題回來就回到「隨機難度」那一頁 */
 const goList = () => (location.hash = random ? 'random' : '');
 
-// ---------- 關卡列表 ----------
+// ---------- 拼圖冊：上面選尺寸，中間是目前這一幅，下面是這一本的每一幅 ----------
 
-// 關卡格一排幾格，要和 style.css 的 .level-list 欄數一致
-const COLUMNS = 5;
-// 緞帶只印最後幾題、固定一排，要和 style.css 的 .ribbon 欄數一致
-const RIBBON = 10;
+// 列表上翻到的那一本（尺寸）、那一幅；這次瀏覽中記著，從題目回來時翻到剛剛那一幅
+const shelf = { size: null, picture: null };
+// 剛拼上的那一片：回到列表時從下面飛進位置
+let landing = null;
 
-// 這次瀏覽中翻開過的已完成組（鍵是尺寸）和進行中組的已破段落（鍵是「尺寸-solved」）：從關卡回到列表時維持翻開
-const openPacks = new Set();
+const imageOf = (pic, small = false) => `pictures/${pic.id}${small ? '-s' : ''}.webp`;
+// 每一幅的凸耳由它的 id 決定，畫過就記著
+const shapes = new Map();
+function shapeOf(size, pic) {
+  if (!shapes.has(pic.id)) shapes.set(pic.id, tabs(GRID[size], hashSeed(pic.id)));
+  return shapes.get(pic.id);
+}
 
 /** 三個畫面一次只顯示一個 */
 function showView(id) {
@@ -179,12 +165,8 @@ function showLevels(tab = 'levels') {
     $(`panel-${name}`).hidden = name !== tab;
   }
 
-  const all = storage.getSolved();
-  const boards = storage.getBoards();
-  const started = (id) => boards[id]?.some((v) => v !== 0) ?? false;
-
-  const packs = Object.keys(PUZZLES).map((key) => buildPack(Number(key), all, started));
-  $('level-packs').replaceChildren(...packs);
+  if (from) Object.assign(shelf, { size: from.size, picture: album.locate(from.size, from.index).picture });
+  buildAlbum();
   buildRandom();
 
   // 從隨機題回來：那一張尺寸卡不在畫面上就捲過去
@@ -194,123 +176,203 @@ function showLevels(tab = 'levels') {
     if (top < 0 || bottom > innerHeight) card.scrollIntoView({ block: 'center' });
   }
 
-  // 從關卡回來：捲到剛剛那一組的下一關（或剛重玩的那一關），不必自己往下找
+  // 從題目回來：拼圖不在畫面上就捲過去，看那一片落進位置
   if (from) {
-    const pack = packs.find((p) => p.dataset.size === String(from.size));
-    const tile = pack.querySelector('.level.next') ?? pack.querySelector(`[data-index="${from.index}"]`);
-    // 關卡格收在沒翻開的緞帶裡時，捲到那條緞帶
-    const target = tile.closest('details:not([open])') ?? tile;
+    const target = $('album').querySelector('.jigsaw');
     const { top, bottom } = target.getBoundingClientRect();
     if (top < 0 || bottom > innerHeight) target.scrollIntoView({ block: 'center' });
   }
 }
 
-/**
- * 一組關卡。全部完成的組收成一條淡印緞帶，點開才是完整的關卡格；
- * 進行中的組只畫下一關所在那一排，之前已破的收成緞帶、之後未解鎖的收成一行
- */
-function buildPack(size, all, started) {
-  const puzzles = PUZZLES[size];
+/** 拼圖冊：每次回到列表、換尺寸、換一幅都整個重畫 */
+function buildAlbum() {
+  const all = storage.getSolved();
+  const boards = storage.getBoards();
+  const sizes = Object.keys(PICTURES).map(Number);
+  // 第一次打開：翻到最小一本還沒拼完的
+  shelf.size ??= sizes.find((s) => !album.albumComplete(s, solvedIn(s, all))) ?? sizes[0];
+  const size = shelf.size;
   const solved = solvedIn(size, all);
-  const complete = solved.size === puzzles.length;
-  const label = `${size}×${size}`;
+  const started = startedIn(size, boards);
+  if (shelf.picture === null || !album.isOpen(size, shelf.picture, solved, started)) {
+    shelf.picture = album.currentPicture(size, solved, started);
+  }
+  const picture = shelf.picture;
+  const pic = PICTURES[size][picture];
+  const per = album.piecesOf(size);
+  const got = album.progress(size, picture, solved);
+  const complete = got === per;
 
-  const h2 = document.createElement('h2');
-  // 中間的空白讓樣式未套用或螢幕報讀時不會黏成「6×60 / 10」
-  h2.innerHTML =
-    `<span class="size">${label}</span> <span class="progress">已完成 ${solved.size} / ${puzzles.length}` +
-    `${complete ? CHEVRON_SVG : ''}</span>`;
-
-  const tiles = (from, to, name) => {
-    const list = document.createElement('ol');
-    list.className = 'level-list';
-    list.setAttribute('aria-label', name);
-    for (let i = from; i < to; i++) list.append(levelButton(size, i, solved, started));
-    return list;
-  };
-  // 緞帶只印到 to 為止的最後一排，翻開才看得到全部
-  const ribbon = (to) => {
-    const el = document.createElement('span');
-    el.className = 'ribbon';
-    el.setAttribute('aria-hidden', 'true');
-    el.innerHTML = puzzles
-      .slice(Math.max(0, to - RIBBON), to)
-      .map((p) => `<span>${regionSvg(parsePuzzle(p))}</span>`)
-      .join('');
-    return el;
-  };
-  // 翻開或收起時記下來，從關卡回到列表時維持原樣
-  const remember = (details, key) =>
-    details.addEventListener('toggle', () => (details.open ? openPacks.add(key) : openPacks.delete(key)));
-
-  if (complete) {
-    const pack = document.createElement('details');
-    pack.className = 'pack done';
-    pack.dataset.size = size;
-    pack.open = openPacks.has(size);
-    const summary = document.createElement('summary');
-    summary.append(h2, ribbon(puzzles.length));
-    pack.append(summary, tiles(0, puzzles.length, label));
-    remember(pack, size);
-    return pack;
+  // 四本拼圖冊：選中的那本貼在頁面上，其他是印上去的虛線框
+  const sizeRow = document.createElement('div');
+  sizeRow.className = 'album-sizes';
+  sizeRow.setAttribute('role', 'group');
+  sizeRow.setAttribute('aria-label', '拼圖冊');
+  for (const s of sizes) {
+    const doneCount = PICTURES[s].filter((_, p) => album.isComplete(s, p, solvedIn(s, all))).length;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'album-size';
+    btn.setAttribute('aria-pressed', s === size);
+    btn.innerHTML = `<span>${s}×${s}</span><small>${doneCount} / ${PICTURES[s].length} 幅</small>`;
+    btn.setAttribute('aria-label', `${s}×${s}，拼好 ${doneCount} / ${PICTURES[s].length} 幅`);
+    btn.addEventListener('click', () => {
+      if (s === shelf.size) return;
+      Object.assign(shelf, { size: s, picture: null });
+      buildAlbum();
+    });
+    sizeRow.append(btn);
   }
 
-  // 每組最前面那一關還沒破的，就是這一組的「下一關」；只完整畫出它所在的那一排
-  const next = puzzles.findIndex((_, i) => !solved.has(i));
-  const row = Math.floor(next / COLUMNS) * COLUMNS;
-  const end = Math.min(puzzles.length, row + COLUMNS);
+  const head = document.createElement('div');
+  head.className = 'album-head';
+  head.innerHTML = `<h2><span></span></h2><span class="count">${complete ? '拼好了' : `已拼 ${got} / ${per}`}</span>`;
+  head.querySelector('h2 span').textContent = pic.title;
 
-  const pack = document.createElement('section');
-  pack.className = 'pack';
-  pack.dataset.size = size;
-  pack.append(h2);
-  if (row > 0) {
-    const earlier = document.createElement('details');
-    earlier.className = 'solved-rest';
-    earlier.open = openPacks.has(`${size}-solved`);
-    const summary = document.createElement('summary');
-    const range = `第 1–${row} 關`;
-    summary.innerHTML = `<span class="head"><span>${range}</span><span class="why">已完成${CHEVRON_SVG}</span></span>`;
-    summary.append(ribbon(row));
-    earlier.append(summary, tiles(0, row, `${label} ${range}`));
-    remember(earlier, `${size}-solved`);
-    pack.append(earlier);
+  const jig = jigsawEl(size, picture, solved, started);
+
+  const book = BOOKS[pic.book];
+  const credit = document.createElement('p');
+  credit.className = 'album-credit';
+  credit.textContent = `插圖：${book.artist}，${book.year}`;
+
+  const parts = [sizeRow, head, jig, credit];
+  // 還沒拼完：主要按鈕替你挑一片；拼完了而後面還有沒拼完的：翻到那一幅
+  const nextOpen = album.currentPicture(size, solved, started);
+  if (!complete) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn primary album-next';
+    btn.innerHTML = `${hedgehogSvg()}<span>拼下一片</span>`;
+    btn.addEventListener('click', () => go({ size, index: album.nextPiece(size, picture, solved, started) }));
+    parts.push(btn);
+  } else if (!album.isComplete(size, nextOpen, solved)) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn primary album-next';
+    btn.textContent = `下一幅：${PICTURES[size][nextOpen].title}`;
+    btn.addEventListener('click', () => {
+      shelf.picture = nextOpen;
+      buildAlbum();
+    });
+    parts.push(btn);
   }
-  pack.append(tiles(row, end, label));
-  if (end < puzzles.length) {
-    const rest = document.createElement('p');
-    rest.className = 'locked-rest';
-    const range = end + 1 === puzzles.length ? `第 ${puzzles.length} 關` : `第 ${end + 1}–${puzzles.length} 關`;
-    rest.innerHTML = `${LOCK_SVG}<span>${range}</span><span class="why">依序解鎖</span>`;
-    pack.append(rest);
-  }
-  return pack;
+  parts.push(shelfEl(size, picture, solved, started));
+  $('album').replaceChildren(...parts);
+  landing = null;
 }
 
-function levelButton(size, i, solved, started) {
-  const label = `${size}×${size}`;
-  const li = document.createElement('li');
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'level';
-  btn.dataset.index = i;
-  const unlocked = isUnlocked(i, solved);
-  const done = solved.has(i);
-  const inProgress = !done && started(levelId(size, i));
-  btn.disabled = !unlocked;
-  btn.classList.toggle('solved', done);
-  btn.classList.toggle('started', inProgress);
-  btn.classList.toggle('next', unlocked && !done);
-  btn.innerHTML =
-    (done ? printSvg(parsePuzzle(PUZZLES[size][i])) : '') +
-    `<span class="num">${i + 1}</span>${done ? CHECK_SVG : unlocked ? hedgehogSvg('peek') : LOCK_SVG}`;
-  btn.setAttribute(
-    'aria-label',
-    `${label} 第 ${i + 1} 關${done ? '，已完成' : inProgress ? '，玩到一半' : unlocked ? '' : '，未解鎖'}`,
+/** 一整幅拼圖：插圖墊在底下，還沒拼的片蓋一張紙、畫上虛線輪廓；上面疊一層透明按鈕，一片一顆 */
+function jigsawEl(size, picture, solved, started) {
+  const pic = PICTURES[size][picture];
+  const n = GRID[size];
+  const t = shapeOf(size, pic);
+  const W = n * UNIT;
+  const land = landing?.size === size ? pic.levels.indexOf(landing.index) : -1;
+  // 插圖沒抓到（例如離線又沒存過）時，拼好的片就是一張白紙，照樣能玩
+  const image = `<image href="${imageOf(pic)}" width="${W}" height="${W}" preserveAspectRatio="xMidYMid slice"/>`;
+
+  let svg =
+    `<svg viewBox="-6 -6 ${W + 12} ${W + 12}" aria-hidden="true"><defs>` +
+    `<clipPath id="jig-clip"><rect width="${W}" height="${W}" rx="12"/></clipPath>` +
+    (land >= 0 ? `<clipPath id="jig-land"><path d="${piecePath(n, t, land)}"/></clipPath>` : '') +
+    `</defs><g clip-path="url(#jig-clip)"><rect class="paper" width="${W}" height="${W}"/>${image}`;
+  pic.levels.forEach((index, slot) => {
+    if (solved.has(index) && slot !== land) return;
+    const cx = (slot % n) * UNIT + UNIT / 2;
+    const cy = Math.floor(slot / n) * UNIT + UNIT / 2;
+    svg += `<path class="slot" d="${piecePath(n, t, slot)}"/>`;
+    if (slot === land) return;
+    svg += `<text class="num" x="${cx}" y="${cy + 10}">${slot + 1}</text>`;
+    if (started.has(index)) svg += `<circle class="dot" cx="${cx}" cy="${cy + 30}" r="5"/>`;
+  });
+  pic.levels.forEach((index, slot) => {
+    if (solved.has(index) && slot !== land) svg += `<path class="seam" d="${piecePath(n, t, slot)}"/>`;
+  });
+  if (land >= 0) {
+    const d = piecePath(n, t, land);
+    svg +=
+      `<g class="landing"><g clip-path="url(#jig-land)">${image}</g><path class="seam" d="${d}"/></g>` +
+      `<path class="glow" d="${d}"/>`;
+  }
+  svg += `</g><rect class="frame" width="${W}" height="${W}" rx="12"/></svg>`;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'jigsaw';
+  wrap.style.setProperty('--num', `${{ 3: 28, 4: 25 }[n] ?? 22}px`);
+  wrap.innerHTML = svg;
+  const hit = document.createElement('div');
+  hit.className = 'hit';
+  hit.style.setProperty('--g', n);
+  pic.levels.forEach((index, slot) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    const done = solved.has(index);
+    const going = !done && started.has(index);
+    btn.setAttribute('aria-label', `${pic.title} 第 ${slot + 1} 片${done ? '，拼好了' : going ? '，玩到一半' : ''}`);
+    btn.addEventListener('click', () => go({ size, index }));
+    hit.append(btn);
+  });
+  wrap.append(hit);
+  // 一幅拼完：頁邊蓋一枚「拼好了」；剛拼完的那一下才有蓋章動畫
+  if (album.isComplete(size, picture, solved)) {
+    wrap.insertAdjacentHTML(
+      'beforeend',
+      `<div class="seal album-seal${land >= 0 ? ' fresh' : ''}" aria-hidden="true"><span>拼好了</span></div>`,
+    );
+  }
+  return wrap;
+}
+
+/** 這一本的每一幅：拼好的貼上插圖、打開的淡淡印著、還沒打開的是虛線空框 */
+function shelfEl(size, current, solved, started) {
+  const list = PICTURES[size];
+  const per = album.piecesOf(size);
+  const doneCount = list.filter((_, p) => album.isComplete(size, p, solved)).length;
+  const section = document.createElement('section');
+  section.className = 'shelf';
+  section.innerHTML = `<h3>這一本的拼圖<span>拼好 ${doneCount} / ${list.length} 幅</span></h3>`;
+  const ol = document.createElement('ol');
+  list.forEach((pic, p) => {
+    const open = album.isOpen(size, p, solved, started);
+    const done = album.isComplete(size, p, solved);
+    const got = album.progress(size, p, solved);
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'thumb';
+    btn.classList.toggle('partial', open && !done);
+    btn.disabled = !open;
+    if (p === current) btn.setAttribute('aria-current', 'true');
+    btn.innerHTML = open
+      ? `<img src="${imageOf(pic, true)}" alt="" loading="lazy">${done ? CHECK_SVG : `<span class="meter">${got}/${per}</span>`}`
+      : LOCK_SVG;
+    btn.setAttribute('aria-label', open ? `${pic.title}，${done ? '拼好了' : `已拼 ${got} / ${per}`}` : `第 ${p + 1} 幅，還沒打開`);
+    btn.addEventListener('click', () => {
+      shelf.picture = p;
+      buildAlbum();
+    });
+    li.append(btn);
+    ol.append(li);
+  });
+  section.append(ol);
+  return section;
+}
+
+/** 過關面板上剛拿到的那一片：插圖照這一片的形狀剪下來 */
+function pieceSvg(size, picture, slot) {
+  const pic = PICTURES[size][picture];
+  const n = GRID[size];
+  const d = piecePath(n, shapeOf(size, pic), slot);
+  const x = (slot % n) * UNIT - 32;
+  const y = Math.floor(slot / n) * UNIT - 32;
+  const W = n * UNIT;
+  return (
+    `<svg viewBox="${x} ${y} 164 164"><defs><clipPath id="win-clip"><path d="${d}"/></clipPath></defs>` +
+    `<g clip-path="url(#win-clip)"><rect class="paper" x="${x}" y="${y}" width="164" height="164"/>` +
+    `<image href="${imageOf(pic)}" width="${W}" height="${W}" preserveAspectRatio="xMidYMid slice"/></g>` +
+    `<path class="edge" d="${d}"/></svg>`
   );
-  btn.addEventListener('click', () => go({ size, index: i }));
-  li.append(btn);
-  return li;
 }
 
 /** 隨機出題：每個尺寸一張卡。有玩到一半的就接著玩那一題，否則抽一個新種子 */
@@ -346,8 +408,11 @@ function openLevel(size, index) {
   const id = levelId(size, index);
   const puzzle = parsePuzzle(PUZZLES[size][index]);
   game = new Game(puzzle, storage.getBoard(id), storage.getTrial(id));
+  landing = null;
 
-  showGame(`${size}×${size} 第 ${index + 1} 關`);
+  // 標題寫這是哪一幅的第幾片；幅名放在上面一行小字，手機上也排得下
+  const { picture, slot } = album.locate(size, index);
+  showGame(`第 ${slot + 1} 片`, PICTURES[size][picture].title);
 
   buildBoard(puzzle);
   // 回到存檔的盤面：墨跡本來就在紙上，不重寫一次
@@ -389,12 +454,17 @@ function rulesOpen() {
   return storage.getSolved().size === 0 && Object.keys(storage.getRandomSolved()).length === 0;
 }
 
-function showGame(title) {
+function showGame(title, kicker = '') {
   showView('game-view');
   clearWin();
-  // 從列表下方點進來、或在過關後按下一關，都從頁頂的標題和棋盤開始
+  // 從列表下方點進來、或在過關後按下一片，都從頁頂的標題和棋盤開始
   scrollTo(0, 0);
   $('level-title').textContent = title;
+  if (kicker) {
+    const small = document.createElement('small');
+    small.textContent = kicker;
+    $('level-title').prepend(small);
+  }
   $('game-view').classList.toggle('lesson', lesson !== null);
   // 教學本身就在教規則，規則欄先收起來，畫面只留引導和棋盤
   $('rules').hidden = lesson !== null;
@@ -609,12 +679,14 @@ function afterChange() {
     else storage.saveRandom(size, seed, game.board, game.trial);
     render();
     if (game.solved) {
-      showWin({ title: '過關！', seal: '過關', next: { label: '再來一題', hash: randomId(size, newSeed()) } });
+      showWin({ title: '過關！', seal: '過關', next: { label: '再來一題', hash: randomId(size, newSeed()) }, list: '回列表' });
     }
     return;
   }
   if (game.solved) {
     storage.markSolved(levelId(level.size, level.index));
+    // 回到列表時，這一片從下面飛進拼圖裡
+    landing = { ...level };
     render();
     showWin(levelWin());
   } else {
@@ -623,37 +695,60 @@ function afterChange() {
   }
 }
 
-/** 一般關卡的過關面板：下一關，或一組全破時挑戰下一個尺寸；最大的尺寸也破完了就來隨機題 */
+/** 某尺寸接下來該拼的那一片：最前面一幅沒拼完的裡面挑一片；整本拼完了回傳 null */
+function nextPieceIn(size) {
+  const all = storage.getSolved();
+  const solved = solvedIn(size, all);
+  const started = startedIn(size);
+  const index = album.nextPiece(size, album.currentPicture(size, solved, started), solved, started);
+  return index === null ? null : levelId(size, index);
+}
+
+/**
+ * 拼圖的過關面板：面板上是剛拿到的那一片。
+ * 這一幅還沒拼完 → 下一片；拼完了 → 下一幅；整本拼完 → 挑戰下一個尺寸，最大的尺寸也拼完了就來隨機題
+ */
 function levelWin() {
   const { size, index } = level;
-  const last = index === PUZZLES[size].length - 1;
-  const nextSize = last ? Object.keys(PUZZLES).map(Number).find((s) => s > size) : null;
+  const solved = solvedIn(size);
+  const started = startedIn(size);
+  const { picture, slot } = album.locate(size, index);
+  const pic = PICTURES[size][picture];
+  const per = album.piecesOf(size);
+  const got = album.progress(size, picture, solved);
+  const base = { seal: '過關', list: '看拼圖', piece: pieceSvg(size, picture, slot), note: `第 ${slot + 1} 片拼上去了・${got} / ${per}` };
+  if (got < per) {
+    return { ...base, title: '過關！', next: { label: '下一片', hash: levelId(size, album.nextPiece(size, picture, solved, started)) } };
+  }
+  const next = nextPieceIn(size);
+  if (next) return { ...base, title: `「${pic.title}」拼好了！`, seal: '拼好', next: { label: '下一幅', hash: next } };
+  const sizes = Object.keys(PICTURES).map(Number);
+  const nextSize = sizes.find((s) => s > size && nextPieceIn(s));
   return {
-    title: last ? `${size}×${size} 全部完成！` : '過關！',
-    seal: '過關',
-    next: !last
-      ? { label: '下一關', hash: levelId(size, index + 1) }
-      : nextSize
-        ? { label: `挑戰 ${nextSize}×${nextSize}`, hash: levelId(nextSize, 0) }
-        : { label: `隨機 ${size}×${size}`, hash: randomId(size, newSeed()) },
+    ...base,
+    title: `${size}×${size} 全部拼好了！`,
+    seal: '拼好',
+    next: nextSize
+      ? { label: `挑戰 ${nextSize}×${nextSize}`, hash: nextPieceIn(nextSize) }
+      : { label: `隨機 ${size}×${size}`, hash: randomId(size, newSeed()) },
   };
 }
 
-/** 教學做完：直接帶去最小尺寸裡還沒破的第一關 */
+/** 教學做完：直接帶去最小一本還沒拼完的拼圖，挑一片開始 */
 function lessonWin() {
-  const solved = storage.getSolved();
-  const size = Object.keys(PUZZLES).map(Number).find((s) => solvedIn(s, solved).size < PUZZLES[s].length);
-  const index = size ? PUZZLES[size].findIndex((_, i) => !solved.has(levelId(size, i))) : -1;
+  const size = Object.keys(PICTURES).map(Number).find((s) => nextPieceIn(s));
+  const fresh = storage.getSolved().size === 0;
   return {
     title: '學會了！',
     seal: '學會',
-    next: size && { label: `開始 ${size}×${size} 第 ${index + 1} 關`, hash: levelId(size, index) },
+    list: '回列表',
+    next: size && { label: fresh ? '去拼第一片' : '去拼下一片', hash: nextPieceIn(size) },
   };
 }
 
 // 過關的節奏：刺蝟由上而下依序蓋印 → 操作列換成過關面板 → 頁邊蓋上「過關」章。
 // 盤面一直留在畫面上，玩家可以看著自己解開的那一頁。
-function showWin({ title, seal, next: target }) {
+function showWin({ title, seal, next: target, list = '回列表', piece = '', note = '' }) {
   const board = $('board');
   board.classList.add('locked', 'solved');
   const queens = cells.filter((cell) => cell.classList.contains('queen'));
@@ -664,6 +759,13 @@ function showWin({ title, seal, next: target }) {
   $('win').classList.toggle('quiet', quiet);
   $('win-title').textContent = title;
   $('seal').firstElementChild.textContent = seal;
+  $('win-list').textContent = list;
+  // 拼圖的過關：面板左邊是剛拿到的那一片，旁邊一行寫拼到第幾片
+  $('win').classList.toggle('with-piece', piece !== '');
+  $('win-piece').innerHTML = piece;
+  $('win-piece').hidden = piece === '';
+  $('win-note').textContent = note;
+  $('win-note').hidden = note === '';
   const next = $('win-next');
   next.hidden = !target;
   if (target) {
@@ -829,7 +931,7 @@ $('ask-no').addEventListener('click', () => ask(false));
 $('back').addEventListener('click', goList);
 $('learn').addEventListener('click', () => (location.hash = 'learn'));
 $('tips').addEventListener('click', () => (location.hash = 'tips'));
-// 從列表或關卡點進來的回到原本那一頁；直接開技巧頁網址的，回關卡列表
+// 從列表或題目點進來的回到原本那一頁；直接開技巧頁網址的，回列表
 $('tips-back').addEventListener('click', () => (tipsFromApp ? history.back() : (location.hash = '')));
 $('win-list').addEventListener('click', goList);
 
@@ -947,7 +1049,7 @@ $('mascot').addEventListener('click', (e) => {
   el.classList.add('hop');
 });
 
-// 已破關卡重玩：存檔盤面已在破關時清除，因此會從空盤面開始。
+// 拼好的片重玩：存檔盤面已在破關時清除，因此會從空盤面開始。
 window.addEventListener('hashchange', route);
 route();
 

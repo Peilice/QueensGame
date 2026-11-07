@@ -86,13 +86,13 @@
         <path d="M9 6l6 6-6 6" />
       </svg>
     </button>
-    <!-- 列表分兩頁：固定的關卡路線，和每次都是新的一盤、難度不固定的「隨機難度」 -->
+    <!-- 列表分兩頁：蒐集拼圖（一題一片），和每次都是新的一盤、難度不固定的「隨機難度」 -->
     <div id="tabs" class="tabs" role="tablist" aria-label="玩法">
-      <button type="button" id="tab-levels" class="tab" role="tab" aria-controls="panel-levels" aria-selected="true">關卡</button>
+      <button type="button" id="tab-levels" class="tab" role="tab" aria-controls="panel-levels" aria-selected="true">拼圖</button>
       <button type="button" id="tab-random" class="tab" role="tab" aria-controls="panel-random" aria-selected="false" tabindex="-1">隨機難度</button>
     </div>
     <div id="panel-levels" role="tabpanel" aria-labelledby="tab-levels">
-      <div id="level-packs"></div>
+      <div id="album" class="album"></div>
     </div>
     <section id="panel-random" role="tabpanel" aria-labelledby="tab-random" hidden>
       <ol id="random-list" class="level-list dice-list"></ol>
@@ -101,7 +101,7 @@
 
   <main id="game-view" hidden>
     <header class="top">
-      <button type="button" id="back" class="btn ghost" aria-label="回關卡列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>關卡</button>
+      <button type="button" id="back" class="btn ghost" aria-label="回列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>列表</button>
       <h1 id="level-title"></h1>
       <!-- 聲音設定：和返回鍵同寬，標題才會置中；喇叭由 main.js 畫上 -->
       <button type="button" class="btn ghost sound" popovertarget="audio-menu" aria-label="聲音設定" title="聲音"></button>
@@ -129,10 +129,13 @@
         <button type="button" id="ask-no" class="btn">不換</button>
       </div>
       <section id="win" class="win" hidden aria-labelledby="win-title">
+        <!-- 拼圖的過關：剛拿到的那一片和拼到第幾片 -->
+        <div id="win-piece" class="win-piece" hidden aria-hidden="true"></div>
         <h2 id="win-title">過關！</h2>
+        <p id="win-note" class="win-note" hidden></p>
         <div class="win-actions">
-          <button type="button" id="win-next" class="btn primary">下一關</button>
-          <button type="button" id="win-list" class="btn">回關卡列表</button>
+          <button type="button" id="win-next" class="btn primary">下一片</button>
+          <button type="button" id="win-list" class="btn">看拼圖</button>
         </div>
         <div id="seal" class="seal" hidden aria-hidden="true"><span>過關</span></div>
       </section>

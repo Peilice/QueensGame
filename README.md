@@ -15,11 +15,11 @@ LinkedIn Queens 風格的邏輯解謎遊戲（棋子換成刺蝟），純 HTML�
 - 按住拖曳可連續標 ✕（只會標在空格上）；從 ✕ 開始拖曳則是連續擦掉 ✕（刺蝟不受影響）
 - 「上一步」可撤銷上一個操作（一次拖曳、一次重來都算一步）
 - 拿不定時按「標記」先試放：之後畫的都是虛線，按「留下」就算數，按「擦掉」回到試放之前
-- 關卡列表最上面的「怎麼玩」是一分鐘的互動教學，在 5×5 小盤上照著引導做一遍
+- 列表最上面的「怎麼玩」是一分鐘的互動教學，在 5×5 小盤上照著引導做一遍
 - 每一頁右上角的喇叭點開是聲音設定，音效和背景音樂分開開關，都預設打開；音效和音樂全部用 Web Audio 當場合成，沒有音檔
 - 「怎麼玩」下面的「解題技巧」（`#tips`）用 9 張小盤圖解，由淺到深介紹常用的推理；遊戲中「規則」最後一行也連得到
 
-關卡依棋盤尺寸分成 6×6、7×7、8×8、9×9 四組，每組 50 關。第 1–20 關由易到難；第 21 關起難度重新起算，第 21–30 關中、低交錯，之後中、高交錯慢慢變難，到第 71 關左右到頂後維持交錯。各組獨立解鎖，可直接從任一尺寸的第 1 關開始；組內須破前一關才能玩下一關。列表上方分成「關卡」和「隨機難度」兩頁。「隨機難度」選一個尺寸，瀏覽器當場出一題唯一解的新題目，網址（如 `#r7-1k2f9x`）帶著種子，分享出去對方玩到的是同一題。
+固定題目做成蒐集拼圖：6×6、7×7、8×8、9×9 四個尺寸各是一本拼圖冊，每本有好幾幅公有領域的插畫，一幅切成 3×3（6×6）、4×4（7×7）或 5×5（8×8、9×9）片，一片就是一題，解完就拼上那一片。目前共 85 幅、1445 題。題目不照難度排，每一幅都是難易混著。一次開一幅：拼完一幅才打開同一本的下一幅，四本各自獨立；打開的那一幅裡哪一片都能先拼。列表上方分成「拼圖」和「隨機難度」兩頁。「隨機難度」選一個尺寸，瀏覽器當場出一題唯一解的新題目，網址（如 `#r7-1k2f9x`）帶著種子，分享出去對方玩到的是同一題。
 
 進度與未完成的盤面存在瀏覽器的 `localStorage`。
 
@@ -51,7 +51,11 @@ style.css              樣式（只有淺色）
 src/rules.js           規則判定：衝突偵測、過關判定
 src/solver.js          回溯解題器
 src/generator.js       隨機出題：依尺寸＋種子產生唯一解的題目
-src/game.js            盤面狀態、Undo、解鎖規則
+src/game.js            盤面狀態、Undo
+src/album.js           拼圖冊的規則：哪一幅打開了、拼到哪裡、下一片拼哪一片
+src/pictures.js        拼圖：每一幅的名稱、出處、每一片對到哪一題
+src/jigsaw.js          拼圖片的形狀（凸耳由幅的 id 決定）
+pictures/              插圖：<id>.webp 大圖（900px）與 <id>-s.webp 縮圖
 src/puzzles.js         題庫（依尺寸分組，每題 N 個字串，字元代表色塊）
 src/tutorial.js        教學題目與每一步的引導、提示格、完成條件
 src/tips.js            解題技巧的說明與圖解（色塊、墨跡、提示格都用字串畫）
@@ -62,12 +66,31 @@ sw.js                  service worker：離線遊玩（新增檔案時要加進 
 src/main.js            畫面與操作
 scripts/verify-puzzles.js  題庫驗證
 scripts/rate-puzzles.js    題目難度評分（照人解題的招式一步步推）
-scripts/add-puzzles.js     擴充題庫：出題、評分，照難度曲線接在每組最後面
+scripts/add-puzzles.js     擴充題庫：出題、評分，從易到難平均挑題，接在每組最後面
+scripts/build-pictures.js  把題目分進新的拼圖（難易分層、位置洗亂），已經分好的不動
 scripts/build-icons.js     由 src/main.js 的刺蝟產生 icons/ 的 SVG 與 PNG 圖示
 test/                  node --test 單元測試
 ```
 
-要擴充題庫時執行 `npm run add-puzzles -- 10`（數字是每組加幾題），腳本會用產生器出一批候選題、依難度評分，照 `target()` 的難度曲線挑題，接在 `src/puzzles.js` 每組最後面，舊關卡編號不變、存檔照常對得上；之後執行 `npm run verify` 與 `npm test` 確認。手動加題也一樣接在陣列最後面，再執行 `npm run verify` 確認為唯一解。
+要加一幅新拼圖時：
+
+1. `npm run add-puzzles -- 6=9`（尺寸=題數，題數是一幅的片數：6×6 是 9、7×7 是 16、8×8 和 9×9 是 25），新題接在 `src/puzzles.js` 那一組最後面，舊題編號不變。
+2. 把插圖裁成正方形，存成 `pictures/<id>.webp`（900px）和 `pictures/<id>-s.webp`（200px）。
+3. 在 `src/pictures.js` 那個尺寸的最後面加一筆 `{ id, title, book, levels: [] }`（出處不在 `BOOKS` 裡就一起加）。
+4. `node scripts/build-pictures.js` 替新拼圖分題，同時更新 `test/pictures-lock.json`。
+5. `npm run verify` 與 `npm test`。已經分好的拼圖不能改，否則玩家的碎片會換位置，測試會擋下來。
+
+插圖不預先存進離線快取（太多張），看過的會在抓的時候順便存起來；沒存到的插圖離線時畫不出來，拼圖照樣是紙上的虛線碎片，照樣能玩。
+
+## 插圖出處
+
+拼圖的插圖都是公有領域的插畫，從 Wikimedia Commons 與 Internet Archive 的早期版本掃描裁成正方形：
+
+- Sibylle von Olfers（1881–1916）：*Etwas von den Wurzelkindern*（1906）、*Prinzesschen im Walde*（1909，1929 年波蘭文版掃描）、*Mapje en Papje in het Hazenbosch*（1906，1916 年荷蘭文版掃描）
+- Elsa Beskow（1874–1953）：*Tomtebobarnen*（1910）的彩圖與明信片、*Sov du lilla videung*、*Puttes äventyr i blåbärsskogen*（1901，德文版 *Hänschen im Blaubeerenwald* 掃描）
+- Ernst Kreidolf（1863–1956）：*Alpenblumenmärchen*（1922）。台灣、美國已是公有領域，歐盟要到 2027 年
+- Ida Rentoul Outhwaite（1888–1960）：*Fairyland*（1926）。台灣、美國已是公有領域，澳洲、英國、歐盟要到 2031 年
+- Beatrix Potter（1866–1943）：*The Tale of Squirrel Nutkin*（1903）、*The Tale of Benjamin Bunny*（1904）、*The Tale of Tom Kitten*（1907）、*The Tale of Jemima Puddle-Duck*（1908），多倫多大學圖書館的早期版本掃描。角色名稱是出版社的商標，遊戲裡的幅名不用角色名
 
 ## 部署到 GitHub Pages
 
