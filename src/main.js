@@ -1,15 +1,16 @@
 import { parsePuzzle, findConflicts, EMPTY, MARK, QUEEN } from './rules.js';
-import { Game } from './game.js';
 import { PUZZLES } from './puzzles.js';
 import { PICTURES, GRID, BOOKS } from './pictures.js';
 import * as album from './album.js';
 import { tabs, piecePath, hashSeed, UNIT } from './jigsaw.js';
-import { generate, newSeed } from './generator.js';
+import { newSeed } from './generator.js';
 import * as storage from './storage.js';
 import * as sound from './sound.js';
 import * as music from './music.js';
-import { LESSON, STEPS, currentStep, targets } from './tutorial.js';
+import { targets } from './tutorial.js';
 import { TIPS, cellsOf } from './tips.js';
+import * as play from './session.js';
+import { levelId, randomId, solvedIn, startedIn } from './session.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -69,35 +70,17 @@ const queenSvg = () =>
 // 墨跡離場的時間（和 style.css 的 pen-out／lift 對齊），之後才從 DOM 移除
 const LEAVE_MS = { [MARK]: 200, [QUEEN]: 160 };
 
-let level = null; // { size, index }
-let lesson = null; // 教學進行中：{ step }，和 level 不會同時有值
-let random = null; // 隨機題進行中：{ size, seed }，和 level、lesson 不會同時有值
-let game = null;
+// 正在玩的那一局（src/session.js）：拼圖的一片、隨機題或教學；不在遊戲頁時為 null
+let session = null;
 let cells = [];
 let shown = []; // 每格目前畫在紙上的狀態，只有變了才重畫
 let winTimers = [];
-let conflictCount = 0; // 上一次的衝突格數：多出新的衝突才「咚」一聲
 
 // 規則並排在棋盤右方的桌機版面，條件和 style.css 一致
 const desktop = matchMedia('(min-width: 1024px) and (hover: hover) and (pointer: fine)');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
-const levelId = (size, index) => `${size}-${index + 1}`;
-// 隨機題的網址：r 加尺寸再加 base36 的種子，例如 r7-1k2f9x；同一個網址永遠是同一題
-const randomId = (size, seed) => `r${size}-${seed.toString(36)}`;
-
-/** 某尺寸已破關的題目編號集合 */
-function solvedIn(size, solved = storage.getSolved()) {
-  return new Set(PUZZLES[size].flatMap((_, i) => (solved.has(levelId(size, i)) ? [i] : [])));
-}
-
-/** 某尺寸存著盤面、玩到一半的題目編號集合 */
-function startedIn(size, boards = storage.getBoards()) {
-  return new Set(PUZZLES[size].flatMap((_, i) => (boards[levelId(size, i)]?.some((v) => v !== 0) ? [i] : [])));
-}
-
-// ---------- 路由：#6-3 代表 6×6 第 3 題（在哪一幅的第幾片由 src/pictures.js 決定），#r6-xxxx 是隨機題，
-// #learn 是教學，#tips 是解題技巧；列表分兩頁：空白是「拼圖」，#random 是「隨機難度」 ----------
+// ---------- 路由：網址要打開什麼由 src/session.js 的 resolve() 決定 ----------
 
 // 已經在這個網站裡換過畫面：技巧頁的「返回」才能放心用瀏覽器上一頁
 let routed = false;
@@ -106,21 +89,11 @@ let tipsFromApp = false;
 function route() {
   const wasRouted = routed;
   routed = true;
-  if (location.hash === '#tips') return openTips(wasRouted);
-  if (location.hash === '#learn') return openLesson();
-  if (location.hash === '#random') return showLevels('random');
-  const [, rSize, rSeed] = location.hash.match(/^#r(\d+)-([0-9a-z]{1,7})$/) ?? [];
-  const seed = parseInt(rSeed, 36);
-  if (PUZZLES[rSize] && seed < 2 ** 32) return openRandom(Number(rSize), seed);
-  const [, size, n] = location.hash.match(/^#(\d+)-(\d+)$/) ?? [];
-  const index = n - 1;
-  // 拼圖一次開一幅：還沒打開的那幅裡的題（例如別人分享的網址），退回列表
-  if (PUZZLES[size] && index >= 0 && index < PUZZLES[size].length && album.canPlay(size, index, solvedIn(size), startedIn(size))) {
-    openLevel(Number(size), index);
-  } else {
-    if (location.hash) history.replaceState(null, '', location.pathname);
-    showLevels();
-  }
+  const to = play.resolve(location.hash);
+  if (to.view === 'tips') return openTips(wasRouted);
+  if (to.view === 'game') return openGame(to.target);
+  if (to.invalid) history.replaceState(null, '', location.pathname);
+  showLevels(to.tab);
 }
 
 function go(target) {
@@ -128,7 +101,7 @@ function go(target) {
 }
 
 /** 回列表：從隨機題回來就回到「隨機難度」那一頁 */
-const goList = () => (location.hash = random ? 'random' : '');
+const goList = () => (location.hash = session?.kind === 'random' ? 'random' : '');
 
 // ---------- 拼圖冊：上面選尺寸，中間是目前這一幅，下面是這一本的每一幅 ----------
 
@@ -154,9 +127,9 @@ function showView(id) {
 }
 
 function showLevels(tab = 'levels') {
-  const from = level;
-  const fromRandom = random;
-  level = lesson = random = game = null;
+  const from = session?.kind === 'level' ? session.target : null;
+  const fromRandom = session?.kind === 'random' ? session.target : null;
+  session = null;
   clearWin();
   showView('levels-view');
   for (const name of ['levels', 'random']) {
@@ -422,47 +395,14 @@ function buildRandom() {
 
 // ---------- 遊戲畫面 ----------
 
-function openLevel(size, index) {
-  level = { size, index };
-  lesson = random = null;
-  const id = levelId(size, index);
-  const puzzle = parsePuzzle(PUZZLES[size][index]);
-  game = new Game(puzzle, storage.getBoard(id), storage.getTrial(id));
+/** 打開一局：拼圖的一片、隨機題、教學都是同一張棋盤、同一套操作；教學的棋盤上方多一行引導 */
+function openGame(target) {
+  session = play.open(target);
   landing = null;
-
-  // 標題寫這是哪一幅的第幾片；幅名放在上面一行小字，手機上也排得下
-  const { picture, slot } = album.locate(size, index);
-  showGame(`第 ${slot + 1} 片`, PICTURES[size][picture].title);
-
-  buildBoard(puzzle);
+  showGame(session.title, session.kicker);
+  if (session.hint) coach(session.hint.text);
+  buildBoard(session.game.puzzle);
   // 回到存檔的盤面：墨跡本來就在紙上，不重寫一次
-  render(new Set(), { instant: true });
-}
-
-/** 隨機題：當場依種子出題。存著的盤面是同一個種子才接著玩，別人分享的網址從空盤開始 */
-function openRandom(size, seed) {
-  level = lesson = null;
-  random = { size, seed };
-  const puzzle = parsePuzzle(generate(size, seed));
-  const saved = storage.getRandom(size);
-  game = new Game(puzzle, ...(saved?.seed === seed ? [saved.board, saved.trial] : []));
-
-  showGame(`隨機 ${size}×${size}`);
-
-  buildBoard(puzzle);
-  render(new Set(), { instant: true });
-}
-
-/** 教學：同一張棋盤、同一套操作，棋盤上方多一行引導；不存盤面，每次都從頭開始 */
-function openLesson() {
-  level = random = null;
-  lesson = { step: 0 };
-  game = new Game(parsePuzzle(LESSON));
-
-  showGame('怎麼玩');
-  coach();
-
-  buildBoard(game.puzzle);
   render(new Set(), { instant: true });
 }
 
@@ -485,20 +425,20 @@ function showGame(title, kicker = '') {
     small.textContent = kicker;
     $('level-title').prepend(small);
   }
-  $('game-view').classList.toggle('lesson', lesson !== null);
+  const lesson = session.kind === 'lesson', random = session.kind === 'random';
+  $('game-view').classList.toggle('lesson', lesson);
   // 教學本身就在教規則，規則欄先收起來，畫面只留引導和棋盤
-  $('rules').hidden = lesson !== null;
+  $('rules').hidden = lesson;
   $('rules').open = rulesOpen();
-  $('coach').hidden = lesson === null;
+  $('coach').hidden = !lesson;
   // 隨機題才有「換一題」
-  $('shuffle').hidden = random === null;
-  $('controls').classList.toggle('four', random !== null);
+  $('shuffle').hidden = !random;
+  $('controls').classList.toggle('four', random);
 }
 
-/** 換成目前這一步的引導；文字沒變就不動，免得報讀器重念 */
-function coach() {
+/** 換成這一步的引導；文字沒變就不動，免得報讀器重念 */
+function coach(text) {
   const el = $('coach');
-  const text = STEPS[lesson.step].text;
   if (el.textContent === text) return;
   el.textContent = text;
   // 換一步時引導文字輕輕浮上來，讓人注意到換了
@@ -537,7 +477,7 @@ function regionCells({ size, regions }) {
 
 /** 技巧頁：內容固定，第一次打開才畫；從網站裡點進來的，「返回」就回到原本那一頁 */
 function openTips(fromApp) {
-  level = lesson = random = game = null;
+  session = null;
   clearWin();
   tipsFromApp = fromApp;
   if (!$('tips-list').firstChild) $('tips-list').replaceChildren(...TIPS.map(buildTip));
@@ -598,9 +538,10 @@ function buildFigure({ regions, ink, look, caption }) {
 }
 
 function render(preview = new Set(), { instant = false, erasing = false } = {}) {
+  const { game } = session;
   const conflicts = findConflicts(game.puzzle, game.board);
   // 教學中這一步要玩家動的格子會亮起；過關後就不再提示
-  const step = lesson && !game.solved ? STEPS[lesson.step] : null;
+  const step = session.hint;
   const lit = new Set(step ? targets(step, game.board) : []);
   // 標記中畫的格子用虛線；拖曳經過、還沒放開的空格也算（擦 ✕ 的拖曳則是經過的 ✕ 先擦掉）
   const tentative = game.tentative;
@@ -619,7 +560,6 @@ function render(preview = new Set(), { instant = false, erasing = false } = {}) 
   $('trial-tag').hidden = !game.trying;
   music.setTrial(game.trying);
 
-  if (instant) conflictCount = conflicts.size;
   const animate = !instant && !reducedMotion.matches;
   // 一次改很多格（重來、撤銷一整次拖曳或重來）時，墨跡沿對角線由左上一路掃過去
   const n = game.puzzle.size;
@@ -675,100 +615,26 @@ function ink(cell, from, to, animate, delay) {
   }
 }
 
+/** 盤面動過之後：存檔和過關判斷交給 session，這裡負責出聲、重畫、換上過關面板 */
 function afterChange() {
-  // 放下去會刺到別人：「啵」之後接一聲「咚」；過關的那一下不算
-  const conflicts = findConflicts(game.puzzle, game.board).size;
-  if (conflicts > conflictCount && !game.solved) sound.play('conflict');
-  conflictCount = conflicts;
-  if (lesson) {
-    if (game.solved) {
-      render();
-      showWin(lessonWin());
-      return;
-    }
-    lesson.step = currentStep(game.puzzle, game.board, lesson.step, game.trial);
-    render();
-    coach();
-    return;
-  }
-  if (random) {
-    // 問著「確定要換嗎？」時又去動盤面，就當作不換了
-    ask(false);
-    const { size, seed } = random;
-    if (game.solved) storage.markRandomSolved(size);
-    else storage.saveRandom(size, seed, game.board, game.trial);
-    render();
-    if (game.solved) {
-      showWin({ title: '過關！', seal: '過關', next: { label: '再來一題', hash: randomId(size, newSeed()) }, list: '回列表' });
-    }
-    return;
-  }
-  if (game.solved) {
-    storage.markSolved(levelId(level.size, level.index));
-    // 回到列表時，這一片從下面飛進拼圖裡
-    landing = { ...level };
-    render();
-    showWin(levelWin());
-  } else {
-    storage.saveBoard(levelId(level.size, level.index), game.board, game.trial);
-    render();
-  }
-}
-
-/** 某尺寸接下來該拼的那一片：最前面一幅沒拼完的裡面挑一片；整本拼完了回傳 null */
-function nextPieceIn(size) {
-  const all = storage.getSolved();
-  const solved = solvedIn(size, all);
-  const started = startedIn(size);
-  const index = album.nextPiece(size, album.currentPicture(size, solved, started), solved, started);
-  return index === null ? null : levelId(size, index);
-}
-
-/**
- * 拼圖的過關面板：面板上是剛拿到的那一片。
- * 這一幅還沒拼完 → 下一片；拼完了 → 下一幅；整本拼完 → 挑戰下一個尺寸，最大的尺寸也拼完了就來隨機題
- */
-function levelWin() {
-  const { size, index } = level;
-  const solved = solvedIn(size);
-  const started = startedIn(size);
-  const { picture, slot } = album.locate(size, index);
-  const pic = PICTURES[size][picture];
-  const per = album.piecesOf(size);
-  const got = album.progress(size, picture, solved);
-  const base = { seal: '過關', list: '看拼圖', piece: pieceSvg(size, picture, slot), note: `第 ${slot + 1} 片拼上去了・${got} / ${per}` };
-  if (got < per) {
-    return { ...base, title: '過關！', next: { label: '下一片', hash: levelId(size, album.nextPiece(size, picture, solved, started)) } };
-  }
-  const next = nextPieceIn(size);
-  if (next) return { ...base, title: `「${pic.title}」拼好了！`, seal: '拼好', next: { label: '下一幅', hash: next } };
-  const sizes = Object.keys(PICTURES).map(Number);
-  const nextSize = sizes.find((s) => s > size && nextPieceIn(s));
-  return {
-    ...base,
-    title: `${size}×${size} 全部拼好了！`,
-    seal: '拼好',
-    next: nextSize
-      ? { label: `挑戰 ${nextSize}×${nextSize}`, hash: nextPieceIn(nextSize) }
-      : { label: `隨機 ${size}×${size}`, hash: randomId(size, newSeed()) },
-  };
-}
-
-/** 教學做完：直接帶去最小一本還沒拼完的拼圖，挑一片開始 */
-function lessonWin() {
-  const size = Object.keys(PICTURES).map(Number).find((s) => nextPieceIn(s));
-  const fresh = storage.getSolved().size === 0;
-  return {
-    title: '學會了！',
-    seal: '學會',
-    list: '回列表',
-    next: size && { label: fresh ? '去拼第一片' : '去拼下一片', hash: nextPieceIn(size) },
-  };
+  const { conflict, win } = session.move();
+  // 放下去會刺到別人：「啵」之後接一聲「咚」
+  if (conflict) sound.play('conflict');
+  // 問著「確定要換嗎？」時又去動盤面，就當作不換了
+  if (session.kind === 'random') ask(false);
+  // 回到列表時，剛拼上的那一片從下面飛進拼圖裡
+  if (win?.landed) landing = win.landed;
+  render();
+  if (win) showWin(win);
+  else if (session.hint) coach(session.hint.text);
 }
 
 // 過關的節奏：刺蝟由上而下依序蓋印 → 操作列換成過關面板 → 頁邊蓋上「過關」章。
 // 盤面一直留在畫面上，玩家可以看著自己解開的那一頁。
-function showWin({ title, seal, next: target, list = '回列表', piece = '', note = '' }) {
+// 內容由 session 的 move() 給（見 src/session.js 的 levelWin）
+function showWin({ title, seal, next: target, list, piece: got, note = '' }) {
+  // 拼圖的過關：面板左邊是剛拿到的那一片
+  const piece = got ? pieceSvg(got.size, got.picture, got.slot) : '';
   const board = $('board');
   board.classList.add('locked', 'solved');
   const queens = cells.filter((cell) => cell.classList.contains('queen'));
@@ -780,7 +646,7 @@ function showWin({ title, seal, next: target, list = '回列表', piece = '', no
   $('win-title').textContent = title;
   $('seal').firstElementChild.textContent = seal;
   $('win-list').textContent = list;
-  // 拼圖的過關：面板左邊是剛拿到的那一片，旁邊一行寫拼到第幾片
+  // 剛拿到的那一片旁邊一行寫拼到第幾片
   $('win').classList.toggle('with-piece', piece !== '');
   $('win-piece').innerHTML = piece;
   $('win-piece').hidden = piece === '';
@@ -826,6 +692,9 @@ function clearWin() {
 
 let drag = null;
 
+/** 還能下棋的那一盤：不在遊戲頁或已經過關則為 null */
+const playing = () => (session && !session.game.solved ? session.game : null);
+
 function cellAt(x, y) {
   const el = document.elementFromPoint(x, y)?.closest('.cell');
   return el && el.parentElement === $('board') ? Number(el.dataset.index) : null;
@@ -840,7 +709,8 @@ function cancelDrag() {
 $('board').addEventListener('pointerdown', (e) => {
   // 第二根手指落下代表要縮放，放棄這次點擊／拖曳，不留任何標記
   if (!e.isPrimary) { if (drag) cancelDrag(); return; }
-  if (!game || game.solved || e.button !== 0) return;
+  const game = playing();
+  if (!game || e.button !== 0) return;
   const start = cellAt(e.clientX, e.clientY);
   if (start === null) return;
   e.preventDefault();
@@ -854,6 +724,7 @@ $('board').addEventListener('pointermove', (e) => {
   if (!drag) return;
   const i = cellAt(e.clientX, e.clientY);
   if (i === null || drag.cells.has(i)) return;
+  const { game } = session;
   drag.cells.add(i);
   // 拖曳經過空格時劃一筆；擦 ✕ 時經過 ✕ 擦一下
   const [target, effect] = drag.erasing ? [MARK, 'erase'] : [EMPTY, 'mark'];
@@ -865,6 +736,7 @@ $('board').addEventListener('pointermove', (e) => {
 $('board').addEventListener('pointerup', () => {
   if (!drag) return;
   const { start, cells: touched, moved, erasing } = drag;
+  const { game } = session;
   drag = null;
   cells[start].classList.remove('pressed');
   if (moved ? (erasing ? game.unmark(touched) : game.mark(touched)) : game.cycle(start)) {
@@ -884,14 +756,14 @@ $('board').addEventListener('touchend', (e) => {
 // ---------- 按鈕 ----------
 
 $('undo').addEventListener('click', () => {
-  if (game && !game.solved && game.undo()) {
+  if (playing()?.undo()) {
     sound.play('undo');
     afterChange();
   }
 });
 
 $('reset').addEventListener('click', () => {
-  if (game && !game.solved && game.reset()) {
+  if (playing()?.reset()) {
     sound.play('reset');
     afterChange();
   }
@@ -899,11 +771,12 @@ $('reset').addEventListener('click', () => {
 
 // 標記：之後畫的都是試放（虛線），再決定留下或擦掉
 $('trial').addEventListener('click', () => {
-  if (game && !game.solved && game.startTrial()) afterChange();
+  if (playing()?.startTrial()) afterChange();
 });
 
 $('keep').addEventListener('click', () => {
-  if (!game || game.solved) return;
+  const game = playing();
+  if (!game) return;
   const kept = [...game.tentative];
   if (!game.keep()) return;
   afterChange();
@@ -918,7 +791,7 @@ $('keep').addEventListener('click', () => {
 });
 
 $('erase').addEventListener('click', () => {
-  if (game && !game.solved && game.erase()) {
+  if (playing()?.erase()) {
     sound.play('erase');
     afterChange();
   }
@@ -926,9 +799,8 @@ $('erase').addEventListener('click', () => {
 
 // 換一題：同尺寸抽新種子，這一盤放掉；用 replace 不留歷史，按返回不會回到被換掉的那題
 function shuffle() {
-  if (!random || game.solved) return;
-  storage.clearRandom(random.size);
-  location.replace(`#${randomId(random.size, newSeed())}`);
+  if (session?.kind !== 'random' || !playing()) return;
+  location.replace(`#${session.shuffle()}`);
 }
 
 /** 操作列換成「確定要換嗎？」，或換回來；焦點跟著搬，用鍵盤操作時不會掉到頁面最上面 */
@@ -942,7 +814,7 @@ function ask(show) {
 
 // 盤面還是空的就直接換，有填東西才先問一句
 $('shuffle').addEventListener('click', () => {
-  if (game?.board.every((v) => v === EMPTY)) shuffle();
+  if (session?.game.board.every((v) => v === EMPTY)) shuffle();
   else ask(true);
 });
 $('ask-yes').addEventListener('click', shuffle);

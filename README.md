@@ -63,7 +63,8 @@ src/storage.js         localStorage 進度存取
 src/sound.js           音效：Web Audio 合成，不用音檔
 src/music.js           背景音樂：Web Audio 合成的輕快小曲，和音效共用 AudioContext
 sw.js                  service worker：離線遊玩（新增檔案時要加進 PRECACHE，npm test 會檢查）
-src/main.js            畫面與操作
+src/session.js         一局（拼圖的一片、隨機題、教學）：網址要打開什麼、每一步存什麼、過關後去哪
+src/main.js            畫面與操作（照 session 的結果畫、出聲）
 scripts/verify-puzzles.js  題庫驗證
 scripts/rate-puzzles.js    題目難度評分（照人解題的招式一步步推）
 scripts/add-puzzles.js     擴充題庫：出題、評分，從易到難平均挑題，接在每組最後面
