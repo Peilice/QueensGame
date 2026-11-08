@@ -5,7 +5,6 @@
 // 沒存到的插圖離線時畫不出來，拼圖照樣是紙上的虛線碎片，照樣能玩。
 
 const CACHE = 'hedgehog-v1';
-const FONT_CACHE = 'hedgehog-fonts';
 const TIMEOUT_MS = 4000;
 
 const PRECACHE = [
@@ -13,6 +12,7 @@ const PRECACHE = [
   'index.html',
   'style.css',
   'doodles.svg',
+  'fonts/hedgehog-round.woff2',
   'manifest.webmanifest',
   'apple-touch-icon.png',
   'icons/favicon.svg',
@@ -36,9 +36,6 @@ const PRECACHE = [
   'src/tutorial.js',
 ];
 
-// 字型來自 Google Fonts，第一次載入後存起來；離線又沒存到時退回系統字
-const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
-
 self.addEventListener('install', (event) => {
   // cache: 'reload' 繞過瀏覽器的 HTTP 快取，確保存進去的是伺服器上的最新版
   event.waitUntil(
@@ -53,7 +50,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== FONT_CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });
@@ -62,8 +59,7 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
-  if (FONT_HOSTS.includes(url.hostname)) event.respondWith(cacheFirst(request));
-  else if (url.origin === self.location.origin) event.respondWith(networkFirst(request, event));
+  if (url.origin === self.location.origin) event.respondWith(networkFirst(request, event));
 });
 
 /** 先抓網路並更新快取；離線或逾時就拿快取（網址後的 ?v=3 之類不影響比對） */
@@ -87,14 +83,4 @@ async function networkFirst(request, event) {
   const first = await Promise.race([network.catch(() => null), timeout]);
   if (first) return first;
   return (await cached()) || network;
-}
-
-async function cacheFirst(request) {
-  const cache = await caches.open(FONT_CACHE);
-  const hit = await cache.match(request);
-  if (hit) return hit;
-  const response = await fetch(request);
-  // 跨網域的字型 CSS 可能是 opaque（status 0），一樣存起來
-  if (response.ok || response.type === 'opaque') cache.put(request, response.clone());
-  return response;
 }

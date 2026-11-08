@@ -37,34 +37,34 @@ colors:
   highlighter: "#f3e5a8"
 typography:
   headline:
-    fontFamily: "Huninn, system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
+    fontFamily: "Hedgehog Round, system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
     fontSize: "clamp(3rem, 15vw, 5rem)"
     fontWeight: 400
     lineHeight: 1
     letterSpacing: "0.02em"
   title:
-    fontFamily: "Huninn, system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
+    fontFamily: "Hedgehog Round, system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
     fontSize: "1.4rem"
     fontWeight: 400
   body:
-    fontFamily: "Huninn, system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
+    fontFamily: "Hedgehog Round, system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.5
   rules:
-    fontFamily: "Huninn, system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
+    fontFamily: "Hedgehog Round, system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.8
     letterSpacing: "0.05em"
   pack-heading:
-    fontFamily: "Huninn, system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
+    fontFamily: "Hedgehog Round, system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
     fontSize: "2rem"
     fontWeight: 400
     lineHeight: 1.1
     letterSpacing: "0"
   label:
-    fontFamily: "Huninn, system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
+    fontFamily: "Hedgehog Round, system-ui, -apple-system, \"Segoe UI\", \"Noto Sans TC\", \"PingFang TC\", \"Microsoft JhengHei\", sans-serif"
     fontSize: "0.85rem"
     fontWeight: 400
 rounded:
@@ -131,7 +131,7 @@ components:
 - 深森林綠是唯一的強調色，只用在主要動作、焦點環、選取格和完成標記。
 - 刺蝟是一隻有表情的小角色：棕色刺背、奶油色臉、亮晶晶的眼睛和腮紅，到哪裡都是同一隻。
 - 桌面版的直書規則旁註是這套系統的招牌；手機版改橫書，方便快速掃讀。
-- 字體是粉圓（jf open-huninn）圓體，從 Google Fonts 用一行 `<link>` 載入，不需要建置。
+- 字體是粉圓（jf open-huninn）圓體，自帶一份只留用到的字的子集（`fonts/hedgehog-round.woff2`，約 85 KB），不連外部字型服務。
 
 ## Colors
 
@@ -172,7 +172,7 @@ components:
 
 ## Typography
 
-**Display / Body Font:** Huninn（粉圓），從 Google Fonts 載入（`display=swap`）；fallback 依序為 system-ui、-apple-system、Segoe UI、Noto Sans TC、PingFang TC、Microsoft JhengHei。第一次載入後由 service worker 存起來，離線時沿用；沒存到的字（只會下載畫面上用到的字）退回系統字，照樣能玩。
+**Display / Body Font:** Hedgehog Round，是粉圓（jf open 粉圓 2.1）只留畫面上用到的字的子集（OFL 規定修改版不能沿用「huninn」這個名字，所以改名），由 `npm run font` 產生，`@font-face` 寫在 style.css 開頭（`font-display: swap`），index.html 先 preload。fallback 依序為 system-ui、-apple-system、Segoe UI、Noto Sans TC、PingFang TC、Microsoft JhengHei。字型檔在 service worker 的 PRECACHE 裡，離線第一次打開也有；子集裡沒有的字退回系統字，所以改了文案要重跑 `npm run font`（`npm test` 會擋）。
 
 **Character:** 圓滾滾的繁中圓體，是整體可愛感的主要來源。粉圓只有 400 一種粗細，所以全站關掉合成粗體（`font-synthesis-weight: none`），層次靠字級、顏色和螢光筆；`<strong>` 不加粗，改成底下劃一筆螢光筆。
 

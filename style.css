@@ -1,5 +1,17 @@
 /* 配色依《配色設計.md》v1.1：日系手繪森林繪本，加上貼紙、紙膠帶和一隻圓滾滾的刺蝟。
    只有淺色，沒有深色模式 */
+
+/* 自帶字型：jf open 粉圓只留畫面上用得到的字（npm run font 產生），授權 SIL OFL 1.1，見 fonts/OFL.txt。
+   OFL 規定修改版不能沿用「huninn」這個名字，所以叫 Hedgehog Round。
+   改了文案或幅名要重跑 npm run font，test/font.test.js 會擋漏字 */
+@font-face {
+  font-family: "Hedgehog Round";
+  src: url("fonts/hedgehog-round.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light;
 
@@ -68,7 +80,7 @@ body {
   background: var(--bg) url("doodles.svg") repeat 0 0 / 360px 360px;
   color: var(--text);
   /* 粉圓只有一種粗細，不讓瀏覽器硬加粗；層次靠字級、顏色和螢光筆 */
-  font-family: "Huninn", system-ui, -apple-system, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  font-family: "Hedgehog Round", system-ui, -apple-system, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
   font-synthesis-weight: none;
   line-height: 1.5;
 }

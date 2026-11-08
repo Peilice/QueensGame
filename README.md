@@ -41,6 +41,7 @@ npx serve .
 npm test          # 單元測試
 npm run verify    # 驗證題庫（含教學題）每題皆為唯一解且色塊連通
 npm run icons     # 重新產生主畫面圖示與 favicon（需要電腦上有 Chrome 或 Edge）
+npm run font      # 重新產生自帶字型（需要 Python 與 fontTools：pip install fonttools brotli）
 ```
 
 ## 專案結構
@@ -48,6 +49,7 @@ npm run icons     # 重新產生主畫面圖示與 favicon（需要電腦上有 
 ```
 index.html             頁面骨架
 style.css              樣式（只有淺色）
+fonts/                 自帶字型：粉圓的子集 hedgehog-round.woff2、收了哪些字、OFL 授權
 src/rules.js           規則判定：衝突偵測、過關判定
 src/solver.js          回溯解題器
 src/generator.js       隨機出題：依尺寸＋種子產生唯一解的題目
@@ -70,6 +72,7 @@ scripts/rate-puzzles.js    題目難度評分（照人解題的招式一步步�
 scripts/add-puzzles.js     擴充題庫：出題、評分，從易到難平均挑題，接在每組最後面
 scripts/build-pictures.js  把題目分進新的拼圖（難易分層、位置洗亂），已經分好的不動
 scripts/build-icons.js     由 src/main.js 的刺蝟產生 icons/ 的 SVG 與 PNG 圖示
+scripts/build-font.js      從粉圓只留畫面上用到的字，產生 fonts/ 的字型（收字規則在 scripts/font-chars.js）
 test/                  node --test 單元測試
 ```
 
@@ -82,6 +85,12 @@ test/                  node --test 單元測試
 5. `npm run verify` 與 `npm test`。已經分好的拼圖不能改，否則玩家的碎片會換位置，測試會擋下來。
 
 插圖不預先存進離線快取（太多張），看過的會在抓的時候順便存起來；沒存到的插圖離線時畫不出來，拼圖照樣是紙上的虛線碎片，照樣能玩。
+
+## 字型
+
+字型是 justfont 的 [jf open 粉圓](https://github.com/justfont/open-huninn-font) 2.1（SIL Open Font License 1.1，授權全文在 `fonts/OFL.txt`），自己放在 `fonts/`，不連外部字型服務，離線第一次打開也有。只留 index.html、style.css、src/*.js 裡出現的字（註解不算）和可列印的 ASCII，所以只有 85 KB 左右。OFL 規定修改過的字型不能沿用保留名稱「huninn」「open huninn」，子集算修改，所以字型改名叫 Hedgehog Round，版權與授權說明照舊留在字型裡。
+
+改了畫面上的文字或幅名、多了新的字，就要重跑 `npm run font`，否則新字會退回系統字；`npm test` 會檢查有沒有漏字。字串裡不要寫 `/*`、`*/` 或「空白 // 空白」，收字時會被當成註解。
 
 ## 插圖出處
 
