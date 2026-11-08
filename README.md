@@ -56,7 +56,7 @@ src/generator.js       隨機出題：依尺寸＋種子產生唯一解的題目
 src/game.js            盤面狀態、Undo
 src/album.js           拼圖冊的規則：哪一幅打開了、拼到哪裡、下一片拼哪一片
 src/pictures.js        拼圖：每一幅的名稱、出處、每一片對到哪一題
-src/jigsaw.js          拼圖片的形狀（凸耳由幅的 id 決定）
+src/jigsaw.js          拼圖片的形狀（角點、凸耳由幅的 id 決定）
 pictures/              插圖：<id>.webp 大圖（900px）與 <id>-s.webp 縮圖
 src/puzzles.js         題庫（依尺寸分組，每題 N 個字串，字元代表色塊）
 src/tutorial.js        教學題目與每一步的引導、提示格、完成條件

@@ -2,7 +2,7 @@ import { parsePuzzle, findConflicts, EMPTY, MARK, QUEEN } from './rules.js';
 import { PUZZLES } from './puzzles.js';
 import { PICTURES, GRID, BOOKS } from './pictures.js';
 import * as album from './album.js';
-import { tabs, piecePath, hashSeed, UNIT } from './jigsaw.js';
+import { tabs, piecePath, pieceCenter, pieceBox, hashSeed, UNIT } from './jigsaw.js';
 import { newSeed } from './generator.js';
 import * as storage from './storage.js';
 import * as sound from './sound.js';
@@ -111,7 +111,7 @@ const shelf = { size: null, picture: null };
 let landing = null;
 
 const imageOf = (pic, small = false) => `pictures/${pic.id}${small ? '-s' : ''}.webp`;
-// 每一幅的凸耳由它的 id 決定，畫過就記著
+// 每一幅的形狀（角點、凸耳）由它的 id 決定，畫過就記著
 const shapes = new Map();
 function shapeOf(size, pic) {
   if (!shapes.has(pic.id)) shapes.set(pic.id, tabs(GRID[size], hashSeed(pic.id)));
@@ -252,8 +252,7 @@ function jigsawEl(size, picture, solved, started) {
     `</defs><g clip-path="url(#jig-clip)"><rect class="paper" width="${W}" height="${W}"/>${image}`;
   pic.levels.forEach((index, slot) => {
     if (solved.has(index) && slot !== land) return;
-    const cx = (slot % n) * UNIT + UNIT / 2;
-    const cy = Math.floor(slot / n) * UNIT + UNIT / 2;
+    const [cx, cy] = pieceCenter(n, t, slot).map((v) => +v.toFixed(1));
     svg += `<path class="slot" d="${piecePath(n, t, slot)}"/>`;
     if (slot === land) return;
     svg += `<text class="num" x="${cx}" y="${cy + 10}">${slot + 1}</text>`;
@@ -356,13 +355,17 @@ function thumbSvg(size, picture, solved) {
 function pieceSvg(size, picture, slot) {
   const pic = PICTURES[size][picture];
   const n = GRID[size];
-  const d = piecePath(n, shapeOf(size, pic), slot);
-  const x = (slot % n) * UNIT - 32;
-  const y = Math.floor(slot / n) * UNIT - 32;
+  const t = shapeOf(size, pic);
+  const d = piecePath(n, t, slot);
+  // 以這一片的外框置中，取一個 164 見方（片大一點就放大取景）的正方形
+  const box = pieceBox(n, t, slot);
+  const side = Math.max(164, box.w + 8, box.h + 8);
+  const x = +(box.x + box.w / 2 - side / 2).toFixed(1);
+  const y = +(box.y + box.h / 2 - side / 2).toFixed(1);
   const W = n * UNIT;
   return (
-    `<svg viewBox="${x} ${y} 164 164"><defs><clipPath id="win-clip"><path d="${d}"/></clipPath></defs>` +
-    `<g clip-path="url(#win-clip)"><rect class="paper" x="${x}" y="${y}" width="164" height="164"/>` +
+    `<svg viewBox="${x} ${y} ${side} ${side}"><defs><clipPath id="win-clip"><path d="${d}"/></clipPath></defs>` +
+    `<g clip-path="url(#win-clip)"><rect class="paper" x="${x}" y="${y}" width="${side}" height="${side}"/>` +
     `<image href="${imageOf(pic)}" width="${W}" height="${W}" preserveAspectRatio="xMidYMid slice"/></g>` +
     `<path class="edge" d="${d}"/></svg>`
   );
