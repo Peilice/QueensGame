@@ -16,7 +16,7 @@ LinkedIn Queens 風格的邏輯解謎遊戲（棋子換成刺蝟），純 HTML�
 - 「上一步」可撤銷上一個操作（一次拖曳、一次重來都算一步）
 - 拿不定時按「標記」先試放：之後畫的都是虛線，按「留下」就算數，按「擦掉」回到試放之前
 - 列表最上面的「怎麼玩」是一分鐘的互動教學，在 5×5 小盤上照著引導做一遍
-- 每一頁右上角的喇叭點開是聲音設定，音效和背景音樂分開開關，都預設打開；音效和音樂全部用 Web Audio 當場合成，沒有音檔
+- 每一頁右上角的喇叭點開是聲音設定，音效和背景音樂分開開關，都預設打開；音效用 Web Audio 當場合成，背景音樂是三首 Kevin MacLeod 的輕快小曲（`music/`）隨機輪流播
 - 「怎麼玩」下面的「解題技巧」（`#tips`）用 9 張小盤圖解，由淺到深介紹常用的推理；遊戲中「規則」最後一行也連得到
 
 固定題目做成蒐集拼圖：6×6、7×7、8×8、9×9 四個尺寸各是一本拼圖冊，每本有好幾幅公有領域的插畫，一幅切成 3×3（6×6）、4×4（7×7）或 5×5（8×8、9×9）片，一片就是一題，解完就拼上那一片。目前共 85 幅、1445 題。題目不照難度排，每一幅都是難易混著。一次開一幅：拼完一幅才打開同一本的下一幅，四本各自獨立；打開的那一幅裡哪一片都能先拼。列表上方分成「拼圖」和「隨機難度」兩頁。「隨機難度」選一個尺寸，瀏覽器當場出一題唯一解的新題目，網址（如 `#r7-1k2f9x`）帶著種子，分享出去對方玩到的是同一題。
@@ -62,8 +62,9 @@ src/puzzles.js         題庫（依尺寸分組，每題 N 個字串，字元代
 src/tutorial.js        教學題目與每一步的引導、提示格、完成條件
 src/tips.js            解題技巧的說明與圖解（色塊、墨跡、提示格都用字串畫）
 src/storage.js         localStorage 進度存取
-src/sound.js           音效：Web Audio 合成，不用音檔
-src/music.js           背景音樂：Web Audio 合成的輕快小曲，和音效共用 AudioContext
+src/sound.js           音效：Web Audio 合成（木琴、鐵琴、木魚、鉛筆），不用音檔
+src/music.js           背景音樂：隨機輪流播 music/ 的音檔，接進音效的 AudioContext
+music/                 背景音樂音檔（96 kbps mp3，音量已對齊）
 sw.js                  service worker：離線遊玩（新增檔案時要加進 PRECACHE，npm test 會檢查）
 src/session.js         一局（拼圖的一片、隨機題、教學）：網址要打開什麼、每一步存什麼、過關後去哪
 src/main.js            畫面與操作（照 session 的結果畫、出聲）
@@ -84,7 +85,7 @@ test/                  node --test 單元測試
 4. `node scripts/build-pictures.js` 替新拼圖分題，同時更新 `test/pictures-lock.json`。
 5. `npm run verify` 與 `npm test`。已經分好的拼圖不能改，否則玩家的碎片會換位置，測試會擋下來。
 
-插圖不預先存進離線快取（太多張），看過的會在抓的時候順便存起來；沒存到的插圖離線時畫不出來，拼圖照樣是紙上的虛線碎片，照樣能玩。
+插圖不預先存進離線快取（太多張），看過的會在抓的時候順便存起來；沒存到的插圖離線時畫不出來，拼圖照樣是紙上的虛線碎片，照樣能玩。背景音樂也不存進離線快取，service worker 完全不攔 `music/`（`<audio>` 分段抓檔，交給瀏覽器最穩），離線時就是沒有音樂。
 
 ## 字型
 
@@ -101,6 +102,14 @@ test/                  node --test 單元測試
 - Ernst Kreidolf（1863–1956）：*Alpenblumenmärchen*（1922）。台灣、美國已是公有領域，歐盟要到 2027 年
 - Ida Rentoul Outhwaite（1888–1960）：*Fairyland*（1926）。台灣、美國已是公有領域，澳洲、英國、歐盟要到 2031 年
 - Beatrix Potter（1866–1943）：*The Tale of Squirrel Nutkin*（1903）、*The Tale of Benjamin Bunny*（1904）、*The Tale of Tom Kitten*（1907）、*The Tale of Jemima Puddle-Duck*（1908），多倫多大學圖書館的早期版本掃描。角色名稱是出版社的商標，遊戲裡的幅名不用角色名
+
+## 背景音樂出處
+
+三首都是 Kevin MacLeod（[incompetech.com](https://incompetech.com/)）的作品，以 [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) 授權，檔案取自 Wikimedia Commons。轉成 96 kbps mp3、剪掉頭尾靜音、三首調成一樣的平均音量，內容沒有其他修改。CC BY 規定要標註作者，所以遊戲裡的聲音設定紙卡最底下也寫了出處。
+
+- *Carefree* — [File:Kevin_MacLeod_-_Carefree.ogg](https://commons.wikimedia.org/wiki/File:Kevin_MacLeod_-_Carefree.ogg)
+- *Monkeys Spinning Monkeys* — [File:Kevin_MacLeod_-_Monkeys_Spinning_Monkeys.ogg](https://commons.wikimedia.org/wiki/File:Kevin_MacLeod_-_Monkeys_Spinning_Monkeys.ogg)
+- *Cattails* — [File:Kevin_MacLeod_-_Cattails.mp3](https://commons.wikimedia.org/wiki/File:Kevin_MacLeod_-_Cattails.mp3)
 
 ## 部署到 GitHub Pages
 

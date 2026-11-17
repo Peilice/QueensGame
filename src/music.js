@@ -1,75 +1,41 @@
-// 背景音樂：和音效一樣用 Web Audio 當場合成，不下載音檔，離線也一樣有音樂。
-// C 大調五聲音階、92 BPM，八個和弦各一小節一輪約 21 秒。弦樂旋律每兩小節換一個節奏、在五聲音階上一格一格走，
-// 底下是第 1、3 拍的低音和 2、4 拍輕刷的和弦，不用任何打擊聲；旋律每次隨機，不會有兩輪一樣。
-// 預設打開、全站都播；AudioContext 由 sound.js 管，音樂走自己的那一條音量線路，和音效分開開關。
+// 背景音樂：Kevin MacLeod 的三首輕快小曲（music/，CC BY 3.0，出處見 README 和聲音設定紙卡），隨機輪流播。
+// 音檔用 <audio> 邊下載邊播，不整首解碼（一首解開來要好幾十 MB，手機吃不消），再接進 sound.js 的 AudioContext，
+// 走音樂自己的那一條音量線路，和音效分開開關；標記中加一層低通、過關時讓位，都在這條線路上做。
+// 音檔不預先存進離線快取（sw.js 不攔 music/），離線又沒抓過時就是沒有音樂，遊戲照樣能玩。
 
 import * as sound from './sound.js';
 
-const BPM = 92;
-const STEP = 60 / BPM / 2; // 八分音符
-const BAR = 8; // 一小節八個八分音符，每個和弦一小節
+export const TRACKS = ['music/carefree.mp3', 'music/monkeys-spinning-monkeys.mp3', 'music/cattails.mp3'];
+// 三首在轉檔時已經調成一樣的平均音量（RMS 約 0.11）；這裡再壓到和音效搭配起來剛好的大小
+const LEVEL = 0.45;
 const FADE_IN = 2;
-
-export const hz = (m) => 440 * 2 ** ((m - 69) / 12);
-
-// pc：這個和弦撥旋律用的五聲音階（音名 0–11）；過關的音階也從 root 沿著它往上爬
-const C = { name: 'C', root: 0, bass: 48, pad: [60, 64, 67], pc: [0, 2, 4, 7, 9] };
-const Am = { name: 'Am', root: 9, bass: 45, pad: [57, 60, 64], pc: [9, 0, 2, 4, 7] };
-const F = { name: 'F', root: 5, bass: 41, pad: [57, 60, 65], pc: [5, 7, 9, 0, 2] };
-const G = { name: 'G', root: 7, bass: 43, pad: [59, 62, 67], pc: [7, 9, 11, 2, 4] };
-export const CHORDS = [C, G, Am, F, C, F, G, C];
-const LOOP = CHORDS.length * BAR;
-// 一小節裡哪幾格要敲；每兩小節用同一個節奏，一問一答
-const RHYTHMS = [[0, 2, 3, 4, 6], [0, 1, 2, 4, 6, 7], [0, 3, 4, 6], [0, 2, 4, 5, 6], [0, 2, 3, 5, 6, 7]];
-
-/** 從 lo 到 hi 之間、音名在 pc 裡的音 */
-export function notesIn(pc, lo, hi) {
-  const out = [];
-  for (let m = lo; m <= hi; m++) if (pc.includes(m % 12)) out.push(m);
-  return out;
-}
-
-/** 過關音階：從這個和弦的根音（C5 附近）沿著它的五聲音階往上爬 count 個音 */
-export function climb(chord, count) {
-  const lo = 72 + chord.root - (chord.root > 4 ? 12 : 0);
-  return notesIn(chord.pc, lo, lo + 36).slice(0, count);
-}
+const TAIL = 1.5; // 一首快播完時淡出，接下一首
 
 /**
- * 一小節的旋律：在 rhythm 的每一格上，沿著五聲音階往上或往下走一兩格；第一拍落在和弦內音。
- * 回傳 Map（第幾格 → 音）和最後一個音，下一小節從那裡接著走。標記中只留第 1、3 拍
+ * 下一首：一輪裡每首都播過一次才重來，換輪時也不會連著兩次同一首。
+ * played 是這一輪已經播過的，回傳 { next, played }
  */
-export function planBar(chord, rhythm, lastNote, trying, random = Math.random) {
-  const slots = trying ? rhythm.filter((s) => s % 4 === 0) : rhythm;
-  const pool = notesIn(chord.pc, 67, 86);
-  const nearest = (m) => pool.reduce((best, x, i) => (Math.abs(x - m) < Math.abs(pool[best] - m) ? i : best), 0);
-  let idx = lastNote == null ? Math.floor(pool.length / 2) : nearest(lastNote);
-  const plan = new Map();
-  for (const s of slots) {
-    if (s === 0) {
-      const tones = pool.flatMap((m, i) => ([chord.root, chord.pc[1], chord.pc[2]].includes(m % 12) ? [i] : []));
-      idx = tones.reduce((best, i) => (Math.abs(i - idx) < Math.abs(best - idx) ? i : best));
-    } else {
-      idx += [-2, -1, -1, 1, 1, 1, 2][Math.floor(random() * 7)];
-      idx = Math.max(0, Math.min(pool.length - 1, idx));
-    }
-    plan.set(s, pool[idx]);
+export function pick(played, last, random = Math.random) {
+  let left = TRACKS.filter((t) => !played.includes(t));
+  if (left.length === 0) {
+    played = [];
+    left = TRACKS.filter((t) => t !== last);
   }
-  return { plan, last: pool[idx] ?? lastNote };
+  const next = left[Math.floor(random() * left.length)];
+  return { next, played: [...played, next] };
 }
 
 let enabled = false;
-let trying = false;
+let el = null; // 唯一一個 <audio>：換曲只換 src，iOS 第一次在手勢裡播過之後就能一直播下去
 let a = null; // sound.audio()：{ ctx, bus }
 let mood = null; // 標記中把高頻濾掉，音樂像隔著一層紙
-let fade = null; // 淡入淡出、過關讓位
-let timer = null;
-let step = 0;
-let nextTime = 0;
-let rhythm = RHYTHMS[0];
-let bar = new Map();
-let lastNote = null;
-let chordLog = []; // [{ t, i }]：什麼時候換到第幾個和弦，過關時查「現在」是哪個
+let fade = null; // 淡入淡出、換曲
+let duck = null; // 過關讓位
+let playing = false;
+let played = [];
+let last = null;
+let switching = false;
+let pauseTimer = null;
 
 /** 開或關；打開後要等 wake() 才開始播，打開網址時不會突然響 */
 export function setEnabled(on) {
@@ -78,164 +44,87 @@ export function setEnabled(on) {
   if (!on) stop();
 }
 
-/** 在使用者手勢裡、或回到前景時呼叫：音樂開著但還沒在播，就開始播 */
+/** 在使用者手勢裡、或回到前景時呼叫：音樂開著但還沒在播，就接著上次的位置淡入 */
 export function wake() {
-  if (!enabled || timer) return;
+  if (!enabled || playing) return;
   a = sound.audio();
   if (!a) return;
-  if (!mood) {
-    mood = a.ctx.createBiquadFilter();
-    mood.type = 'lowpass';
-    mood.Q.value = 0.5;
-    fade = a.ctx.createGain();
-    fade.gain.value = 0.0001;
-    mood.connect(fade).connect(a.bus);
-  }
-  mood.frequency.value = trying ? 1200 : 8000;
-  restart(a.ctx.currentTime + 0.05);
-  timer = setInterval(tick, 25);
-  tick();
+  if (!el) setup();
+  clearTimeout(pauseTimer);
+  playing = true;
+  if (!el.src) load();
+  el.play().catch(() => (playing = false));
+  fadeTo(1, FADE_IN);
 }
 
-/** 淡出、停下排程；切到背景時也用這個 */
+/** 淡出、暫停；切到背景時也用這個，回來從同一個地方接著播 */
 export function stop(time = 0.6) {
-  if (!timer) return;
-  clearInterval(timer);
-  timer = null;
-  fadeTo(0.0001, a.ctx.currentTime, time);
+  if (!playing) return;
+  playing = false;
+  fadeTo(0.0001, time);
+  clearTimeout(pauseTimer);
+  pauseTimer = setTimeout(() => !playing && el.pause(), time * 1000 + 50);
 }
 
-/** 標記中：音樂變悶，旋律只留第 1、3 拍 */
+/** 標記中：音樂變悶 */
 export function setTrial(on) {
-  if (trying === on) return;
-  trying = on;
   mood?.frequency.setTargetAtTime(on ? 1200 : 8000, a.ctx.currentTime, 0.4);
 }
 
-/** 過關：音樂讓位給刺蝟的音階；蓋章（stampAt 秒後）之後再停一小節，從第一個和弦淡入新的一輪 */
+/** 過關：音樂壓到兩成讓刺蝟的音階和蓋章出來，蓋章（stampAt 秒後）一秒半之後慢慢回來 */
 export function win(stampAt) {
-  if (!timer) return;
-  const now = a.ctx.currentTime;
-  fadeTo(0.0001, now, 0.3);
-  restart(now + stampAt + BAR * STEP);
+  if (!duck) return;
+  const t = a.ctx.currentTime;
+  duck.gain.cancelScheduledValues(t);
+  duck.gain.setTargetAtTime(0.2, t, 0.08);
+  duck.gain.setTargetAtTime(1, t + stampAt + 1.5, 0.6);
 }
 
-/** 過關音階的頻率：從現在這個和弦起跳，音樂沒在播就從 C 開始 */
-export function cheerNotes(count) {
-  return climb(timer ? currentChord() : C, count).map(hz);
+function setup() {
+  el = new Audio();
+  el.preload = 'auto';
+  mood = a.ctx.createBiquadFilter();
+  mood.type = 'lowpass';
+  mood.frequency.value = 8000;
+  mood.Q.value = 0.5;
+  fade = a.ctx.createGain();
+  fade.gain.value = 0.0001;
+  duck = a.ctx.createGain();
+  const level = a.ctx.createGain();
+  level.gain.value = LEVEL;
+  a.ctx.createMediaElementSource(el).connect(mood).connect(level).connect(fade).connect(duck).connect(a.bus);
+  // 快播完時淡出、接下一首；抓不到（離線）就停在那裡，不一直重試
+  el.addEventListener('timeupdate', () => {
+    if (playing && !switching && el.duration - el.currentTime < TAIL) next();
+  });
+  el.addEventListener('ended', () => playing && next());
+  el.addEventListener('error', () => {
+    playing = false;
+    el.removeAttribute('src'); // 下次 wake() 換一首重抓
+  });
 }
 
-function currentChord() {
-  const now = a.ctx.currentTime;
-  let i = 0;
-  for (const c of chordLog) if (c.t <= now) i = c.i;
-  return CHORDS[i];
+function load() {
+  ({ next: last, played } = pick(played, last));
+  el.src = last;
 }
 
-/** 從第一個和弦重新開始，在 at 那一刻淡入 */
-function restart(at) {
-  step = 0;
-  nextTime = at;
-  lastNote = null;
-  chordLog = [];
-  fade.gain.setValueAtTime(0.0001, at);
-  fade.gain.exponentialRampToValueAtTime(1, at + FADE_IN);
+function next() {
+  switching = true;
+  fadeTo(0.0001, TAIL * 0.8);
+  setTimeout(() => {
+    switching = false;
+    if (!playing) return;
+    load();
+    el.play().catch(() => (playing = false));
+    fadeTo(1, FADE_IN);
+  }, TAIL * 1000);
 }
 
-function fadeTo(value, at, time) {
+function fadeTo(value, time) {
   const g = fade.gain;
-  g.cancelScheduledValues(at);
-  g.setValueAtTime(Math.max(g.value, 0.0001), at);
-  g.exponentialRampToValueAtTime(value, at + time);
-}
-
-/** 每 25ms 往前排 0.15 秒內要響的音，切到別的分頁計時器變慢也不會斷拍 */
-function tick() {
-  while (nextTime < a.ctx.currentTime + 0.15) {
-    playStep(step, nextTime);
-    nextTime += STEP;
-    step = (step + 1) % LOOP;
-  }
-}
-
-function playStep(s, t) {
-  const i = Math.floor(s / BAR);
-  const chord = CHORDS[i];
-  const pos = s % BAR;
-  if (pos === 0) {
-    chordLog.push({ t, i });
-    if (chordLog.length > CHORDS.length) chordLog.shift();
-    if (i % 2 === 0) rhythm = RHYTHMS[Math.floor(Math.random() * RHYTHMS.length)];
-    ({ plan: bar, last: lastNote } = planBar(chord, rhythm, lastNote, trying));
-  }
-  // 低音在第 1、3 拍，第 3 拍彈五度；和弦在 2、4 拍輕輕刷一下
-  if (pos === 0) bass(chord.bass, t, 0.5);
-  if (pos === 4) bass(chord.bass + 7, t, 0.35);
-  if (pos === 2 || pos === 6) for (const m of chord.pad) strum(m, t, STEP * 1.6);
-  const m = bar.get(pos);
-  // 稍微不準時一點，聽起來比較像人在敲
-  if (m != null) bow(m, t + Math.random() * 0.015, (pos === 0 ? 0.14 : 0.11) + Math.random() * 0.03);
-}
-
-/** 起音快、指數衰減的包絡，接到標記中的濾波器 */
-function envelope(t, gain, attack, release) {
-  const env = a.ctx.createGain();
-  env.gain.setValueAtTime(0.0001, t);
-  env.gain.exponentialRampToValueAtTime(gain, t + attack);
-  env.gain.exponentialRampToValueAtTime(0.0001, t + release);
-  env.connect(mood);
-  return env;
-}
-
-function osc(freq, t, dur, out, type = 'sine') {
-  const o = a.ctx.createOscillator();
-  o.type = type;
-  o.frequency.value = freq;
-  o.connect(out);
-  o.start(t);
-  o.stop(t + dur + 0.05);
-}
-
-/**
- * 旋律：弦樂，兩條稍微走音的鋸齒波疊起來像一小組人在拉，濾掉刺耳的高頻、加一點揉弦；
- * 弓拉進來的起音柔、沒有「敲」的那一下，不會一直把耳朵拉過去；尾巴夠短，跟得上輕快的節奏
- */
-function bow(m, t, gain) {
-  const dur = 1;
-  const lp = a.ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.frequency.value = 1800;
-  lp.Q.value = 0.7;
-  lp.connect(envelope(t, gain, 0.08, dur));
-  const vibrato = a.ctx.createOscillator();
-  const depth = a.ctx.createGain();
-  vibrato.frequency.value = 5.5;
-  depth.gain.value = 6; // cents
-  vibrato.connect(depth);
-  vibrato.start(t);
-  vibrato.stop(t + dur + 0.05);
-  for (const cents of [-5, 5]) {
-    const o = a.ctx.createOscillator();
-    o.type = 'sawtooth';
-    o.frequency.value = hz(m);
-    o.detune.value = cents;
-    depth.connect(o.detune);
-    o.connect(lp);
-    o.start(t);
-    o.stop(t + dur + 0.05);
-  }
-}
-
-/** 低音：彈一下就收，給整首一點彈跳感 */
-function bass(m, t, gain) {
-  osc(hz(m), t, 0.35, envelope(t, gain, 0.01, 0.35));
-}
-
-/** 和弦：很輕的短和音，像吉他輕刷 */
-function strum(m, t, dur) {
-  const lp = a.ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.frequency.value = 2200;
-  lp.connect(envelope(t, trying ? 0.05 : 0.07, 0.02, dur));
-  osc(hz(m), t, dur, lp, 'triangle');
+  const t = a.ctx.currentTime;
+  g.cancelScheduledValues(t);
+  g.setValueAtTime(Math.max(g.value, 0.0001), t);
+  g.exponentialRampToValueAtTime(value, t + time);
 }

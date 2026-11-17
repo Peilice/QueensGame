@@ -3,6 +3,8 @@
 // 所以每次部署不必手動改版號；PRECACHE 只要和實際檔案一致即可（test/sw.test.js 會檢查）。
 // 拼圖插圖（pictures/）太多張，不預先存；看過的那幾張會在抓的時候順便存進快取，
 // 沒存到的插圖離線時畫不出來，拼圖照樣是紙上的虛線碎片，照樣能玩。
+// 背景音樂（music/）也不預先存，而且完全不經過 service worker：<audio> 是一段一段抓的（Range），
+// 交給瀏覽器自己處理最穩；離線時就是沒有音樂。
 
 const CACHE = 'hedgehog-v1';
 const TIMEOUT_MS = 4000;
@@ -59,7 +61,8 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
-  if (url.origin === self.location.origin) event.respondWith(networkFirst(request, event));
+  if (url.origin !== self.location.origin || url.pathname.includes('/music/')) return;
+  event.respondWith(networkFirst(request, event));
 });
 
 /** 先抓網路並更新快取；離線或逾時就拿快取（網址後的 ?v=3 之類不影響比對） */

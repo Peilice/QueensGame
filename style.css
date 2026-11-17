@@ -295,6 +295,16 @@ main {
 }
 .switch[aria-checked="true"] .track { background: var(--accent); box-shadow: none; }
 .switch[aria-checked="true"] .track::after { transform: translateX(16px); }
+/* 背景音樂的出處（CC BY 要求）：紙卡最底下一行小字，不搶開關 */
+.audio-menu .credit {
+  margin: 4px 12px 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.audio-menu .credit a { color: inherit; }
 
 /* ---------- 遊戲版面：手機由上而下是棋盤、操作、規則（拇指順手）；桌面規則在棋盤右方 ---------- */
 

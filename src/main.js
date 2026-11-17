@@ -665,9 +665,9 @@ function showWin({ title, seal, next: target, list, piece: got, note = '' }) {
   const panelAt = reducedMotion.matches ? 0 : queens.length * 90 + 180;
   const stampAt = reducedMotion.matches ? 0 : panelAt + 240;
   // 刺蝟跳一隻響一個音，印章壓到紙上（stamp 動畫的 60%）時「咚」；沒有動畫時音階一口氣跑完再蓋章。
-  // 背景音樂先讓位，音階從音樂當下的和弦起跳，蓋章後停一小節再重新淡入
+  // 背景音樂壓低讓位，蓋章後慢慢回來
   const stampSound = reducedMotion.matches ? queens.length * 0.05 + 0.15 : (stampAt + 250) / 1000;
-  sound.play('cheer', music.cheerNotes(queens.length), reducedMotion.matches ? 0.05 : 0.09);
+  sound.play('cheer', queens.length, reducedMotion.matches ? 0.05 : 0.09);
   sound.play('stamp', stampSound);
   music.win(stampSound);
   winTimers.push(
@@ -872,7 +872,7 @@ sound.setEnabled(storage.getSound());
 music.setEnabled(storage.getMusic());
 showAudio();
 
-// 打開音效時「啵」一聲當作確認；打開音樂時從頭淡入
+// 打開音效時放刺蝟的那一聲當作確認；打開音樂時淡入
 $('sfx-switch').addEventListener('click', () => {
   const on = !storage.getSound();
   storage.setSound(on);
