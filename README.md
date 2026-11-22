@@ -35,7 +35,7 @@ npx serve .
 
 ## 測試
 
-需要 Node.js 18 以上，不需安裝任何套件。
+需要 Node.js 20.11 以上（`scripts/` 裡的工具用到 `import.meta.dirname`），不需安裝任何套件。
 
 ```sh
 npm test          # 單元測試
@@ -50,25 +50,25 @@ npm run font      # 重新產生自帶字型（需要 Python 與 fontTools：pip
 index.html             頁面骨架
 style.css              樣式（只有淺色）
 fonts/                 自帶字型：粉圓的子集 hedgehog-round.woff2、收了哪些字、OFL 授權
-src/rules.js           規則判定：衝突偵測、過關判定
-src/solver.js          回溯解題器
-src/generator.js       隨機出題：依尺寸＋種子產生唯一解的題目
-src/random.js          可重現的種子亂數（出題、拼圖形狀共用）
+src/main.js            畫面與操作（照 session 的結果畫、出聲）
+src/session.js         一局（拼圖的一片、隨機題、教學）：網址要打開什麼、每一步存什麼、過關後去哪
 src/game.js            盤面狀態、Undo
+src/rules.js           規則判定：衝突偵測、過關判定
 src/album.js           拼圖冊的規則：哪一幅打開了、拼到哪裡、下一片拼哪一片
-src/pictures.js        拼圖：每一幅的名稱、出處、每一片對到哪一題
-src/jigsaw.js          拼圖片的形狀（角點、凸耳由幅的 id 決定）
-pictures/              插圖：<id>.webp 大圖（900px）與 <id>-s.webp 縮圖
-src/puzzles.js         題庫（依尺寸分組，每題 N 個字串，字元代表色塊）
 src/tutorial.js        教學題目與每一步的引導、提示格、完成條件
+src/generator.js       隨機出題：依尺寸＋種子產生唯一解的題目
+src/solver.js          回溯解題器
+src/jigsaw.js          拼圖片的形狀（角點、凸耳由幅的 id 決定）
+src/random.js          可重現的種子亂數（出題、拼圖形狀共用）
+src/puzzles.js         題庫（依尺寸分組，每題 N 個字串，字元代表色塊）
+src/pictures.js        拼圖：每一幅的名稱、出處、每一片對到哪一題
 src/tips.js            解題技巧的說明與圖解（色塊、墨跡、提示格都用字串畫）
 src/storage.js         localStorage 進度存取
 src/sound.js           音效：Web Audio 合成（木琴、鐵琴、木魚、鉛筆），不用音檔
 src/music.js           背景音樂：隨機輪流播 music/ 的音檔，接進音效的 AudioContext
+pictures/              插圖：<id>.webp 大圖（900px）與 <id>-s.webp 縮圖
 music/                 背景音樂音檔（96 kbps mp3，音量已對齊）
 sw.js                  service worker：離線遊玩（新增檔案時要加進 PRECACHE，npm test 會檢查）
-src/session.js         一局（拼圖的一片、隨機題、教學）：網址要打開什麼、每一步存什麼、過關後去哪
-src/main.js            畫面與操作（照 session 的結果畫、出聲）
 scripts/verify-puzzles.js  題庫驗證
 scripts/rate-puzzles.js    題目難度評分（照人解題的招式一步步推）
 scripts/add-puzzles.js     擴充題庫：出題、評分，從易到難平均挑題，接在每組最後面
