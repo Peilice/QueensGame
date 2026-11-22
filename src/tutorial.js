@@ -71,7 +71,7 @@ export const STEPS = [
   },
 ];
 
-export function isDone(step, puzzle, board, trial = null) {
+function isDone(step, puzzle, board, trial = null) {
   return step.done ? step.done(puzzle, board, trial) : step.cells.every((i) => board[i] === step.want);
 }
 

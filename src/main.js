@@ -10,9 +10,17 @@ import * as music from './music.js';
 import { targets } from './tutorial.js';
 import { TIPS, cellsOf } from './tips.js';
 import * as play from './session.js';
-import { levelId, randomId, solvedIn, startedIn } from './session.js';
+
+const { levelId, randomId, solvedIn, startedIn } = play;
 
 const $ = (id) => document.getElementById(id);
+
+/** 重播一次 CSS 動畫：拿掉 class、強制重排，再加回去 */
+function replay(el, cls) {
+  el.classList.remove(cls);
+  void el.offsetWidth;
+  el.classList.add(cls);
+}
 
 // 聲音設定的紙卡用 popover；舊瀏覽器沒有，連 :popover-open 這個選擇器都會丟例外，所以先問清楚
 const POPOVER = 'popover' in HTMLElement.prototype;
@@ -97,7 +105,7 @@ function route() {
 }
 
 function go(target) {
-  location.hash = target === null ? '' : levelId(target.size, target.index);
+  location.hash = levelId(target.size, target.index);
 }
 
 /** 回列表：從隨機題回來就回到「隨機難度」那一頁 */
@@ -445,9 +453,7 @@ function coach(text) {
   if (el.textContent === text) return;
   el.textContent = text;
   // 換一步時引導文字輕輕浮上來，讓人注意到換了
-  el.classList.remove('fresh');
-  void el.offsetWidth;
-  el.classList.add('fresh');
+  replay(el, 'fresh');
 }
 
 function buildBoard(puzzle) {
@@ -784,13 +790,7 @@ $('keep').addEventListener('click', () => {
   if (!game.keep()) return;
   afterChange();
   // 虛線描成實線：輕輕定下來
-  if (!reducedMotion.matches) {
-    for (const i of kept) {
-      cells[i].classList.remove('settle');
-      void cells[i].offsetWidth;
-      cells[i].classList.add('settle');
-    }
-  }
+  if (!reducedMotion.matches) for (const i of kept) replay(cells[i], 'settle');
 });
 
 $('erase').addEventListener('click', () => {
@@ -937,12 +937,7 @@ document.addEventListener('visibilitychange', () => {
 document.querySelectorAll('span.hedgehog').forEach((el) => (el.innerHTML = hedgehogSvg()));
 
 // 刊頭的刺蝟：戳一下會跳起來
-$('mascot').addEventListener('click', (e) => {
-  const el = e.currentTarget;
-  el.classList.remove('hop');
-  void el.offsetWidth;
-  el.classList.add('hop');
-});
+$('mascot').addEventListener('click', (e) => replay(e.currentTarget, 'hop'));
 
 // 拼好的片重玩：存檔盤面已在破關時清除，因此會從空盤面開始。
 window.addEventListener('hashchange', route);

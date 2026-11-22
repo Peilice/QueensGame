@@ -12,7 +12,10 @@ function load() {
   return { solved: [], boards: {}, trials: {}, random: { current: {}, solved: {} } };
 }
 
-function save(data) {
+/** 讀出存檔、交給 change 改、再存回去 */
+function update(change) {
+  const data = load();
+  change(data);
   try {
     localStorage.setItem(KEY, JSON.stringify(data));
   } catch {}
@@ -23,11 +26,11 @@ export function getSolved() {
 }
 
 export function markSolved(level) {
-  const data = load();
-  if (!data.solved.includes(level)) data.solved.push(level);
-  delete data.boards[level];
-  delete data.trials[level];
-  save(data);
+  update((data) => {
+    if (!data.solved.includes(level)) data.solved.push(level);
+    delete data.boards[level];
+    delete data.trials[level];
+  });
 }
 
 export function getBoard(level) {
@@ -40,18 +43,11 @@ export function getTrial(level) {
 }
 
 export function saveBoard(level, board, trial = null) {
-  const data = load();
-  data.boards[level] = board;
-  if (trial) data.trials[level] = trial;
-  else delete data.trials[level];
-  save(data);
-}
-
-export function clearBoard(level) {
-  const data = load();
-  delete data.boards[level];
-  delete data.trials[level];
-  save(data);
+  update((data) => {
+    data.boards[level] = board;
+    if (trial) data.trials[level] = trial;
+    else delete data.trials[level];
+  });
 }
 
 /** 所有未完成盤面，以關卡 id 為 key */
@@ -59,29 +55,28 @@ export function getBoards() {
   return load().boards;
 }
 
-
 /** 某尺寸玩到一半的隨機題：{ seed, board }，標記中離開的多一個 trial；沒有則為 null */
 export function getRandom(size) {
   return load().random.current[size] ?? null;
 }
 
 export function saveRandom(size, seed, board, trial = null) {
-  const data = load();
-  data.random.current[size] = trial ? { seed, board, trial } : { seed, board };
-  save(data);
+  update((data) => {
+    data.random.current[size] = trial ? { seed, board, trial } : { seed, board };
+  });
 }
 
 export function clearRandom(size) {
-  const data = load();
-  delete data.random.current[size];
-  save(data);
+  update((data) => {
+    delete data.random.current[size];
+  });
 }
 
 export function markRandomSolved(size) {
-  const data = load();
-  delete data.random.current[size];
-  data.random.solved[size] = (data.random.solved[size] ?? 0) + 1;
-  save(data);
+  update((data) => {
+    delete data.random.current[size];
+    data.random.solved[size] = (data.random.solved[size] ?? 0) + 1;
+  });
 }
 
 /** 各尺寸解過幾題隨機題，以尺寸為 key */
@@ -95,9 +90,7 @@ export function getRulesOpen() {
 }
 
 export function setRulesOpen(open) {
-  const data = load();
-  data.rulesOpen = open;
-  save(data);
+  update((data) => (data.rulesOpen = open));
 }
 
 /** 音效開關：預設打開，玩家自己關掉才安靜 */
@@ -106,9 +99,7 @@ export function getSound() {
 }
 
 export function setSound(on) {
-  const data = load();
-  data.sound = on;
-  save(data);
+  update((data) => (data.sound = on));
 }
 
 /** 背景音樂開關：和音效分開，一樣預設打開 */
@@ -117,7 +108,5 @@ export function getMusic() {
 }
 
 export function setMusic(on) {
-  const data = load();
-  data.music = on;
-  save(data);
+  update((data) => (data.music = on));
 }

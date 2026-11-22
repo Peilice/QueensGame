@@ -53,6 +53,7 @@ fonts/                 自帶字型：粉圓的子集 hedgehog-round.woff2、收
 src/rules.js           規則判定：衝突偵測、過關判定
 src/solver.js          回溯解題器
 src/generator.js       隨機出題：依尺寸＋種子產生唯一解的題目
+src/random.js          可重現的種子亂數（出題、拼圖形狀共用）
 src/game.js            盤面狀態、Undo
 src/album.js           拼圖冊的規則：哪一幅打開了、拼到哪裡、下一片拼哪一片
 src/pictures.js        拼圖：每一幅的名稱、出處、每一片對到哪一題

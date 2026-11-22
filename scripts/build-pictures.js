@@ -11,7 +11,8 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { PUZZLES } from '../src/puzzles.js';
 import { PICTURES, GRID, BOOKS } from '../src/pictures.js';
-import { seeded, hashSeed } from '../src/jigsaw.js';
+import { seeded } from '../src/random.js';
+import { hashSeed } from '../src/jigsaw.js';
 import { rate } from './rate-puzzles.js';
 
 // 改版前每個尺寸的題數：這些題目優先分給最前面的拼圖

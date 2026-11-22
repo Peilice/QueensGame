@@ -1,19 +1,8 @@
 // 隨機出題：同一個尺寸＋種子永遠產生同一題，網址帶著種子就能重現、分享。
 import { countSolutions } from './solver.js';
+import { seeded } from './random.js';
 
 const LETTERS = 'ABCDEFGHIJ';
-
-/** mulberry32：小而快的可重現亂數，回傳 [0, 1) */
-function rng(seed) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 const pick = (rand, list) => list[Math.floor(rand() * list.length)];
 
@@ -156,7 +145,7 @@ function toRows(size, regions) {
 
 /** 產生一題唯一解、色塊連通的 size×size 題目，回傳和題庫一樣的字串陣列 */
 export function generate(size, seed) {
-  const rand = rng(seed);
+  const rand = seeded(seed);
   for (;;) {
     const answer = placeQueens(rand, size);
     const regions = growRegions(rand, size, answer);

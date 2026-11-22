@@ -29,6 +29,7 @@ const PRECACHE = [
   'src/music.js',
   'src/pictures.js',
   'src/puzzles.js',
+  'src/random.js',
   'src/rules.js',
   'src/session.js',
   'src/solver.js',

@@ -3,19 +3,9 @@
 // 每條內部接縫有一個凸耳（一邊凸、另一邊凹），凸耳的位置、大小、頸部、歪的角度、接縫的彎度也各不相同。
 // 全部由種子決定，同一幅拼圖每次畫出來都一樣。
 
-export const UNIT = 100;
+import { seeded } from './random.js';
 
-/** 簡單的種子亂數（mulberry32），回傳 0–1 */
-export function seeded(seed) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+export const UNIT = 100;
 
 /** 字串轉成種子：同一幅拼圖的 id 永遠得到同一組形狀 */
 export function hashSeed(text) {
