@@ -389,7 +389,7 @@ function buildRandom() {
     const li = document.createElement('li');
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'level dice';
+    btn.className = 'dice';
     btn.dataset.size = size;
     btn.classList.toggle('started', current !== null);
     btn.innerHTML = `<span class="num">${size}×${size}</span><span class="count">${count ? `已解 ${count} 題` : '還沒解過'}</span>`;

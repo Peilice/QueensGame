@@ -166,7 +166,7 @@ main {
 
 /* 紙卡觸感：底緣較厚的邊框就是卡片厚度，按下時厚度壓扁、整張往下沉 */
 .btn,
-.level,
+.dice,
 .learn {
   border: 1.5px solid var(--edge);
   border-bottom-width: var(--card-edge);
@@ -175,7 +175,7 @@ main {
   -webkit-tap-highlight-color: transparent;
 }
 .btn:active:not(:disabled),
-.level:active:not(:disabled),
+.dice:active:not(:disabled),
 .learn:active {
   border-color: var(--muted);
   border-bottom-width: 1.5px;
@@ -748,48 +748,6 @@ svg.bulb .glass { fill: var(--hl); }
 .thumb:disabled { display: grid; place-items: center; border-style: dashed; background: var(--bg); cursor: default; }
 .thumb:disabled .badge { position: static; width: 16px; height: 16px; background: none; stroke: var(--muted); stroke-width: 2.2; }
 
-/* 隨機難度的尺寸卡沿用這一套紙卡 */
-.level-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.level {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font: inherit;
-  border-radius: 16px;
-  background: var(--surface);
-  color: var(--btn-text);
-  cursor: pointer;
-}
-.level .num { font-size: 1.6rem; line-height: 1.1; }
-@media (hover: hover) {
-  .level:hover:not(:disabled) { border-color: var(--muted); }
-}
-.level:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-/* 玩到一半：一個鉛筆點 */
-.level.started::after {
-  content: "";
-  position: absolute;
-  bottom: 6px;
-  left: 50%;
-  width: 6px;
-  height: 6px;
-  margin-left: -3px;
-  border-radius: 50%;
-  background: var(--muted);
-}
-
 /* ---------- 列表分頁：一條燕麥米的軌道，選中的那一頁是貼在上面的紙卡 ---------- */
 
 .tabs {
@@ -830,16 +788,47 @@ svg.bulb .glass { fill: var(--hl); }
 /* ---------- 隨機難度：每個尺寸一張卡 ---------- */
 
 /* 四種尺寸由上往下排：和教學卡同寬的橫向紙卡，左邊尺寸、右邊解了幾題 */
-.dice-list { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-.level.dice { aspect-ratio: auto; min-height: 72px; flex-direction: row; justify-content: space-between; padding: 12px 22px; border-radius: 18px; }
-.level.dice .num { font-size: 1.6rem; font-variant-numeric: tabular-nums; }
-.level.dice .count { font-size: 0.9rem; color: var(--hint); white-space: nowrap; }
+.dice-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+.dice {
+  position: relative;
+  width: 100%;
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 22px;
+  font: inherit;
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--btn-text);
+  cursor: pointer;
+}
+.dice .num { font-size: 1.6rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.dice .count { order: 2; font-size: 0.9rem; color: var(--hint); white-space: nowrap; }
+@media (hover: hover) {
+  .dice:hover:not(:disabled) { border-color: var(--muted); }
+}
+.dice:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 /* 一排一張卡，歪的角度收小一點，長卡歪太多會像要掉下來 */
-.dice-list li:nth-child(odd) .level { rotate: -0.6deg; }
-.dice-list li:nth-child(even) .level { rotate: 0.5deg; }
-/* 玩到一半的鉛筆點：放在題數左邊 */
-.level.dice.started::after { position: static; order: 1; margin: 0 8px 0 auto; }
-.level.dice .count { order: 2; }
+.dice-list li:nth-child(odd) .dice { rotate: -0.6deg; }
+.dice-list li:nth-child(even) .dice { rotate: 0.5deg; }
+/* 玩到一半：一個鉛筆點，放在題數左邊 */
+.dice.started::after {
+  content: "";
+  order: 1;
+  width: 6px;
+  height: 6px;
+  margin: 0 8px 0 auto;
+  border-radius: 50%;
+  background: var(--muted);
+}
 
 /* ---------- 教學 ---------- */
 
@@ -1239,7 +1228,7 @@ svg.bulb .glass { fill: var(--hl); }
 @keyframes rise { from { transform: translateY(6px); opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn, .level, .learn, .tab, .rules > summary svg, .board.solved, .switch .track, .switch .track::after { transition: none; }
+  .btn, .dice, .learn, .tab, .rules > summary svg, .board.solved, .switch .track, .switch .track::after { transition: none; }
   /* 選擇器要和原本的一樣具體，否則媒體查詢壓不過去 */
   .cell svg.in,
   .cell svg.in path,
