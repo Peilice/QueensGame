@@ -1,5 +1,5 @@
 // 隨機出題：同一個尺寸＋種子永遠產生同一題，網址帶著種子就能重現、分享。
-import { countSolutions } from './solver.js';
+import { otherSolution } from './solver.js';
 import { seeded } from './random.js';
 
 const LETTERS = 'ABCDEFGHIJ';
@@ -78,29 +78,6 @@ function staysConnected(size, regions, id, i) {
     }
   }
   return seen.size === cells.length;
-}
-
-/** 回傳一個和 answer 不同的解（每列的欄），沒有就回傳 null */
-function otherSolution(puzzle, answer) {
-  const { size, regions } = puzzle;
-  const usedCols = new Array(size).fill(false);
-  const usedRegions = new Array(size).fill(false);
-  const cols = [];
-  const place = (row) => {
-    if (row === size) return cols.some((c, r) => c !== answer[r]);
-    for (let col = 0; col < size; col++) {
-      const region = regions[row * size + col];
-      if (usedCols[col] || usedRegions[region]) continue;
-      if (row > 0 && Math.abs(cols[row - 1] - col) <= 1) continue;
-      usedCols[col] = usedRegions[region] = true;
-      cols.push(col);
-      if (place(row + 1)) return true;
-      cols.pop();
-      usedCols[col] = usedRegions[region] = false;
-    }
-    return false;
-  };
-  return place(0) ? [...cols] : null;
 }
 
 /**

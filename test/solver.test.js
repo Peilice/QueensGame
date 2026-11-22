@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parsePuzzle } from '../src/rules.js';
-import { countSolutions, solve } from '../src/solver.js';
+import { countSolutions, solve, otherSolution } from '../src/solver.js';
 import { verifyAll } from '../scripts/verify-puzzles.js';
 import { PUZZLES } from '../src/puzzles.js';
 
@@ -15,6 +15,14 @@ test('多解的題目', () => {
   // 每欄一個色塊：等同 4 皇后問題＋相鄰限制，有 2 個解
   const p = parsePuzzle(['ABCD', 'ABCD', 'ABCD', 'ABCD']);
   assert.equal(countSolutions(p, 10), 2);
+});
+
+test('找另一個解：多解時回傳和答案不同的那個，唯一解時是 null', () => {
+  const many = parsePuzzle(['ABCD', 'ABCD', 'ABCD', 'ABCD']);
+  assert.deepEqual(otherSolution(many, [1, 3, 0, 2]), [2, 0, 3, 1]);
+  assert.deepEqual(otherSolution(many, [2, 0, 3, 1]), [1, 3, 0, 2]);
+  const one = parsePuzzle(['ABBB', 'AABB', 'CCDD', 'CCDD']);
+  assert.equal(otherSolution(one, [2, 0, 3, 1]), null);
 });
 
 test('無解的題目', () => {
