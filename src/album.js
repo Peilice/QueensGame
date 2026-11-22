@@ -59,7 +59,12 @@ export function nextPiece(size, picture, solved, started, random = Math.random) 
   return pool[Math.floor(random() * pool.length)];
 }
 
+/** 這一本拼好了幾幅 */
+export function doneCount(size, solved) {
+  return PICTURES[size].filter((_, p) => isComplete(size, p, solved)).length;
+}
+
 /** 整本拼完了沒 */
 export function albumComplete(size, solved) {
-  return PICTURES[size].every((_, p) => isComplete(size, p, solved));
+  return doneCount(size, solved) === PICTURES[size].length;
 }

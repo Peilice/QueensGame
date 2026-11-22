@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { PICTURES } from '../src/pictures.js';
-import { piecesOf, locate, progress, isComplete, isOpen, canPlay, currentPicture, nextPiece, albumComplete } from '../src/album.js';
+import { piecesOf, locate, progress, isComplete, isOpen, canPlay, currentPicture, nextPiece, doneCount, albumComplete } from '../src/album.js';
 
 const none = new Set();
 const first = PICTURES[6][0].levels;
@@ -51,4 +51,11 @@ test('下一片：挑這一幅還沒拼的，玩到一半的優先；拼完了�
   for (let k = 0; k < 20; k++) assert.ok(first.slice(7).includes(nextPiece(6, 0, solved, none)));
   assert.equal(nextPiece(6, 0, solved, new Set([first[8]])), first[8]);
   assert.equal(nextPiece(6, 0, new Set(first), none), null);
+});
+
+test('這一本拼好了幾幅：只算整幅拼完的', () => {
+  assert.equal(doneCount(6, none), 0);
+  assert.equal(doneCount(6, new Set(first.slice(1))), 0);
+  assert.equal(doneCount(6, new Set([...first, ...second])), 2);
+  assert.equal(albumComplete(6, new Set([...first, ...second])), false);
 });

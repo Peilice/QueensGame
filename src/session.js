@@ -14,7 +14,8 @@ export const levelId = (size, index) => `${size}-${index + 1}`;
 // 隨機題的網址：r 加尺寸再加 base36 的種子，例如 r7-1k2f9x；同一個網址永遠是同一題
 export const randomId = (size, seed) => `r${size}-${seed.toString(36)}`;
 
-const SIZES = Object.keys(PICTURES).map(Number);
+/** 四本拼圖冊的尺寸，由小到大 */
+export const SIZES = Object.keys(PICTURES).map(Number);
 
 /** 某尺寸已破關的題目編號集合 */
 export function solvedIn(size, solved = storage.getSolved()) {

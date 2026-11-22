@@ -11,7 +11,7 @@ import { targets } from './tutorial.js';
 import { TIPS, cellsOf } from './tips.js';
 import * as play from './session.js';
 
-const { levelId, randomId, solvedIn, startedIn } = play;
+const { SIZES, levelId, randomId, solvedIn, startedIn } = play;
 
 const $ = (id) => document.getElementById(id);
 
@@ -119,11 +119,34 @@ const shelf = { size: null, picture: null };
 let landing = null;
 
 const imageOf = (pic, small = false) => `pictures/${pic.id}${small ? '-s' : ''}.webp`;
+
+/** 鋪滿整幅（W 見方）的插圖；extra 是要另外加上的屬性 */
+const imageTag = (pic, W, { small = false, extra = '' } = {}) =>
+  `<image href="${imageOf(pic, small)}" width="${W}" height="${W}" preserveAspectRatio="xMidYMid slice"${extra}/>`;
+
 // 每一幅的形狀（角點、凸耳）由它的 id 決定，畫過就記著
 const shapes = new Map();
-function shapeOf(size, pic) {
-  if (!shapes.has(pic.id)) shapes.set(pic.id, tabs(GRID[size], hashSeed(pic.id)));
-  return shapes.get(pic.id);
+
+/** 畫一幅拼圖要用的東西：這一幅的資料、一邊幾片、形狀、整幅的邊長 */
+function pictureGeom(size, picture) {
+  const pic = PICTURES[size][picture];
+  const n = GRID[size];
+  if (!shapes.has(pic.id)) shapes.set(pic.id, tabs(n, hashSeed(pic.id)));
+  return { pic, n, t: shapes.get(pic.id), W: n * UNIT };
+}
+
+/** 一顆 type="button" 的按鈕 */
+function button(className = '') {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  if (className) btn.className = className;
+  return btn;
+}
+
+/** 不在畫面上就捲到正中間 */
+function reveal(el) {
+  const { top, bottom } = el.getBoundingClientRect();
+  if (top < 0 || bottom > innerHeight) el.scrollIntoView({ block: 'center' });
 }
 
 /** 三個畫面一次只顯示一個 */
@@ -151,27 +174,17 @@ function showLevels(tab = 'levels') {
   buildRandom();
 
   // 從隨機題回來：那一張尺寸卡不在畫面上就捲過去
-  if (fromRandom) {
-    const card = $('random-list').querySelector(`[data-size="${fromRandom.size}"]`);
-    const { top, bottom } = card.getBoundingClientRect();
-    if (top < 0 || bottom > innerHeight) card.scrollIntoView({ block: 'center' });
-  }
-
+  if (fromRandom) reveal($('random-list').querySelector(`[data-size="${fromRandom.size}"]`));
   // 從題目回來：拼圖不在畫面上就捲過去，看那一片落進位置
-  if (from) {
-    const target = $('album').querySelector('.jigsaw');
-    const { top, bottom } = target.getBoundingClientRect();
-    if (top < 0 || bottom > innerHeight) target.scrollIntoView({ block: 'center' });
-  }
+  if (from) reveal($('album').querySelector('.jigsaw'));
 }
 
 /** 拼圖冊：每次回到列表、換尺寸、換一幅都整個重畫 */
 function buildAlbum() {
   const all = storage.getSolved();
   const boards = storage.getBoards();
-  const sizes = Object.keys(PICTURES).map(Number);
   // 第一次打開：翻到最小一本還沒拼完的
-  shelf.size ??= sizes.find((s) => !album.albumComplete(s, solvedIn(s, all))) ?? sizes[0];
+  shelf.size ??= SIZES.find((s) => !album.albumComplete(s, solvedIn(s, all))) ?? SIZES[0];
   const size = shelf.size;
   const solved = solvedIn(size, all);
   const started = startedIn(size, boards);
@@ -189,11 +202,9 @@ function buildAlbum() {
   sizeRow.className = 'album-sizes';
   sizeRow.setAttribute('role', 'group');
   sizeRow.setAttribute('aria-label', '拼圖冊');
-  for (const s of sizes) {
-    const doneCount = PICTURES[s].filter((_, p) => album.isComplete(s, p, solvedIn(s, all))).length;
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'album-size';
+  for (const s of SIZES) {
+    const doneCount = album.doneCount(s, solvedIn(s, all));
+    const btn = button('album-size');
     btn.setAttribute('aria-pressed', s === size);
     btn.innerHTML = `<span>${s}×${s}</span><small>${doneCount} / ${PICTURES[s].length} 幅</small>`;
     btn.setAttribute('aria-label', `${s}×${s}，拼好 ${doneCount} / ${PICTURES[s].length} 幅`);
@@ -221,16 +232,12 @@ function buildAlbum() {
   // 還沒拼完：主要按鈕替你挑一片；拼完了而後面還有沒拼完的：翻到那一幅
   const nextOpen = album.currentPicture(size, solved, started);
   if (!complete) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'btn primary album-next';
+    const btn = button('btn primary album-next');
     btn.innerHTML = `${hedgehogSvg()}<span>拼下一片</span>`;
     btn.addEventListener('click', () => go({ size, index: album.nextPiece(size, picture, solved, started) }));
     parts.push(btn);
   } else if (!album.isComplete(size, nextOpen, solved)) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'btn primary album-next';
+    const btn = button('btn primary album-next');
     btn.textContent = `下一幅：${PICTURES[size][nextOpen].title}`;
     btn.addEventListener('click', () => {
       shelf.picture = nextOpen;
@@ -245,13 +252,10 @@ function buildAlbum() {
 
 /** 一整幅拼圖：插圖墊在底下，還沒拼的片蓋一張紙、畫上虛線輪廓；上面疊一層透明按鈕，一片一顆 */
 function jigsawEl(size, picture, solved, started) {
-  const pic = PICTURES[size][picture];
-  const n = GRID[size];
-  const t = shapeOf(size, pic);
-  const W = n * UNIT;
+  const { pic, n, t, W } = pictureGeom(size, picture);
   const land = landing?.size === size ? pic.levels.indexOf(landing.index) : -1;
   // 插圖沒抓到（例如離線又沒存過）時，拼好的片就是一張白紙，照樣能玩
-  const image = `<image href="${imageOf(pic)}" width="${W}" height="${W}" preserveAspectRatio="xMidYMid slice"/>`;
+  const image = imageTag(pic, W);
 
   let svg =
     `<svg viewBox="-6 -6 ${W + 12} ${W + 12}" aria-hidden="true"><defs>` +
@@ -285,8 +289,7 @@ function jigsawEl(size, picture, solved, started) {
   hit.className = 'hit';
   hit.style.setProperty('--g', n);
   pic.levels.forEach((index, slot) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
+    const btn = button();
     const done = solved.has(index);
     const going = !done && started.has(index);
     btn.setAttribute('aria-label', `${pic.title} 第 ${slot + 1} 片${done ? '，拼好了' : going ? '，玩到一半' : ''}`);
@@ -308,7 +311,7 @@ function jigsawEl(size, picture, solved, started) {
 function shelfEl(size, current, solved, started) {
   const list = PICTURES[size];
   const per = album.piecesOf(size);
-  const doneCount = list.filter((_, p) => album.isComplete(size, p, solved)).length;
+  const doneCount = album.doneCount(size, solved);
   const section = document.createElement('section');
   section.className = 'shelf';
   section.innerHTML = `<h3>這一本的拼圖<span>拼好 ${doneCount} / ${list.length} 幅</span></h3>`;
@@ -318,9 +321,7 @@ function shelfEl(size, current, solved, started) {
     const done = album.isComplete(size, p, solved);
     const got = album.progress(size, p, solved);
     const li = document.createElement('li');
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'thumb';
+    const btn = button('thumb');
     btn.classList.toggle('partial', open && !done);
     btn.disabled = !open;
     if (p === current) btn.setAttribute('aria-current', 'true');
@@ -343,17 +344,14 @@ function shelfEl(size, current, solved, started) {
 
 /** 沒拼完的那一幅的小圖：只露出拼好的那幾片，其他留白，和大拼圖一樣要拼了才看得到 */
 function thumbSvg(size, picture, solved) {
-  const pic = PICTURES[size][picture];
-  const n = GRID[size];
-  const t = shapeOf(size, pic);
-  const W = n * UNIT;
+  const { pic, n, t, W } = pictureGeom(size, picture);
   const pieces = pic.levels.flatMap((index, slot) => (solved.has(index) ? [`<path d="${piecePath(n, t, slot)}"/>`] : []));
   const id = `thumb-${pic.id}`;
   return (
     `<svg viewBox="0 0 ${W} ${W}" aria-hidden="true">` +
     (pieces.length
       ? `<defs><clipPath id="${id}">${pieces.join('')}</clipPath></defs>` +
-        `<image href="${imageOf(pic, true)}" width="${W}" height="${W}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${id})"/>`
+        imageTag(pic, W, { small: true, extra: ` clip-path="url(#${id})"` })
       : '') +
     `</svg>`
   );
@@ -361,20 +359,17 @@ function thumbSvg(size, picture, solved) {
 
 /** 過關面板上剛拿到的那一片：插圖照這一片的形狀剪下來 */
 function pieceSvg(size, picture, slot) {
-  const pic = PICTURES[size][picture];
-  const n = GRID[size];
-  const t = shapeOf(size, pic);
+  const { pic, n, t, W } = pictureGeom(size, picture);
   const d = piecePath(n, t, slot);
   // 以這一片的外框置中，取一個 164 見方（片大一點就放大取景）的正方形
   const box = pieceBox(n, t, slot);
   const side = Math.max(164, box.w + 8, box.h + 8);
   const x = +(box.x + box.w / 2 - side / 2).toFixed(1);
   const y = +(box.y + box.h / 2 - side / 2).toFixed(1);
-  const W = n * UNIT;
   return (
     `<svg viewBox="${x} ${y} ${side} ${side}"><defs><clipPath id="win-clip"><path d="${d}"/></clipPath></defs>` +
     `<g clip-path="url(#win-clip)"><rect class="paper" x="${x}" y="${y}" width="${side}" height="${side}"/>` +
-    `<image href="${imageOf(pic)}" width="${W}" height="${W}" preserveAspectRatio="xMidYMid slice"/></g>` +
+    `${imageTag(pic, W)}</g>` +
     `<path class="edge" d="${d}"/></svg>`
   );
 }
@@ -387,9 +382,7 @@ function buildRandom() {
     const current = storage.getRandom(size);
     const count = solved[size] ?? 0;
     const li = document.createElement('li');
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'dice';
+    const btn = button('dice');
     btn.dataset.size = size;
     btn.classList.toggle('started', current !== null);
     btn.innerHTML = `<span class="num">${size}×${size}</span><span class="count">${count ? `已解 ${count} 題` : '還沒解過'}</span>`;
